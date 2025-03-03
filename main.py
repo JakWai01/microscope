@@ -23,7 +23,8 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     
     input_dag = circuit_to_dag(circuit)
 
-    print(f'Simple DAG: {generate_simple_dag(input_dag)}')
+    micro_dag = DAG().from_qiskit_dag(input_dag)
+    print(micro_dag.__dict__)
     
     if show_dag:
         input_dag_image = dag_drawer(input_dag)
@@ -58,21 +59,47 @@ def generate_initial_mapping(dag):
     return Layout.generate_trivial_layout(canonical_register)
 
 class DAGNode:
-    def __init__(node_id, control, target):
-        node_id = node_id
-        control = control
-        target = target
+    def __init__(self, node_id, control, target):
+        self.node_id = node_id
+        self.control = control
+        self.target = target
+
+    def __repr__(self):
+        return str(self.__dict__)
 
 class DAG:
-    def __init__():
-        nodes = []
-        edges = []
+    def __init__(self):
+        self.nodes = dict()
+        self.edges = []
+        self.last_op_on_qubit = dict()
 
-    def insert_node(control, target):
-        node = DAGNode(len(self.nodes), control, target)
-        self.nodes.insert(node)
+    def insert_node(self, control, target):
+        node_id = len(self.nodes)
+        node = DAGNode(node_id, control, target)
 
-    def from_qiskit_dag(dag):
+        self.nodes[node_id] = node
+
+        self._update_edges(node_id)
+
+        return node_id
+
+    def _update_edges(self, node_id):
+        node = self.nodes[node_id]
+
+        predecessor_node_a = self.last_op_on_qubit.get(node.control)
+        predecessor_node_b = self.last_op_on_qubit.get(node.target)
+
+        if predecessor_node_a != None:
+            self.edges.append((predecessor_node_a, node_id))
+
+        if predecessor_node_b != None and predecessor_node_a != predecessor_node_b:
+            self.edges.append((predecessor_node_b, node_id))
+
+        self.last_op_on_qubit[node.control] = node_id
+        self.last_op_on_qubit[node.target] = node_id
+
+
+    def from_qiskit_dag(self, dag):
         """Create DAG from qiskit DAGCircuit
 
         Filtering for two qubit operations manually is necessary because the
@@ -80,13 +107,16 @@ class DAG:
         Directives as e.g. Barriers are *not* supported.
         Nodes of the DAG represent operations, edges represent dependencies
         """
+
         for node in dag.topological_op_nodes():
             if node.op.num_qubits == 2:
                 print(f'{node.name} -> {node.qargs[0]._index}-{node.qargs[1]._index}')
+                self.insert_node(node.qargs[0]._index, node.qargs[1]._index)
 
+        return self
 
-
-def generate_simple_dag(dag):
+    def __str__(self):
+        return self.__dict__
 
 def basic_swap(dag, coupling_map, initial_mapping):
     canonical_register = dag.qregs["q"]
