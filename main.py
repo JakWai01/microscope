@@ -22,6 +22,8 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     circuit.draw('mpl') 
     
     input_dag = circuit_to_dag(circuit)
+
+    print(f'Simple DAG: {generate_simple_dag(input_dag)}')
     
     if show_dag:
         input_dag_image = dag_drawer(input_dag)
@@ -55,6 +57,36 @@ def generate_initial_mapping(dag):
     canonical_register = dag.qregs["q"]
     return Layout.generate_trivial_layout(canonical_register)
 
+class DAGNode:
+    def __init__(node_id, control, target):
+        node_id = node_id
+        control = control
+        target = target
+
+class DAG:
+    def __init__():
+        nodes = []
+        edges = []
+
+    def insert_node(control, target):
+        node = DAGNode(len(self.nodes), control, target)
+        self.nodes.insert(node)
+
+    def from_qiskit_dag(dag):
+        """Create DAG from qiskit DAGCircuit
+
+        Filtering for two qubit operations manually is necessary because the
+        documentation says whether `.two_qubit_ops()` is topologically ordered.
+        Directives as e.g. Barriers are *not* supported.
+        Nodes of the DAG represent operations, edges represent dependencies
+        """
+        for node in dag.topological_op_nodes():
+            if node.op.num_qubits == 2:
+                print(f'{node.name} -> {node.qargs[0]._index}-{node.qargs[1]._index}')
+
+
+
+def generate_simple_dag(dag):
 
 def basic_swap(dag, coupling_map, initial_mapping):
     canonical_register = dag.qregs["q"]
