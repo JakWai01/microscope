@@ -32,8 +32,11 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     micro_mapping = mapping_to_micro_mapping(initial_mapping)
 
     micro_dag = DAG().from_qiskit_dag(input_dag)
-    basic_swap_micro_dag(micro_dag, coupling_map, micro_mapping)
     print(micro_dag.__dict__)
+
+    res_dag = basic_swap_micro_dag(micro_dag, coupling_map, micro_mapping)
+    print("RESULT")
+    print(res_dag.__dict__)
     
     if show_dag:
         input_dag_image = dag_drawer(input_dag)
@@ -68,10 +71,11 @@ def generate_initial_mapping(dag):
     return Layout.generate_trivial_layout(canonical_register)
 
 class DAGNode:
-    def __init__(self, node_id, control, target):
+    def __init__(self, node_id, control, target, swap):
         self.node_id = node_id
         self.control = control
         self.target = target
+        self.swap = swap
 
     def __repr__(self):
         return str(self.__dict__)
@@ -82,14 +86,23 @@ class DAG:
         self.edges = []
         self.last_op_on_qubit = dict()
 
-    def insert_node(self, control, target):
+    def insert(self, control, target, swap):
         node_id = len(self.nodes)
-        node = DAGNode(node_id, control, target)
+        node = DAGNode(node_id, control, target, swap)
 
         self.nodes[node_id] = node
 
         self._update_edges(node_id)
 
+        return node_id
+    
+    # Think about whether we want to maintain old id's or create new ones.
+    # For now, we will maintain old id's
+    # Does update_edges actually work with this?
+    def insert_node(self, node):
+        node_id = node.node_id
+        self.nodes[node_id] = node
+        self._update_edges(node_id)
         return node_id
 
     def _update_edges(self, node_id):
@@ -123,7 +136,8 @@ class DAG:
         for node in dag.topological_op_nodes():
             if node.op.num_qubits == 2:
                 print(f'{node.name} -> {node.qargs[0]._index}-{node.qargs[1]._index}')
-                self.insert_node(node.qargs[0]._index, node.qargs[1]._index)
+                # SWAP boolean is false since there are no SWAP gates before the transpilation
+                self.insert(node.qargs[0]._index, node.qargs[1]._index, False)
 
         return self
 
@@ -134,20 +148,27 @@ class DAG:
         return len(self.nodes)
 
 def basic_swap_micro_dag(dag, coupling_map, initial_mapping):
+    # Mapping logical to physical qubits e.g. {"logic": "physical"}
     current_mapping = initial_mapping.copy()
-
-    for id in range(len(dag)):
-        node = dag.get(id)
+    new_dag = DAG()
+    
+    for node_id in range(len(dag)):
+        node = dag.get(node_id)
 
         physical_q0 = current_mapping[node.control] 
         physical_q1 = current_mapping[node.target]
         
         # Check if SWAP is required
         if coupling_map.distance(physical_q0, physical_q1) != 1:
+            print(f"SWAP REQUIRED because {node.control} with {node.target}")
+            print(f"{node.control} is currently mapped to {physical_q0}")
+            print(f"{node.target} is currently mapped to {physical_q1}")
+
             # Insert a new layer with the SWAP(s)
             
-            # Find shortest SWAP path
+            # Returns the shortest undirectedpath between two physical qubits
             path = coupling_map.shortest_undirected_path(physical_q0, physical_q1)
+            print(path)
 
             for swap in range(len(path) - 2):
                 connected_wire_1 = path[swap]
@@ -155,6 +176,24 @@ def basic_swap_micro_dag(dag, coupling_map, initial_mapping):
 
                 qubit_1 = current_mapping[connected_wire_1]
                 qubit_2 = current_mapping[connected_wire_2]
+
+                # We are apparently not inserting correctly here
+                print(f"Swapping phy {qubit_1} and phy {qubit_2}")
+                new_dag.insert(qubit_1, qubit_2, True)
+           
+            for swap in range(len(path) - 2):
+                print("Before SWAP")
+                print(current_mapping)
+                tmp = current_mapping[path[swap]]
+                current_mapping[path[swap]] = current_mapping[path[swap + 1]]
+                current_mapping[path[swap + 1]] = tmp
+                print("After SWAP")
+                print(current_mapping)
+            
+
+        new_dag.insert_node(node)
+
+    return new_dag
 
 def basic_swap(dag, coupling_map, initial_mapping):
     canonical_register = dag.qregs["q"]
@@ -174,8 +213,6 @@ def basic_swap(dag, coupling_map, initial_mapping):
     for layer in dag.serial_layers():
         subdag = layer["graph"]
         for gate in subdag.two_qubit_ops():
-            print("GATE")
-            print(gate.qargs[0])
             physical_q0 = current_mapping[gate.qargs[0]]
             physical_q1 = current_mapping[gate.qargs[1]]
             
