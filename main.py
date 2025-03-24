@@ -148,6 +148,7 @@ class DAG:
         return len(self.nodes)
 
 def basic_swap_micro_dag(dag, coupling_map, initial_mapping):
+    print(coupling_map)
     # Mapping logical to physical qubits e.g. {"logic": "physical"}
     current_mapping = initial_mapping.copy()
     new_dag = DAG()
@@ -160,12 +161,6 @@ def basic_swap_micro_dag(dag, coupling_map, initial_mapping):
         
         # Check if SWAP is required
         if coupling_map.distance(physical_q0, physical_q1) != 1:
-            print(f"SWAP REQUIRED because {node.control} with {node.target}")
-            print(f"{node.control} is currently mapped to {physical_q0}")
-            print(f"{node.target} is currently mapped to {physical_q1}")
-
-            # Insert a new layer with the SWAP(s)
-            
             # Returns the shortest undirectedpath between two physical qubits
             path = coupling_map.shortest_undirected_path(physical_q0, physical_q1)
             print(path)
@@ -177,23 +172,23 @@ def basic_swap_micro_dag(dag, coupling_map, initial_mapping):
                 qubit_1 = current_mapping[connected_wire_1]
                 qubit_2 = current_mapping[connected_wire_2]
 
-                # We are apparently not inserting correctly here
-                print(f"Swapping phy {qubit_1} and phy {qubit_2}")
                 new_dag.insert(qubit_1, qubit_2, True)
-           
-            for swap in range(len(path) - 2):
-                print("Before SWAP")
-                print(current_mapping)
-                tmp = current_mapping[path[swap]]
-                current_mapping[path[swap]] = current_mapping[path[swap + 1]]
-                current_mapping[path[swap + 1]] = tmp
-                print("After SWAP")
-                print(current_mapping)
             
+            for swap in range(len(path) - 2):
+                current_mapping = swap_physical_qubits(path[swap], path[swap+1], current_mapping) 
 
         new_dag.insert_node(node)
 
     return new_dag
+
+def swap_physical_qubits(physical_q0, physical_q1, current_mapping):
+    logical_q0 = [key for key, value in current_mapping.items() if value == physical_q0][0]
+    logical_q1 = [key for key, value in current_mapping.items() if value == physical_q1][0]
+    print(logical_q0)
+    tmp = current_mapping[logical_q0]
+    current_mapping[logical_q0] = current_mapping[logical_q1]
+    current_mapping[logical_q1] = tmp
+    return current_mapping
 
 def basic_swap(dag, coupling_map, initial_mapping):
     canonical_register = dag.qregs["q"]
