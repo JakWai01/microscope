@@ -23,18 +23,21 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     
     input_dag = circuit_to_dag(circuit)
 
-    micro_dag = DAG().from_qiskit_dag(input_dag)
-    print(micro_dag.__dict__)
-    
-    if show_dag:
-        input_dag_image = dag_drawer(input_dag)
-        input_dag_image.show()
-    
     # A line with 10 physical qubits
     coupling_map = CouplingMap.from_line(10)
 
     # Generate initial 'trivial' mapping 
     initial_mapping = generate_initial_mapping(input_dag)
+
+    micro_mapping = mapping_to_micro_mapping(initial_mapping)
+
+    micro_dag = DAG().from_qiskit_dag(input_dag)
+    basic_swap_micro_dag(micro_dag, coupling_map, micro_mapping)
+    print(micro_dag.__dict__)
+    
+    if show_dag:
+        input_dag_image = dag_drawer(input_dag)
+        input_dag_image.show()
 
     # Execute basic swap algorithm
     if qiskit_fallback:
@@ -53,6 +56,12 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
 
     # Show circuits
     plt.show()
+    
+def mapping_to_micro_mapping(initial_mapping):
+    micro_mapping = dict()
+    for k, v in initial_mapping.get_physical_bits().items():
+        micro_mapping[k] = v._index
+    return micro_mapping
 
 def generate_initial_mapping(dag):
     canonical_register = dag.qregs["q"]
@@ -97,7 +106,10 @@ class DAG:
 
         self.last_op_on_qubit[node.control] = node_id
         self.last_op_on_qubit[node.target] = node_id
-
+    
+    # Get node by id
+    def get(self, node_id):
+        return self.nodes[node_id]
 
     def from_qiskit_dag(self, dag):
         """Create DAG from qiskit DAGCircuit
@@ -118,6 +130,32 @@ class DAG:
     def __str__(self):
         return self.__dict__
 
+    def __len__(self):
+        return len(self.nodes)
+
+def basic_swap_micro_dag(dag, coupling_map, initial_mapping):
+    current_mapping = initial_mapping.copy()
+
+    for id in range(len(dag)):
+        node = dag.get(id)
+
+        physical_q0 = current_mapping[node.control] 
+        physical_q1 = current_mapping[node.target]
+        
+        # Check if SWAP is required
+        if coupling_map.distance(physical_q0, physical_q1) != 1:
+            # Insert a new layer with the SWAP(s)
+            
+            # Find shortest SWAP path
+            path = coupling_map.shortest_undirected_path(physical_q0, physical_q1)
+
+            for swap in range(len(path) - 2):
+                connected_wire_1 = path[swap]
+                connected_wire_2 = path[swap + 1]
+
+                qubit_1 = current_mapping[connected_wire_1]
+                qubit_2 = current_mapping[connected_wire_2]
+
 def basic_swap(dag, coupling_map, initial_mapping):
     canonical_register = dag.qregs["q"]
     current_mapping = initial_mapping.copy()
@@ -135,8 +173,9 @@ def basic_swap(dag, coupling_map, initial_mapping):
     
     for layer in dag.serial_layers():
         subdag = layer["graph"]
-        
         for gate in subdag.two_qubit_ops():
+            print("GATE")
+            print(gate.qargs[0])
             physical_q0 = current_mapping[gate.qargs[0]]
             physical_q1 = current_mapping[gate.qargs[1]]
             
