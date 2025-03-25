@@ -34,7 +34,7 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     micro_dag = DAG().from_qiskit_dag(input_dag)
     print(micro_dag.__dict__)
 
-    res_dag = basic_swap_micro_dag(micro_dag, coupling_map, micro_mapping)
+    res_dag = micro_swap(micro_dag, coupling_map, micro_mapping)
     print("RESULT")
     print(res_dag.__dict__)
     
@@ -147,7 +147,7 @@ class DAG:
     def __len__(self):
         return len(self.nodes)
 
-def basic_swap_micro_dag(dag, coupling_map, initial_mapping):
+def micro_swap(dag, coupling_map, initial_mapping):
     print(coupling_map)
     # Mapping logical to physical qubits e.g. {"logic": "physical"}
     current_mapping = initial_mapping.copy()
