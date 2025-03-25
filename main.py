@@ -95,15 +95,6 @@ class DAG:
 
         return node_id
     
-    # Think about whether we want to maintain old id's or create new ones.
-    # For now, we will maintain old id's
-    # Does update_edges actually work with this?
-    def insert_node(self, node):
-        node_id = node.node_id
-        self.nodes[node_id] = node
-        self._update_edges(node_id)
-        return node_id
-
     def _update_edges(self, node_id):
         node = self.nodes[node_id]
 
@@ -149,9 +140,10 @@ class DAG:
 def micro_swap(dag, coupling_map, initial_mapping):
     # Mapping logical to physical qubits e.g. {"logic": "physical"}
     current_mapping = initial_mapping.copy()
+
     new_dag = DAG()
     
-    print_mapping(current_mapping)
+    pretty_print_mapping(current_mapping)
 
     for node_id in range(len(dag)):
         node = dag.get(node_id)
@@ -170,14 +162,14 @@ def micro_swap(dag, coupling_map, initial_mapping):
 
                 qubit_1 = current_mapping[connected_wire_1]
                 qubit_2 = current_mapping[connected_wire_2]
-
+                
                 new_dag.insert(qubit_1, qubit_2, True)
             
             for swap in range(len(path) - 2):
                 current_mapping = swap_physical_qubits(path[swap], path[swap+1], current_mapping) 
-                print_mapping(current_mapping)
+                pretty_print_mapping(current_mapping)
 
-        new_dag.insert_node(node)
+        new_dag.insert(node.control, node.target, False)
 
     return new_dag
 
@@ -189,7 +181,7 @@ def swap_physical_qubits(physical_q0, physical_q1, current_mapping):
     current_mapping[logical_q1] = tmp
     return current_mapping
 
-def print_mapping(current_mapping):
+def pretty_print_mapping(current_mapping):
     pretty_mapping = [None] * len(current_mapping)
     for k, v in current_mapping.items():
         pretty_mapping[v] = k
