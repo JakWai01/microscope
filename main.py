@@ -35,7 +35,6 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     print(micro_dag.__dict__)
 
     res_dag = micro_swap(micro_dag, coupling_map, micro_mapping)
-    print("RESULT")
     print(res_dag.__dict__)
     
     if show_dag:
@@ -148,11 +147,12 @@ class DAG:
         return len(self.nodes)
 
 def micro_swap(dag, coupling_map, initial_mapping):
-    print(coupling_map)
     # Mapping logical to physical qubits e.g. {"logic": "physical"}
     current_mapping = initial_mapping.copy()
     new_dag = DAG()
     
+    print_mapping(current_mapping)
+
     for node_id in range(len(dag)):
         node = dag.get(node_id)
 
@@ -163,7 +163,6 @@ def micro_swap(dag, coupling_map, initial_mapping):
         if coupling_map.distance(physical_q0, physical_q1) != 1:
             # Returns the shortest undirectedpath between two physical qubits
             path = coupling_map.shortest_undirected_path(physical_q0, physical_q1)
-            print(path)
 
             for swap in range(len(path) - 2):
                 connected_wire_1 = path[swap]
@@ -176,6 +175,7 @@ def micro_swap(dag, coupling_map, initial_mapping):
             
             for swap in range(len(path) - 2):
                 current_mapping = swap_physical_qubits(path[swap], path[swap+1], current_mapping) 
+                print_mapping(current_mapping)
 
         new_dag.insert_node(node)
 
@@ -184,11 +184,16 @@ def micro_swap(dag, coupling_map, initial_mapping):
 def swap_physical_qubits(physical_q0, physical_q1, current_mapping):
     logical_q0 = [key for key, value in current_mapping.items() if value == physical_q0][0]
     logical_q1 = [key for key, value in current_mapping.items() if value == physical_q1][0]
-    print(logical_q0)
     tmp = current_mapping[logical_q0]
     current_mapping[logical_q0] = current_mapping[logical_q1]
     current_mapping[logical_q1] = tmp
     return current_mapping
+
+def print_mapping(current_mapping):
+    pretty_mapping = [None] * len(current_mapping)
+    for k, v in current_mapping.items():
+        pretty_mapping[v] = k
+    print(pretty_mapping)
 
 def basic_swap(dag, coupling_map, initial_mapping):
     canonical_register = dag.qregs["q"]
