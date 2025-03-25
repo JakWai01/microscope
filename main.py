@@ -33,20 +33,25 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
 
     micro_dag = DAG().from_qiskit_dag(input_dag)
     print(micro_dag.__dict__)
-
-    res_dag = micro_swap(micro_dag, coupling_map, micro_mapping)
-    print(res_dag.__dict__)
     
-    if show_dag:
-        input_dag_image = dag_drawer(input_dag)
-        input_dag_image.show()
-
+    transpiled_micro_dag = micro_swap(micro_dag, coupling_map, micro_mapping)
+    print(transpiled_micro_dag.__dict__)
+    
     # Execute basic swap algorithm
     if qiskit_fallback:
         bs = BasicSwap(coupling_map)
         transpiled_dag = bs.run(input_dag)
     else:
         transpiled_dag = basic_swap(input_dag, coupling_map, initial_mapping)
+
+    transpiled_qiskit_dag = transpiled_micro_dag_to_transpiled_qiskit_dag(transpiled_micro_dag, input_dag)
+    transpiled_qiskit_dag_circuit = dag_to_circuit(transpiled_qiskit_dag)
+    transpiled_qiskit_dag_circuit.draw('mpl')
+
+    if show_dag:
+        input_dag_image = dag_drawer(input_dag)
+        input_dag_image.show()
+
     
     if show_dag:
         output_dag_image = dag_drawer(transpiled_dag)
@@ -58,7 +63,49 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
 
     # Show circuits
     plt.show()
-    
+
+def transpiled_micro_dag_to_transpiled_qiskit_dag(micro_dag, input_dag):
+    print(input_dag.cregs)
+    print(input_dag.qregs)
+    print(input_dag.qubits)
+    transpiled_qiskit_dag = input_dag.copy_empty_like()
+     
+    cnot_counter = 0 
+    canonical_register = input_dag.qregs["q"]
+
+    for layer in input_dag.serial_layers():
+        subdag = layer["graph"]
+        for gate in subdag.two_qubit_ops():
+            cnot_counter += 1
+            
+            # Check next index (0-indexing)
+            micro_dag_node = micro_dag.get(cnot_counter)
+            
+            # If next index is SWAP, insert SWAP
+            if micro_dag_node.swap == True:
+                swap_layer = DAGCircuit()
+                swap_layer.add_qreg(canonical_register)
+                
+                # Bisher wird immer nur ein SWAP eingefügt
+                
+                print("SWAP Candidates")
+                print(cnot_counter)
+                print(micro_dag_node.control, micro_dag_node.target)
+                # qubit_1 = Qubit(, micro_dag_node.control)
+                # qubit_2 = Qubit(, micro_dag_node.target)
+
+                swap_layer.apply_operation_back(
+                        SwapGate(), (input_dag.qubits[micro_dag_node.control], input_dag.qubits[micro_dag_node.target]), cargs=(), check=False
+                )
+
+                # Layer insertion
+                transpiled_qiskit_dag.compose(swap_layer)
+
+        transpiled_qiskit_dag.compose(subdag)
+
+    return transpiled_qiskit_dag
+
+
 def mapping_to_micro_mapping(initial_mapping):
     micro_mapping = dict()
     for k, v in initial_mapping.get_physical_bits().items():
@@ -83,7 +130,7 @@ class DAG:
     def __init__(self):
         self.nodes = dict()
         self.edges = []
-        self.last_op_on_qubit = dict()
+        self._last_op_on_qubit = dict()
 
     def insert(self, control, target, swap):
         node_id = len(self.nodes)
@@ -98,8 +145,8 @@ class DAG:
     def _update_edges(self, node_id):
         node = self.nodes[node_id]
 
-        predecessor_node_a = self.last_op_on_qubit.get(node.control)
-        predecessor_node_b = self.last_op_on_qubit.get(node.target)
+        predecessor_node_a = self._last_op_on_qubit.get(node.control)
+        predecessor_node_b = self._last_op_on_qubit.get(node.target)
 
         if predecessor_node_a != None:
             self.edges.append((predecessor_node_a, node_id))
@@ -107,8 +154,8 @@ class DAG:
         if predecessor_node_b != None and predecessor_node_a != predecessor_node_b:
             self.edges.append((predecessor_node_b, node_id))
 
-        self.last_op_on_qubit[node.control] = node_id
-        self.last_op_on_qubit[node.target] = node_id
+        self._last_op_on_qubit[node.control] = node_id
+        self._last_op_on_qubit[node.target] = node_id
     
     # Get node by id
     def get(self, node_id):
@@ -225,6 +272,8 @@ def basic_swap(dag, coupling_map, initial_mapping):
                     qubit_2 = current_mapping[connected_wire_2]
 
                     # Create SWAP operation
+                    print("BasicSWAP")
+                    print(qubit_1, qubit_2)
                     swap_layer.apply_operation_back(
                             SwapGate(), (qubit_1, qubit_2), cargs=(), check=False
                     )
