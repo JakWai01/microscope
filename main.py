@@ -32,10 +32,16 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     micro_mapping = mapping_to_micro_mapping(initial_mapping)
 
     micro_dag = DAG().from_qiskit_dag(input_dag)
-    print(micro_dag.__dict__)
     
     transpiled_micro_dag = micro_swap(micro_dag, coupling_map, micro_mapping)
-    print(transpiled_micro_dag.__dict__)
+    
+    transpiled_qiskit_dag = transpiled_micro_dag_to_transpiled_qiskit_dag(transpiled_micro_dag, input_dag)
+    transpiled_qiskit_dag_circuit = dag_to_circuit(transpiled_qiskit_dag)
+    transpiled_qiskit_dag_circuit.draw('mpl')
+
+    if show_dag:
+        input_dag_image = dag_drawer(input_dag)
+        input_dag_image.show()
     
     # Execute basic swap algorithm
     if qiskit_fallback:
@@ -44,15 +50,6 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     else:
         transpiled_dag = basic_swap(input_dag, coupling_map, initial_mapping)
 
-    transpiled_qiskit_dag = transpiled_micro_dag_to_transpiled_qiskit_dag(transpiled_micro_dag, input_dag)
-    transpiled_qiskit_dag_circuit = dag_to_circuit(transpiled_qiskit_dag)
-    transpiled_qiskit_dag_circuit.draw('mpl')
-
-    if show_dag:
-        input_dag_image = dag_drawer(input_dag)
-        input_dag_image.show()
-
-    
     if show_dag:
         output_dag_image = dag_drawer(transpiled_dag)
         output_dag_image.show()
@@ -78,28 +75,28 @@ def transpiled_micro_dag_to_transpiled_qiskit_dag(micro_dag, input_dag):
         for gate in subdag.two_qubit_ops():
             cnot_counter += 1
             
-            # Check next index (0-indexing)
-            micro_dag_node = micro_dag.get(cnot_counter)
+            swap_counter = 0
+            micro_dag_node = micro_dag.get(cnot_counter + swap_counter)
             
-            # If next index is SWAP, insert SWAP
-            if micro_dag_node.swap == True:
+            # Check next index (0-indexing)
+            while micro_dag_node.swap == True:
+            
+                # If next index is SWAP, insert SWAP
                 swap_layer = DAGCircuit()
                 swap_layer.add_qreg(canonical_register)
                 
-                # Bisher wird immer nur ein SWAP eingefügt
-                
-                print("SWAP Candidates")
-                print(cnot_counter)
-                print(micro_dag_node.control, micro_dag_node.target)
-                # qubit_1 = Qubit(, micro_dag_node.control)
-                # qubit_2 = Qubit(, micro_dag_node.target)
+                qubit_1 = input_dag.qubits[micro_dag_node.control]
+                qubit_2 = input_dag.qubits[micro_dag_node.target]
 
                 swap_layer.apply_operation_back(
-                        SwapGate(), (input_dag.qubits[micro_dag_node.control], input_dag.qubits[micro_dag_node.target]), cargs=(), check=False
+                        SwapGate(), (qubit_1, qubit_2), cargs=(), check=False
                 )
 
                 # Layer insertion
                 transpiled_qiskit_dag.compose(swap_layer)
+
+                swap_counter += 1
+                micro_dag_node = micro_dag.get(cnot_counter + swap_counter)
 
         transpiled_qiskit_dag.compose(subdag)
 
