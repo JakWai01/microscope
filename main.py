@@ -11,6 +11,7 @@ from qiskit.dagcircuit import DAGCircuit
 from qiskit.circuit.library.standard_gates import SwapGate
 from qiskit.transpiler.passes.routing.basic_swap import BasicSwap
 from qiskit.transpiler.passes.layout import disjoint_utils
+from qiskit import warnings
 
 @click.command()
 @click.option("-f", "--filename", type=str, required=True, help="Path to .qasm file")
@@ -18,6 +19,10 @@ from qiskit.transpiler.passes.layout import disjoint_utils
 @click.option("-q", "--qiskit-fallback", type=bool, help="Use qiskit algorithm implementation")
 def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     """Read in a .qasm file and print out a syntax tree."""
+    
+    # Ignore deprecation warnings
+    warnings.filterwarnings('ignore', category=DeprecationWarning)
+
     circuit = QuantumCircuit.from_qasm_file(filename)
     circuit.draw('mpl') 
     
@@ -31,10 +36,10 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     micro_mapping = mapping_to_micro_mapping(initial_mapping)
 
     micro_dag = DAG().from_qiskit_dag(input_dag)
-    print(micro_dag.__dict__)
+    # print(micro_dag.__dict__)
 
     transpiled_micro_dag = micro_swap(micro_dag, coupling_map, micro_mapping)
-    print(transpiled_micro_dag.__dict__) 
+    # print(transpiled_micro_dag.__dict__) 
     transpiled_qiskit_dag = transpiled_micro_dag_to_transpiled_qiskit_dag(transpiled_micro_dag, input_dag, initial_mapping)
     transpiled_qiskit_dag_circuit = dag_to_circuit(transpiled_qiskit_dag)
     transpiled_qiskit_dag_circuit.draw('mpl')
@@ -174,7 +179,7 @@ class DAG:
 
         for node in dag.topological_op_nodes():
             if node.op.num_qubits == 2:
-                print(f'{node.name} -> {node.qargs[0]._index}-{node.qargs[1]._index}')
+                # print(f'{node.name} -> {node.qargs[0]._index}-{node.qargs[1]._index}')
                 # SWAP boolean is false since there are no SWAP gates before the transpilation
                 self.insert(node.qargs[0]._index, node.qargs[1]._index, False)
 
@@ -186,15 +191,13 @@ class DAG:
     def __len__(self):
         return len(self.nodes)
 
-# TODO: Reorder
-# TODO: Wir sehen noch das vierte CNOT aber fügen es nicht vor dem SWAP ein?
 def micro_swap(dag, coupling_map, initial_mapping):
     # Mapping logical to physical qubits e.g. {"logic": "physical"}
     current_mapping = initial_mapping.copy()
 
     new_dag = DAG()
     
-    pretty_print_mapping(current_mapping)
+    # pretty_print_mapping(current_mapping)
 
     for node_id in range(len(dag)):
         node = dag.get(node_id)
@@ -210,32 +213,20 @@ def micro_swap(dag, coupling_map, initial_mapping):
             for swap in range(len(path) - 2):
                 connected_wire_1 = path[swap]
                 connected_wire_2 = path[swap + 1]
-    
+                    
+                # TODO: Check if we can improve the data structure to avoid this
                 logical_q0 = [key for key, value in current_mapping.items() if value == connected_wire_1][0]
                 logical_q1 = [key for key, value in current_mapping.items() if value == connected_wire_2][0]
                 
-                # TODO: Hier indizieren wir mit den physischen qubits, sollten aber mit den logischen idizieren
                 qubit_1 = current_mapping[logical_q0]
                 qubit_2 = current_mapping[logical_q1]
                 
-                # Layer insertion
-                # order = current_mapping.reorder_bits(new_dag.qubits)
-                # new_dag.compose(swap_layer, qubits=order)
-                
-                # Hier inserten wir das falsche SWAP
-                print(f"Path: {path}")
-                print(f"Path: {path[0]} {path[1]} {path[2]}")
-                print(f"Current Mapping: {current_mapping}")
-                print(f"Index: {swap} and {swap + 1}")
-                print(f"Inserting SWAP between {qubit_1} and {qubit_2}")
                 new_dag.insert(qubit_1, qubit_2, True)
             
             for swap in range(len(path) - 2):
                 current_mapping = swap_physical_qubits(path[swap], path[swap+1], current_mapping) 
-                pretty_print_mapping(current_mapping)
+                # pretty_print_mapping(current_mapping)
         
-        print(f"Logical control: {node.control}, Logical target: {node.target}, Control location: {current_mapping[node.control]}, Target location: {current_mapping[node.target]}")
-        # I am not sure whether this change was effective 
         new_dag.insert(current_mapping[node.control], current_mapping[node.target], False)
 
     return new_dag
@@ -283,7 +274,7 @@ def basic_swap(dag, coupling_map, initial_mapping):
     
                 # Find shortest SWAP path
                 path = coupling_map.shortest_undirected_path(physical_q0, physical_q1)
-                print(f"Basic path: {path}")
+                # print(f"Basic path: {path}")
 
                 for swap in range(len(path) - 2):
                     connected_wire_1 = path[swap]
