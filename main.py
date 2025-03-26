@@ -78,13 +78,13 @@ def transpiled_micro_dag_to_transpiled_qiskit_dag(micro_dag, input_dag, initial_
             cnot_counter += 1
 
                 
-            if micro_dag_node.swap == True:
+            if micro_dag_node.is_swap == True:
                 swap_layer = DAGCircuit()
                 swap_layer.add_qreg(canonical_register)
                 
                 swaps = []
 
-                while micro_dag_node.swap == True:
+                while micro_dag_node.is_swap == True:
                     qubit_1 = input_dag.qubits[micro_dag_node.control]
                     qubit_2 = input_dag.qubits[micro_dag_node.target]
                     swap_layer.apply_operation_back(
@@ -126,11 +126,11 @@ def generate_initial_mapping(dag):
     return Layout.generate_trivial_layout(canonical_register)
 
 class DAGNode:
-    def __init__(self, node_id, control, target, swap):
+    def __init__(self, node_id, control, target, is_swap):
         self.node_id = node_id
         self.control = control
         self.target = target
-        self.swap = swap
+        self.is_swap = is_swap
 
     def __repr__(self):
         return str(self.__dict__)
@@ -141,9 +141,9 @@ class DAG:
         self.edges = []
         self._last_op_on_qubit = dict()
 
-    def insert(self, control, target, swap):
+    def insert(self, control, target, is_swap):
         node_id = len(self.nodes)
-        node = DAGNode(node_id, control, target, swap)
+        node = DAGNode(node_id, control, target, is_swap)
 
         self.nodes[node_id] = node
 
