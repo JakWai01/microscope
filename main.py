@@ -53,6 +53,7 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
         bs = BasicSwap(coupling_map)
         transpiled_dag = bs.run(input_dag)
     else:
+        print("Using my swap")
         transpiled_dag = basic_swap(input_dag, coupling_map, initial_mapping)
 
     if show_dag:
@@ -87,7 +88,7 @@ def transpiled_micro_dag_to_transpiled_qiskit_dag(micro_dag, input_dag, initial_
 
         # If gate is two qubit operation (max. one)
         for gate in subdag.two_qubit_ops():
-            print(f"DAG pointer at: {current_dag_pointer}")
+            # print(f"CNOT between {gate.qargs[0]} and {gate.qargs[1]}")
 
             micro_dag_node = micro_dag.get(current_dag_pointer)
             
@@ -99,32 +100,28 @@ def transpiled_micro_dag_to_transpiled_qiskit_dag(micro_dag, input_dag, initial_
                 swaps = []
                 # We are in here only 4 times. This is not true
                 while micro_dag_node.is_swap == True:
-                    qubit_1 = input_dag.qubits[micro_dag_node.control]
-                    qubit_2 = input_dag.qubits[micro_dag_node.target]
-                    # TODO: Das hier sagt es korrekt, aber swappt dann die falschen qubits
-                    print(f"Swapping {qubit_1} with {qubit_2}")
                     swap_layer.apply_operation_back(
-                            SwapGate(), (qubit_1, qubit_2), cargs=(), check=False
+                            SwapGate(), (current_mapping[micro_dag_node.control], current_mapping[micro_dag_node.target]), cargs=(), check=False
                     )
                     
-                    print((micro_dag_node.control, micro_dag_node.target))
                     swaps.append((micro_dag_node.control, micro_dag_node.target))
-                    print(swaps)
 
                     current_dag_pointer += 1
                     micro_dag_node = micro_dag.get(current_dag_pointer)
-            
+                
                 order = current_mapping.reorder_bits(transpiled_qiskit_dag.qubits)
-                transpiled_qiskit_dag.compose(swap_layer)
+                transpiled_qiskit_dag.compose(swap_layer, qubits=order)
             
                 for swap in swaps:
                     current_mapping.swap(swap[0], swap[1])
         
             current_dag_pointer += 1
-
+            
+        # print("Mapping ", current_mapping)
+        # print("Qubits ", transpiled_qiskit_dag.qubits)
         order = current_mapping.reorder_bits(transpiled_qiskit_dag.qubits)
-
-        transpiled_qiskit_dag.compose(subdag)
+        # print("Order ", order)
+        transpiled_qiskit_dag.compose(subdag, qubits=order)
 
     return transpiled_qiskit_dag
 
@@ -300,7 +297,7 @@ def basic_swap(dag, coupling_map, initial_mapping):
 
                     qubit_1 = current_mapping[connected_wire_1]
                     qubit_2 = current_mapping[connected_wire_2]
-
+                    print(qubit_1, qubit_2) 
                     # Create SWAP operation
                     swap_layer.apply_operation_back(
                             SwapGate(), (qubit_1, qubit_2), cargs=(), check=False
@@ -313,7 +310,7 @@ def basic_swap(dag, coupling_map, initial_mapping):
                 # Update current Mapping 
                 for swap in range(len(path) - 2):
                     current_mapping.swap(path[swap], path[swap + 1])
-
+        
         order = current_mapping.reorder_bits(new_dag.qubits)
         new_dag.compose(subdag, qubits=order)
 
