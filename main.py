@@ -72,10 +72,11 @@ def transpiled_micro_dag_to_transpiled_qiskit_dag(micro_dag, input_dag, initial_
     for layer in input_dag.serial_layers():
         subdag = layer["graph"]
         for gate in subdag.two_qubit_ops():
-            cnot_counter += 1
-
             swap_counter = 0
             micro_dag_node = micro_dag.get(cnot_counter + swap_counter)
+            
+            cnot_counter += 1
+
                 
             if micro_dag_node.swap == True:
                 swap_layer = DAGCircuit()
