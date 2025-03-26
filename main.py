@@ -102,12 +102,16 @@ def transpiled_micro_dag_to_transpiled_qiskit_dag(micro_dag, input_dag, initial_
                 while micro_dag_node.is_swap == True:
                     qubit_1 = input_dag.qubits[micro_dag_node.control]
                     qubit_2 = input_dag.qubits[micro_dag_node.target]
+                    # TODO: Das hier sagt es korrekt, aber swappt dann die falschen qubits
                     print(f"Swapping {qubit_1} with {qubit_2}")
                     swap_layer.apply_operation_back(
                             SwapGate(), (qubit_1, qubit_2), cargs=(), check=False
                     )
                     
+                    print((micro_dag_node.control, micro_dag_node.target))
+                    print(current_mapping)
                     swaps.append((micro_dag_node.control, micro_dag_node.target))
+                    print(swaps)
 
                     current_dag_pointer += 1
                     micro_dag_node = micro_dag.get(current_dag_pointer)
@@ -117,6 +121,8 @@ def transpiled_micro_dag_to_transpiled_qiskit_dag(micro_dag, input_dag, initial_
             
                 for swap in swaps:
                     current_mapping.swap(swap[0], swap[1])
+                    print("After applying swap")
+                    print(current_mapping)
         
             current_dag_pointer += 1
 
@@ -128,8 +134,9 @@ def transpiled_micro_dag_to_transpiled_qiskit_dag(micro_dag, input_dag, initial_
 
 def mapping_to_micro_mapping(initial_mapping):
     micro_mapping = dict()
-    for k, v in initial_mapping.get_physical_bits().items():
-        micro_mapping[k] = v._index
+    # IMPORTANT: Keys are virtual qubits and values are physical qubits
+    for k, v in initial_mapping.get_virtual_bits().items():
+        micro_mapping[k._index] = v
     return micro_mapping
 
 def generate_initial_mapping(dag):
@@ -228,6 +235,7 @@ def micro_swap(dag, coupling_map, initial_mapping):
                 connected_wire_2 = path[swap + 1]
                     
                 # TODO: Check if we can improve the data structure to avoid this
+                # Probably just maintaining both mappings is enough...
                 logical_q0 = [key for key, value in current_mapping.items() if value == connected_wire_1][0]
                 logical_q1 = [key for key, value in current_mapping.items() if value == connected_wire_2][0]
                 
