@@ -39,7 +39,7 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     # print(micro_dag.__dict__)
 
     transpiled_micro_dag = micro_swap(micro_dag, coupling_map, micro_mapping)
-    # print(transpiled_micro_dag.__dict__) 
+    print(transpiled_micro_dag.__dict__) 
     transpiled_qiskit_dag = transpiled_micro_dag_to_transpiled_qiskit_dag(transpiled_micro_dag, input_dag, initial_mapping)
     transpiled_qiskit_dag_circuit = dag_to_circuit(transpiled_qiskit_dag)
     transpiled_qiskit_dag_circuit.draw('mpl')
@@ -66,6 +66,10 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     # Show circuits
     plt.show()
 
+# Pass through the input_dag and insert SWAPs at all points in which the
+# micro_dag has SWAPs.
+# The algorithm iterates through the gates and inserts SWAPs before if
+# necessary.
 def transpiled_micro_dag_to_transpiled_qiskit_dag(micro_dag, input_dag, initial_mapping):
     current_mapping = initial_mapping.copy()
 
@@ -73,39 +77,48 @@ def transpiled_micro_dag_to_transpiled_qiskit_dag(micro_dag, input_dag, initial_
 
     cnot_counter = 0
     canonical_register = input_dag.qregs["q"]
-
+    
+    # Start at one to represent lookahead
+    current_dag_pointer = 0
+    
+    # Iterate through each gate
     for layer in input_dag.serial_layers():
         subdag = layer["graph"]
+
+        # If gate is two qubit operation (max. one)
         for gate in subdag.two_qubit_ops():
+            print(f"DAG pointer at: {current_dag_pointer}")
             swap_counter = 0
-            micro_dag_node = micro_dag.get(cnot_counter + swap_counter)
+
+            micro_dag_node = micro_dag.get(current_dag_pointer)
             
-            if micro_dag_node.swap == True:
+            # We are in here only three times. So some basic stuff is not working
+            if micro_dag_node.is_swap == True:
                 swap_layer = DAGCircuit()
                 swap_layer.add_qreg(canonical_register)
                 
                 swaps = []
-
-                while micro_dag_node.swap == True:
+                # We are in here only 4 times. This is not true
+                while micro_dag_node.is_swap == True:
                     qubit_1 = input_dag.qubits[micro_dag_node.control]
                     qubit_2 = input_dag.qubits[micro_dag_node.target]
+                    print(f"Swapping {qubit_1} with {qubit_2}")
                     swap_layer.apply_operation_back(
                             SwapGate(), (qubit_1, qubit_2), cargs=(), check=False
                     )
                     
                     swaps.append((micro_dag_node.control, micro_dag_node.target))
 
-                    swap_counter += 1
-                    micro_dag_node = micro_dag.get(cnot_counter + swap_counter)
+                    current_dag_pointer += 1
+                    micro_dag_node = micro_dag.get(current_dag_pointer)
             
                 order = current_mapping.reorder_bits(transpiled_qiskit_dag.qubits)
                 transpiled_qiskit_dag.compose(swap_layer, qubits=order)
             
-                # These parameters might be wrong
                 for swap in swaps:
                     current_mapping.swap(swap[0], swap[1])
         
-            cnot_counter += 1
+            current_dag_pointer += 1
 
         order = current_mapping.reorder_bits(transpiled_qiskit_dag.qubits)
         transpiled_qiskit_dag.compose(subdag, qubits=order)
@@ -124,11 +137,11 @@ def generate_initial_mapping(dag):
     return Layout.generate_trivial_layout(canonical_register)
 
 class DAGNode:
-    def __init__(self, node_id, control, target, swap):
+    def __init__(self, node_id, control, target, is_swap):
         self.node_id = node_id
         self.control = control
         self.target = target
-        self.swap = swap
+        self.is_swap = is_swap
 
     def __repr__(self):
         return str(self.__dict__)
@@ -139,9 +152,9 @@ class DAG:
         self.edges = []
         self._last_op_on_qubit = dict()
 
-    def insert(self, control, target, swap):
+    def insert(self, control, target, is_swap):
         node_id = len(self.nodes)
-        node = DAGNode(node_id, control, target, swap)
+        node = DAGNode(node_id, control, target, is_swap)
 
         self.nodes[node_id] = node
 
