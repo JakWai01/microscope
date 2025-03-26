@@ -27,6 +27,7 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     circuit.draw('mpl') 
     
     input_dag = circuit_to_dag(circuit)
+
     # A line with 10 physical qubits
     coupling_map = CouplingMap.from_line(10)
 
@@ -36,10 +37,8 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     micro_mapping = mapping_to_micro_mapping(initial_mapping)
 
     micro_dag = DAG().from_qiskit_dag(input_dag)
-    # print(micro_dag.__dict__)
 
     transpiled_micro_dag = micro_swap(micro_dag, coupling_map, micro_mapping)
-    # print(transpiled_micro_dag.__dict__) 
     transpiled_qiskit_dag = transpiled_micro_dag_to_transpiled_qiskit_dag(transpiled_micro_dag, input_dag, initial_mapping)
     transpiled_qiskit_dag_circuit = dag_to_circuit(transpiled_qiskit_dag)
     transpiled_qiskit_dag_circuit.draw('mpl')
@@ -88,7 +87,6 @@ def transpiled_micro_dag_to_transpiled_qiskit_dag(micro_dag, input_dag, initial_
 
         # If gate is two qubit operation (max. one)
         for gate in subdag.two_qubit_ops():
-            # print(f"CNOT between {gate.qargs[0]} and {gate.qargs[1]}")
 
             micro_dag_node = micro_dag.get(current_dag_pointer)
             
@@ -117,10 +115,7 @@ def transpiled_micro_dag_to_transpiled_qiskit_dag(micro_dag, input_dag, initial_
         
             current_dag_pointer += 1
             
-        # print("Mapping ", current_mapping)
-        # print("Qubits ", transpiled_qiskit_dag.qubits)
         order = current_mapping.reorder_bits(transpiled_qiskit_dag.qubits)
-        # print("Order ", order)
         transpiled_qiskit_dag.compose(subdag, qubits=order)
 
     return transpiled_qiskit_dag
@@ -193,7 +188,6 @@ class DAG:
 
         for node in dag.topological_op_nodes():
             if node.op.num_qubits == 2:
-                # print(f'{node.name} -> {node.qargs[0]._index}-{node.qargs[1]._index}')
                 # SWAP boolean is false since there are no SWAP gates before the transpilation
                 self.insert(node.qargs[0]._index, node.qargs[1]._index, False)
 
@@ -289,7 +283,6 @@ def basic_swap(dag, coupling_map, initial_mapping):
     
                 # Find shortest SWAP path
                 path = coupling_map.shortest_undirected_path(physical_q0, physical_q1)
-                # print(f"Basic path: {path}")
 
                 for swap in range(len(path) - 2):
                     connected_wire_1 = path[swap]
