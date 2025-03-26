@@ -210,14 +210,24 @@ def micro_swap(dag, coupling_map, initial_mapping):
             for swap in range(len(path) - 2):
                 connected_wire_1 = path[swap]
                 connected_wire_2 = path[swap + 1]
-
-                qubit_1 = current_mapping[connected_wire_1]
-                qubit_2 = current_mapping[connected_wire_2]
+    
+                logical_q0 = [key for key, value in current_mapping.items() if value == connected_wire_1][0]
+                logical_q1 = [key for key, value in current_mapping.items() if value == connected_wire_2][0]
+                
+                # TODO: Hier indizieren wir mit den physischen qubits, sollten aber mit den logischen idizieren
+                qubit_1 = current_mapping[logical_q0]
+                qubit_2 = current_mapping[logical_q1]
                 
                 # Layer insertion
                 # order = current_mapping.reorder_bits(new_dag.qubits)
                 # new_dag.compose(swap_layer, qubits=order)
-
+                
+                # Hier inserten wir das falsche SWAP
+                print(f"Path: {path}")
+                print(f"Path: {path[0]} {path[1]} {path[2]}")
+                print(f"Current Mapping: {current_mapping}")
+                print(f"Index: {swap} and {swap + 1}")
+                print(f"Inserting SWAP between {qubit_1} and {qubit_2}")
                 new_dag.insert(qubit_1, qubit_2, True)
             
             for swap in range(len(path) - 2):
@@ -273,6 +283,7 @@ def basic_swap(dag, coupling_map, initial_mapping):
     
                 # Find shortest SWAP path
                 path = coupling_map.shortest_undirected_path(physical_q0, physical_q1)
+                print(f"Basic path: {path}")
 
                 for swap in range(len(path) - 2):
                     connected_wire_1 = path[swap]
