@@ -44,7 +44,7 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     micro_dag = DAG().from_qiskit_dag(input_dag)
 
     # Testing rust integration
-    microscope.micro_swap_boosted(micro_dag)
+    boosted_transpiled_micro_dag = microscope.micro_swap_boosted(micro_dag, coupling_map, micro_mapping)
 
     transpiled_micro_dag = micro_swap(micro_dag, coupling_map, micro_mapping)
     transpiled_qiskit_dag = transpiled_micro_dag_to_transpiled_qiskit_dag(transpiled_micro_dag, input_dag, initial_mapping)
