@@ -45,6 +45,10 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
 
     # Testing rust integration
     boosted_transpiled_micro_dag = microscope.micro_swap_boosted(micro_dag, coupling_map, micro_mapping)
+    boosted_transpiled_qiskit_dag = transpiled_micro_dag_to_transpiled_qiskit_dag(boosted_transpiled_micro_dag, input_dag, initial_mapping)
+    boosted_transpiled_qiskit_dag_circuit = dag_to_circuit(boosted_transpiled_qiskit_dag)
+    boosted_transpiled_qiskit_dag_circuit.draw('mpl')
+
 
     transpiled_micro_dag = micro_swap(micro_dag, coupling_map, micro_mapping)
     transpiled_qiskit_dag = transpiled_micro_dag_to_transpiled_qiskit_dag(transpiled_micro_dag, input_dag, initial_mapping)
@@ -222,7 +226,7 @@ def micro_swap(dag, coupling_map, initial_mapping):
         
         # Check if SWAP is required
         if coupling_map.distance(physical_q0, physical_q1) != 1:
-            # Returns the shortest undirectedpath between two physical qubits
+            # Returns the shortest undirected path between two physical qubits
             path = coupling_map.shortest_undirected_path(physical_q0, physical_q1)
 
             for swap in range(len(path) - 2):

@@ -4,3 +4,5 @@ run:
 build:
 	maturin develop
 
+all: build run 
+
