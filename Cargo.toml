@@ -1,7 +1,0 @@
-[package]
-name = "microscope"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
-openqasm = "0.1.2"
