@@ -24,7 +24,7 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
 
     string_sum = microscope.sum_as_string(1, 2)
     print(string_sum)
-    
+
     # Ignore deprecation warnings
     warnings.filterwarnings('ignore', category=DeprecationWarning)
 
@@ -42,6 +42,9 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     micro_mapping = mapping_to_micro_mapping(initial_mapping)
 
     micro_dag = DAG().from_qiskit_dag(input_dag)
+
+    # Testing rust integration
+    microscope.micro_swap_boosted(micro_dag)
 
     transpiled_micro_dag = micro_swap(micro_dag, coupling_map, micro_mapping)
     transpiled_qiskit_dag = transpiled_micro_dag_to_transpiled_qiskit_dag(transpiled_micro_dag, input_dag, initial_mapping)
