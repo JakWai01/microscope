@@ -52,7 +52,6 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
         bs = BasicSwap(coupling_map)
         transpiled_dag = bs.run(input_dag)
     else:
-        print("Using my swap")
         transpiled_dag = basic_swap(input_dag, coupling_map, initial_mapping)
 
     if show_dag:
@@ -290,7 +289,6 @@ def basic_swap(dag, coupling_map, initial_mapping):
 
                     qubit_1 = current_mapping[connected_wire_1]
                     qubit_2 = current_mapping[connected_wire_2]
-                    print(qubit_1, qubit_2) 
                     # Create SWAP operation
                     swap_layer.apply_operation_back(
                             SwapGate(), (qubit_1, qubit_2), cargs=(), check=False
