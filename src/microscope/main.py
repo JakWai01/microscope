@@ -19,6 +19,11 @@ from qiskit import warnings
 @click.option("-q", "--qiskit-fallback", type=bool, help="Use qiskit algorithm implementation")
 def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     """Read in a .qasm file and print out a syntax tree."""
+
+    import microscope
+
+    string_sum = microscope.sum_as_string(1, 2)
+    print(string_sum)
     
     # Ignore deprecation warnings
     warnings.filterwarnings('ignore', category=DeprecationWarning)
