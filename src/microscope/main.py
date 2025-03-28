@@ -1,5 +1,6 @@
 import click
 import matplotlib.pyplot as plt
+import microscope
 
 from qiskit import QuantumCircuit
 from qiskit.converters import circuit_to_dag, dag_to_circuit
@@ -19,11 +20,6 @@ from qiskit import warnings
 @click.option("-q", "--qiskit-fallback", type=bool, help="Use qiskit algorithm implementation")
 def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     """Read in a .qasm file and print out a syntax tree."""
-
-    import microscope
-
-    string_sum = microscope.sum_as_string(1, 2)
-    print(string_sum)
 
     # Ignore deprecation warnings
     warnings.filterwarnings('ignore', category=DeprecationWarning)
@@ -48,7 +44,6 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     boosted_transpiled_qiskit_dag = transpiled_micro_dag_to_transpiled_qiskit_dag(boosted_transpiled_micro_dag, input_dag, initial_mapping)
     boosted_transpiled_qiskit_dag_circuit = dag_to_circuit(boosted_transpiled_qiskit_dag)
     boosted_transpiled_qiskit_dag_circuit.draw('mpl')
-
 
     transpiled_micro_dag = micro_swap(micro_dag, coupling_map, micro_mapping)
     transpiled_qiskit_dag = transpiled_micro_dag_to_transpiled_qiskit_dag(transpiled_micro_dag, input_dag, initial_mapping)
@@ -89,7 +84,6 @@ def transpiled_micro_dag_to_transpiled_qiskit_dag(micro_dag, input_dag, initial_
 
     canonical_register = input_dag.qregs["q"]
     
-    # Start at one to represent lookahead
     current_dag_pointer = 0
     
     # Iterate through each gate
@@ -101,13 +95,12 @@ def transpiled_micro_dag_to_transpiled_qiskit_dag(micro_dag, input_dag, initial_
 
             micro_dag_node = micro_dag.get(current_dag_pointer)
             
-            # We are in here only three times. So some basic stuff is not working
             if micro_dag_node.is_swap == True:
                 swap_layer = DAGCircuit()
                 swap_layer.add_qreg(canonical_register)
                 
                 swaps = []
-                # We are in here only 4 times. This is not true
+
                 while micro_dag_node.is_swap == True:
                     swap_layer.apply_operation_back(
                             SwapGate(), (current_mapping[micro_dag_node.control], current_mapping[micro_dag_node.target]), cargs=(), check=False
@@ -216,8 +209,6 @@ def micro_swap(dag, coupling_map, initial_mapping):
 
     new_dag = DAG()
     
-    # pretty_print_mapping(current_mapping)
-
     for node_id in range(len(dag)):
         node = dag.get(node_id)
 
@@ -229,9 +220,9 @@ def micro_swap(dag, coupling_map, initial_mapping):
             # Returns the shortest undirected path between two physical qubits
             path = coupling_map.shortest_undirected_path(physical_q0, physical_q1)
 
-            for swap in range(len(path) - 2):
-                connected_wire_1 = path[swap]
-                connected_wire_2 = path[swap + 1]
+            for i in range(len(path) - 2):
+                connected_wire_1 = path[i]
+                connected_wire_2 = path[i + 1]
                     
                 # TODO: Check if we can improve the data structure to avoid this
                 # Probably just maintaining both mappings is enough...
@@ -243,9 +234,8 @@ def micro_swap(dag, coupling_map, initial_mapping):
                 
                 new_dag.insert(qubit_1, qubit_2, True)
             
-            for swap in range(len(path) - 2):
-                current_mapping = swap_physical_qubits(path[swap], path[swap+1], current_mapping) 
-                # pretty_print_mapping(current_mapping)
+            for i in range(len(path) - 2):
+                current_mapping = swap_physical_qubits(path[i], path[i + 1], current_mapping) 
         
         new_dag.insert(current_mapping[node.control], current_mapping[node.target], False)
 
@@ -295,9 +285,9 @@ def basic_swap(dag, coupling_map, initial_mapping):
                 # Find shortest SWAP path
                 path = coupling_map.shortest_undirected_path(physical_q0, physical_q1)
 
-                for swap in range(len(path) - 2):
-                    connected_wire_1 = path[swap]
-                    connected_wire_2 = path[swap + 1]
+                for i in range(len(path) - 2):
+                    connected_wire_1 = path[i]
+                    connected_wire_2 = path[i + 1]
 
                     qubit_1 = current_mapping[connected_wire_1]
                     qubit_2 = current_mapping[connected_wire_2]
@@ -311,8 +301,8 @@ def basic_swap(dag, coupling_map, initial_mapping):
                 new_dag.compose(swap_layer, qubits=order)
 
                 # Update current Mapping 
-                for swap in range(len(path) - 2):
-                    current_mapping.swap(path[swap], path[swap + 1])
+                for i in range(len(path) - 2):
+                    current_mapping.swap(path[i], path[i + 1])
         
         order = current_mapping.reorder_bits(new_dag.qubits)
         new_dag.compose(subdag, qubits=order)

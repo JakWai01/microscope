@@ -2,24 +2,10 @@ use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use pyo3::types::PyDict;
 
-/// Formats the sum of two numbers as string.
-#[pyfunction]
-fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
-    Ok((a + b).to_string())
-}
-
 #[pyfunction]
 fn micro_swap_boosted(py: Python, dag: PyObject, coupling_map: PyObject, initial_mapping:  &Bound<PyDict>) -> PyResult<PyObject> {
     let mut current_mapping = initial_mapping.copy()?;
 
-
-    for (key, value) in current_mapping.iter() {
-        println!("{} {}", key, value);
-    }
-
-    // println!("{:?}", current_mapping.get_item(0).unwrap().unwrap());
-
-    
     let main_module = py.import("main")?; 
     let dag_class = main_module.getattr("DAG")?;
     let dag_instance = dag_class.call0()?;
@@ -33,15 +19,13 @@ fn micro_swap_boosted(py: Python, dag: PyObject, coupling_map: PyObject, initial
         let physical_q0 = current_mapping.get_item(control).unwrap().unwrap();
         let physical_q1 = current_mapping.get_item(target).unwrap().unwrap();
 
-        // println!("{} {}", physical_q0, physical_q1);
-        
         if coupling_map.call_method1(py, "distance", (&physical_q0, &physical_q1))?.extract::<i32>(py)? != 1 {
             // Returns the shortest undirected path between two physical qubits
             let path = coupling_map.call_method1(py, "shortest_undirected_path", (&physical_q0, &physical_q1))?.extract::<Vec<i32>>(py)?;
             
-            for swap in 0..(path.len() - 2) {
-                let connected_wire_1 = path[swap];
-                let connected_wire_2 = path[swap + 1];
+            for i in 0..(path.len() - 2) {
+                let connected_wire_1 = path[i];
+                let connected_wire_2 = path[i + 1];
                 
                 // Check if we can improve the data sturcture to avoid this
                 // Probably just maintaining both mapping is enough...
@@ -54,8 +38,8 @@ fn micro_swap_boosted(py: Python, dag: PyObject, coupling_map: PyObject, initial
                 let _ = dag_instance.call_method1("insert", (qubit_1, qubit_2, true));
             }
 
-            for swap in 0..(path.len() - 2) {
-                current_mapping = swap_physical_qubits(path[swap], path[swap + 1], current_mapping);
+            for i in 0..(path.len() - 2) {
+                current_mapping = swap_physical_qubits(path[i], path[i + 1], current_mapping);
             }
         }
 
@@ -63,11 +47,6 @@ fn micro_swap_boosted(py: Python, dag: PyObject, coupling_map: PyObject, initial
     }
     
     Ok(dag_instance.into())
-    // dag_instance.call_method1("insert", (12, 13, false))?;
-    // let ress = dag_instance.call_method1("get", (0,))?;
-    // println!("{:?}", ress.call_method0("__repr__")?.extract::<String>()?);
-
-    // Ok(())
 }
 
 fn swap_physical_qubits(physical_q0: i32, physical_q1: i32, current_mapping: Bound<PyDict>) -> Bound<PyDict> {
@@ -91,7 +70,6 @@ fn get_logical_qubit(current_mapping: &Bound<PyDict>, connected_wire: i32) -> Op
 /// A Python module implemented in Rust.
 #[pymodule]
 fn microscope(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(sum_as_string, m)?)?;
     m.add_function(wrap_pyfunction!(micro_swap_boosted, m)?)?;
     Ok(())
 }
