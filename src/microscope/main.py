@@ -39,17 +39,6 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
 
     micro_dag = DAG().from_qiskit_dag(input_dag)
 
-    # Testing rust integration
-    boosted_transpiled_micro_dag = microscope.micro_swap_boosted(micro_dag, coupling_map, micro_mapping)
-    boosted_transpiled_qiskit_dag = transpiled_micro_dag_to_transpiled_qiskit_dag(boosted_transpiled_micro_dag, input_dag, initial_mapping)
-    boosted_transpiled_qiskit_dag_circuit = dag_to_circuit(boosted_transpiled_qiskit_dag)
-    boosted_transpiled_qiskit_dag_circuit.draw('mpl')
-
-    transpiled_micro_dag = micro_swap(micro_dag, coupling_map, micro_mapping)
-    transpiled_qiskit_dag = transpiled_micro_dag_to_transpiled_qiskit_dag(transpiled_micro_dag, input_dag, initial_mapping)
-    transpiled_qiskit_dag_circuit = dag_to_circuit(transpiled_qiskit_dag)
-    transpiled_qiskit_dag_circuit.draw('mpl')
-
     if show_dag:
         input_dag_image = dag_drawer(input_dag)
         input_dag_image.show()
@@ -59,6 +48,19 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
         bs = BasicSwap(coupling_map)
         transpiled_dag = bs.run(input_dag)
     else:
+        # Rust implementation
+        boosted_transpiled_micro_dag = microscope.micro_swap_boosted(micro_dag, coupling_map, micro_mapping)
+        boosted_transpiled_qiskit_dag = transpiled_micro_dag_to_transpiled_qiskit_dag(boosted_transpiled_micro_dag, input_dag, initial_mapping)
+        boosted_transpiled_qiskit_dag_circuit = dag_to_circuit(boosted_transpiled_qiskit_dag)
+        boosted_transpiled_qiskit_dag_circuit.draw('mpl')
+        
+        # MicroDAG implementation
+        transpiled_micro_dag = micro_swap(micro_dag, coupling_map, micro_mapping)
+        transpiled_qiskit_dag = transpiled_micro_dag_to_transpiled_qiskit_dag(transpiled_micro_dag, input_dag, initial_mapping)
+        transpiled_qiskit_dag_circuit = dag_to_circuit(transpiled_qiskit_dag)
+        transpiled_qiskit_dag_circuit.draw('mpl')
+        
+        # Qiskit-style implementation
         transpiled_dag = basic_swap(input_dag, coupling_map, initial_mapping)
 
     if show_dag:
