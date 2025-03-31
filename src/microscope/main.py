@@ -77,7 +77,9 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     # TODO: Defining the basis_gates is kind of unidiomatic but we want to make sure that we just add SWAP gates
     transpiled_qc = transpile(circuit, coupling_map=coupling_map, routing_method='sabre', layout_method='trivial', optimization_level=3, basis_gates=["h", "t", "measure", "s", "swap", "cx", "tdg", "x"])
     transpiled_qc.draw('mpl')
-
+    
+    # MicroSABRE implementation
+    micro_sabre(micro_dag, initial_mapping, micro_mapping)
     # Show circuits
     plt.show()
 
@@ -140,6 +142,25 @@ def mapping_to_micro_mapping(initial_mapping):
     for k, v in initial_mapping.get_virtual_bits().items():
         micro_mapping[k._index] = v
     return micro_mapping
+
+def micro_sabre(dag, coupling_map, initial_mapping):
+    front_layer = []
+
+    # Initialize front layer by iterating through edges
+    for node_id, node in dag.nodes.items():
+        print(node_id, node)
+
+    f_0 = initial_front(dag)
+    print(f_0)
+    
+def initial_front(dag):
+    nodes_with_predecessors = set()
+    nodes = set(range(len(dag)))
+
+    for s, t in dag.edges:
+        nodes_with_predecessors.add(t)
+    
+    return list(nodes - nodes_with_predecessors)
 
 def generate_initial_mapping(dag):
     canonical_register = dag.qregs["q"]
