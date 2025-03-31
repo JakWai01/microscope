@@ -172,9 +172,37 @@ def micro_sabre(dag, coupling_map, initial_mapping):
                         front_layer.add(successor)
             continue
         else:
-            pass
+            # Gates in front_layer cannot be executed on hardware.
+            score = []
+            swap_candidates = compute_swap_candidates(dag, front_layer, current_mapping, coupling_map)
+            print(swap_candidates)
+            for swap in swap_candidates:
+                # TODO: Update mapping and compute score
+                pass
 
         print(front_layer)
+
+def compute_swap_candidates(dag, front_layer, current_mapping, coupling_map):
+    swap_candidates = []
+    # Compute neighbours
+    for gate in front_layer:
+        node = dag.get(gate)
+        print(node.control, node.target)
+        # TODO: Check that we are always mapping "logical":"physical"
+        # TODO: Check that looking for both, control and target, is fine
+        physical_q0 = current_mapping[node.control]
+        physical_q1 = current_mapping[node.target]
+
+        for edge in coupling_map:
+            if edge[0] < len(current_mapping) and edge[1] < len(current_mapping):
+                if edge[0] == physical_q0 or edge[0] == physical_q1:
+                    print("Edge0: ", edge[0])
+                    print("Edge1: ", edge[1])
+                    logical_q0 = [key for key, value in current_mapping.items() if value == edge[0]][0]
+                    logical_q1 = [key for key, value in current_mapping.items() if value == edge[1]][0]
+                    # Important: SWAP candidates are logical qubits! Not like in micro_swap!
+                    swap_candidates.append((logical_q0, logical_q1))
+    return swap_candidates
 
 def no_dependencies(dag, front_layer, successor):
     for gate in front_layer:
