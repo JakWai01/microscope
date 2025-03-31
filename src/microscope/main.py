@@ -14,6 +14,8 @@ from qiskit.transpiler.passes.routing.basic_swap import BasicSwap
 from qiskit.transpiler.passes.layout import disjoint_utils
 from qiskit import warnings
 
+from qiskit import transpile
+
 @click.command()
 @click.option("-f", "--filename", type=str, required=True, help="Path to .qasm file")
 @click.option("-d", "--show-dag", type=bool, help="True if DAG should be shown")
@@ -70,6 +72,11 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     # Convert DAG to circuit
     transpiled_circuit = dag_to_circuit(transpiled_dag)
     transpiled_circuit.draw('mpl')
+
+    # Qiskit SABRE implementation
+    # TODO: Defining the basis_gates is kind of unidiomatic but we want to make sure that we just add SWAP gates
+    transpiled_qc = transpile(circuit, coupling_map=coupling_map, routing_method='sabre', layout_method='trivial', optimization_level=3, basis_gates=["h", "t", "measure", "s", "swap", "cx", "tdg", "x"])
+    transpiled_qc.draw('mpl')
 
     # Show circuits
     plt.show()
