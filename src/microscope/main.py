@@ -79,7 +79,7 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     transpiled_qc.draw('mpl')
     
     # MicroSABRE implementation
-    micro_sabre(micro_dag, initial_mapping, micro_mapping)
+    micro_sabre(micro_dag, coupling_map, micro_mapping)
     # Show circuits
     plt.show()
 
@@ -144,14 +144,52 @@ def mapping_to_micro_mapping(initial_mapping):
     return micro_mapping
 
 def micro_sabre(dag, coupling_map, initial_mapping):
-    front_layer = []
+    current_mapping = initial_mapping.copy()
+    front_layer = set(initial_front(dag))
+    print(front_layer)
 
-    # Initialize front layer by iterating through edges
-    for node_id, node in dag.nodes.items():
-        print(node_id, node)
+    while front_layer:
+        execute_gate_list = []
+        for gate in front_layer:
+            node = dag.get(gate)
 
-    f_0 = initial_front(dag)
-    print(f_0)
+            physical_q0 = current_mapping[node.control]
+            physical_q1 = current_mapping[node.target]
+
+            if coupling_map.distance(physical_q0, physical_q1) == 1:
+                execute_gate_list.append(gate)
+
+        if execute_gate_list:
+            for gate in execute_gate_list:
+                # Remove from front since we execute it
+                front_layer.remove(gate)
+                # Get successors
+                successors = get_successors(dag, gate)
+                print(successors)
+                for successor in successors:
+                    # Check if dependencies are resolved
+                    if no_dependencies(dag, front_layer, successor):
+                        front_layer.add(successor)
+            continue
+        else:
+            pass
+
+        print(front_layer)
+
+def no_dependencies(dag, front_layer, successor):
+    for gate in front_layer:
+        node = dag.get(gate)
+
+        if node.control == successor or node.target == successor:
+            return False
+    return True
+
+def get_successors(dag, node_id):
+    successors = []
+    for s, t in dag.edges:
+        if s == node_id:
+            successors.append(t)
+    return successors
     
 def initial_front(dag):
     nodes_with_predecessors = set()
@@ -159,7 +197,7 @@ def initial_front(dag):
 
     for s, t in dag.edges:
         nodes_with_predecessors.add(t)
-    
+
     return list(nodes - nodes_with_predecessors)
 
 def generate_initial_mapping(dag):
