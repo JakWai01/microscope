@@ -79,7 +79,11 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     transpiled_qc.draw('mpl')
     
     # MicroSABRE implementation
-    micro_sabre(micro_dag, coupling_map, micro_mapping)
+    transpiled_sabre_dag = micro_sabre(micro_dag, coupling_map, micro_mapping)
+    transpiled_qiskit_sabre_dag = transpiled_micro_dag_to_transpiled_qiskit_dag(transpiled_sabre_dag, input_dag, initial_mapping)
+    transpiled_qiskit_sabre_circuit = dag_to_circuit(transpiled_qiskit_sabre_dag)
+    transpiled_qiskit_sabre_circuit.draw('mpl')
+
     # Show circuits
     plt.show()
 
@@ -147,6 +151,11 @@ def micro_sabre(dag, coupling_map, initial_mapping):
     print(dag.__dict__)
     current_mapping = initial_mapping.copy()
     front_layer = set(initial_front(dag))
+
+
+    operation_log = []
+    new_dag = DAG()
+
     while front_layer:
         execute_gate_list = []
         for gate in front_layer:
@@ -170,6 +179,12 @@ def micro_sabre(dag, coupling_map, initial_mapping):
                 print(f"{gate}: {dag.nodes.get(gate).control} {dag.nodes.get(gate).target}")
                 print(front_layer)
                 front_layer.remove(gate)
+
+                # Add to operation logic
+                operation_log.append(gate)
+                node = dag.get(gate)
+                new_dag.insert(node.control, node.target, False)
+
                 print("Front layer after remove ", front_layer)
                 # Get successors
                 successors = get_successors(dag, gate)
@@ -202,6 +217,8 @@ def micro_sabre(dag, coupling_map, initial_mapping):
 
             best_swap = min_score(scores)
             print("Min score: ", best_swap)
+            operation_log.append(30)
+            new_dag.insert(best_swap[0], best_swap[1], True)
             # Swap physical qubits
             physical_q0 = current_mapping[best_swap[0]]
             physical_q1 = current_mapping[best_swap[1]]
@@ -211,7 +228,9 @@ def micro_sabre(dag, coupling_map, initial_mapping):
             print("Current mapping after applying swap ", current_mapping)
 
 
-        print(front_layer)
+    # print(front_layer)
+    print(operation_log)
+    return new_dag
 
 def min_score(scores):
     # print("Current scores list ", scores)
