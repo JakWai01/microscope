@@ -218,11 +218,11 @@ def micro_sabre(dag, coupling_map, initial_mapping):
             best_swap = min_score(scores)
             print("Min score: ", best_swap)
             operation_log.append(30)
-            new_dag.insert(best_swap[0], best_swap[1], True)
             # Swap physical qubits
             physical_q0 = current_mapping[best_swap[0]]
             physical_q1 = current_mapping[best_swap[1]]
             
+            new_dag.insert(physical_q0, physical_q1, True)
             print("Current mapping before applying swap ", current_mapping)
             current_mapping = swap_physical_qubits(physical_q0, physical_q1, current_mapping)
             print("Current mapping after applying swap ", current_mapping)
