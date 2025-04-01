@@ -4,5 +4,8 @@ run:
 build:
 	maturin develop
 
-all: build run 
+format:
+	black .
+
+all: format build run
 
