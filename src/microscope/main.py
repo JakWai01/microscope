@@ -144,10 +144,9 @@ def mapping_to_micro_mapping(initial_mapping):
     return micro_mapping
 
 def micro_sabre(dag, coupling_map, initial_mapping):
+    print(dag.__dict__)
     current_mapping = initial_mapping.copy()
     front_layer = set(initial_front(dag))
-    print(front_layer)
-
     while front_layer:
         execute_gate_list = []
         for gate in front_layer:
@@ -155,27 +154,39 @@ def micro_sabre(dag, coupling_map, initial_mapping):
 
             physical_q0 = current_mapping[node.control]
             physical_q1 = current_mapping[node.target]
-
+            print("Initial mapping ", initial_mapping)
+            print(f"Logical {node.control} {node.target} Physical {physical_q0} {physical_q1}")
+            print(f"Current mapping: {current_mapping}")
+            
+            # 3 0 is never added because its distance is never 1
+            print(f"Distance between {node.control} and {node.target} is {coupling_map.distance(physical_q0, physical_q1)}")
             if coupling_map.distance(physical_q0, physical_q1) == 1:
                 execute_gate_list.append(gate)
 
         if execute_gate_list:
             for gate in execute_gate_list:
                 # Remove from front since we execute it
+                print("Front layer before remove of ", gate)
+                print(f"{gate}: {dag.nodes.get(gate).control} {dag.nodes.get(gate).target}")
+                print(front_layer)
                 front_layer.remove(gate)
+                print("Front layer after remove ", front_layer)
                 # Get successors
                 successors = get_successors(dag, gate)
-                print(successors)
+                print(f"Successors of {gate} are {successors}")
+                # print(successors)
                 for successor in successors:
                     # Check if dependencies are resolved
+                    print(f"{successor}: {dag.nodes.get(successor).control} {dag.nodes.get(successor).target}")
                     if no_dependencies(dag, front_layer, successor):
+                        print(f"{successor} has no dependencies!")
                         front_layer.add(successor)
             continue
         else:
             # Gates in front_layer cannot be executed on hardware.
             scores = dict()
             swap_candidates = compute_swap_candidates(dag, front_layer, current_mapping, coupling_map)
-            print(swap_candidates)
+            # print(swap_candidates)
             for swap in swap_candidates:
                 # For now, convert to physical qubits again
                 # If this works, insert physical qubits in the first place
@@ -187,26 +198,28 @@ def micro_sabre(dag, coupling_map, initial_mapping):
 
                 # Calculate score using front_layer, DAG, temporary_mapping, distance_matrix and swap
                 scores[swap] = h_basic(dag, front_layer, coupling_map, temporary_mapping)
-                print("Current score ", scores)
+                # print("Current score ", scores)
 
             best_swap = min_score(scores)
             print("Min score: ", best_swap)
             # Swap physical qubits
             physical_q0 = current_mapping[best_swap[0]]
             physical_q1 = current_mapping[best_swap[1]]
-
+            
+            print("Current mapping before applying swap ", current_mapping)
             current_mapping = swap_physical_qubits(physical_q0, physical_q1, current_mapping)
+            print("Current mapping after applying swap ", current_mapping)
 
 
         print(front_layer)
 
 def min_score(scores):
-    print("Current scores list ", scores)
+    # print("Current scores list ", scores)
     min_swap = list(scores)[0]
     min_score = scores[min_swap]
-    print("First min_score ", min_score)
+    # print("First min_score ", min_score)
     for swap, score in scores.items():
-        print(swap, score)
+        # print(swap, score)
         if score < min_score:
             min_score = scores[swap]
             min_swap = swap
@@ -229,7 +242,7 @@ def compute_swap_candidates(dag, front_layer, current_mapping, coupling_map):
     # Compute neighbours
     for gate in front_layer:
         node = dag.get(gate)
-        print(node.control, node.target)
+        # print(node.control, node.target)
         # TODO: Check that we are always mapping "logical":"physical"
         # TODO: Check that looking for both, control and target, is fine
         physical_q0 = current_mapping[node.control]
@@ -238,8 +251,8 @@ def compute_swap_candidates(dag, front_layer, current_mapping, coupling_map):
         for edge in coupling_map:
             if edge[0] < len(current_mapping) and edge[1] < len(current_mapping):
                 if edge[0] == physical_q0 or edge[0] == physical_q1:
-                    print("Edge0: ", edge[0])
-                    print("Edge1: ", edge[1])
+                    # print("Edge0: ", edge[0])
+                    # print("Edge1: ", edge[1])
                     logical_q0 = [key for key, value in current_mapping.items() if value == edge[0]][0]
                     logical_q1 = [key for key, value in current_mapping.items() if value == edge[1]][0]
                     # Important: SWAP candidates are logical qubits! Not like in micro_swap!
@@ -247,10 +260,14 @@ def compute_swap_candidates(dag, front_layer, current_mapping, coupling_map):
     return swap_candidates
 
 def no_dependencies(dag, front_layer, successor):
+    print("front layer ", front_layer)
     for gate in front_layer:
         node = dag.get(gate)
+        successor_node = dag.get(successor)
 
-        if node.control == successor or node.target == successor:
+        if node.control == successor_node.control or node.target == successor_node.control or node.control == successor_node.target or node.target == successor_node.target:
+            print(f"Returning false for node {successor}")
+            print(f"Since {gate} is between {node.control} and {node.target}")
             return False
     return True
 
