@@ -173,14 +173,56 @@ def micro_sabre(dag, coupling_map, initial_mapping):
             continue
         else:
             # Gates in front_layer cannot be executed on hardware.
-            score = []
+            scores = dict()
             swap_candidates = compute_swap_candidates(dag, front_layer, current_mapping, coupling_map)
             print(swap_candidates)
             for swap in swap_candidates:
-                # TODO: Update mapping and compute score
-                pass
+                # For now, convert to physical qubits again
+                # If this works, insert physical qubits in the first place
+                physical_q0 = current_mapping[swap[0]]
+                physical_q1 = current_mapping[swap[1]]
+
+                # Create temporary mapping to calculate score with
+                temporary_mapping = swap_physical_qubits(physical_q0, physical_q1, current_mapping)
+
+                # Calculate score using front_layer, DAG, temporary_mapping, distance_matrix and swap
+                scores[swap] = h_basic(dag, front_layer, coupling_map, temporary_mapping)
+                print("Current score ", scores)
+
+            best_swap = min_score(scores)
+            print("Min score: ", best_swap)
+            # Swap physical qubits
+            physical_q0 = current_mapping[best_swap[0]]
+            physical_q1 = current_mapping[best_swap[1]]
+
+            current_mapping = swap_physical_qubits(physical_q0, physical_q1, current_mapping)
+
 
         print(front_layer)
+
+def min_score(scores):
+    print("Current scores list ", scores)
+    min_swap = list(scores)[0]
+    min_score = scores[min_swap]
+    print("First min_score ", min_score)
+    for swap, score in scores.items():
+        print(swap, score)
+        if score < min_score:
+            min_score = scores[swap]
+            min_swap = swap
+    return min_swap
+
+def h_basic(dag, front_layer, coupling_map, current_mapping):
+    h_sum = 0
+
+    for gate in front_layer:
+        node = dag.get(gate)
+
+        physical_q0 = current_mapping[node.control]
+        physical_q1 = current_mapping[node.target]
+
+        h_sum += coupling_map.distance(physical_q0, physical_q1)
+    return h_sum
 
 def compute_swap_candidates(dag, front_layer, current_mapping, coupling_map):
     swap_candidates = []
