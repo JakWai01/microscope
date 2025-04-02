@@ -97,25 +97,27 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     transpiled_qc.draw("mpl")
 
     # MicroSABRE implementation
-    transpiled_sabre_dag = micro_sabre(micro_dag, coupling_map, micro_mapping)
+    transpiled_sabre_dag = micro_sabre(
+        micro_dag, coupling_map, micro_mapping, "lookahead"
+    )
     transpiled_qiskit_sabre_dag = transpiled_micro_dag_to_transpiled_qiskit_dag(
         transpiled_sabre_dag, input_dag, initial_mapping
     )
     transpiled_qiskit_sabre_circuit = dag_to_circuit(transpiled_qiskit_sabre_dag)
     transpiled_qiskit_sabre_circuit.draw("mpl")
 
-    # Show circuits
+    # show circuits
     plt.show()
 
 
-# Pass through the input_dag and insert SWAPs at all points in which the
-# micro_dag has SWAPs.
-# The algorithm iterates through the gates and inserts SWAPs before if
+# pass through the input_dag and insert swaps at all points in which the
+# micro_dag has swaps.
+# the algorithm iterates through the gates and inserts swaps before if
 # necessary.
 def transpiled_micro_dag_to_transpiled_qiskit_dag(
     micro_dag, input_dag, initial_mapping
 ):
-    # Mapping phyiscal qubits to logical qubits e.g. {"physical": "logical"}
+    # mapping phyiscal qubits to logical qubits e.g. {"physical": "logical"}
     current_mapping = initial_mapping.copy()
 
     transpiled_qiskit_dag = input_dag.copy_empty_like()
@@ -124,11 +126,11 @@ def transpiled_micro_dag_to_transpiled_qiskit_dag(
 
     current_dag_pointer = 0
 
-    # Iterate through each gate
+    # iterate through each gate
     for layer in input_dag.serial_layers():
         subdag = layer["graph"]
 
-        # If gate is two qubit operation (max. one)
+        # if gate is two qubit operation (max. one)
         for gate in subdag.two_qubit_ops():
 
             micro_dag_node = micro_dag.get(current_dag_pointer)
@@ -171,13 +173,13 @@ def transpiled_micro_dag_to_transpiled_qiskit_dag(
 
 def mapping_to_micro_mapping(initial_mapping):
     micro_mapping = dict()
-    # IMPORTANT: Keys are virtual qubits and values are physical qubits
+    # important: keys are virtual qubits and values are physical qubits
     for k, v in initial_mapping.get_virtual_bits().items():
         micro_mapping[k._index] = v
     return micro_mapping
 
 
-def micro_sabre(dag, coupling_map, initial_mapping):
+def micro_sabre(dag, coupling_map, initial_mapping, heuristic):
     print(dag.__dict__)
     current_mapping = initial_mapping.copy()
     front_layer = set(initial_front(dag))
@@ -253,8 +255,8 @@ def micro_sabre(dag, coupling_map, initial_mapping):
                 )
 
                 # Calculate score using front_layer, DAG, temporary_mapping, distance_matrix and swap
-                scores[swap] = h_lookahead(
-                    dag, front_layer, coupling_map, temporary_mapping, 1
+                scores[swap] = calculate_heuristic(
+                    dag, front_layer, coupling_map, temporary_mapping, heuristic
                 )
                 # print("Current score ", scores)
 
@@ -276,6 +278,13 @@ def micro_sabre(dag, coupling_map, initial_mapping):
     print(operation_log)
     print(new_dag.__dict__)
     return new_dag
+
+
+def calculate_heuristic(dag, front_layer, coupling_map, current_mapping, heuristic):
+    if heuristic == "basic":
+        return h_basic(dag, front_layer, coupling_map, current_mapping)
+    if heuristic == "lookahead":
+        return h_lookahead(dag, front_layer, coupling_map, current_mapping, 1)
 
 
 def min_score(scores):
