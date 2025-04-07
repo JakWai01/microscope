@@ -1,5 +1,5 @@
 run:
-	python3 src/microscope/main.py -f examples/adder_n4.qasm
+	python3 src/microscope/main.py -f examples/adder_n10.qasm
 
 build:
 	maturin develop
@@ -7,5 +7,5 @@ build:
 format:
 	black .
 
-all: format build run
+all: build run
 

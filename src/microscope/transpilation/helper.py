@@ -2,8 +2,17 @@ from qiskit.transpiler.layout import Layout
 
 
 def generate_initial_mapping(dag):
-    canonical_register = dag.qregs["q"]
-    return Layout.generate_trivial_layout(canonical_register)
+    regs = []
+
+    print(dag.qregs)
+    # canonical_register = dag.qregs["q"]
+    # print(canonical_register)
+    # print(canonical_register)
+    for name, reg in dag.qregs.items():
+        regs.append(reg)
+    print(regs)
+
+    return Layout.generate_trivial_layout(*regs)
 
 
 def swap_physical_qubits(physical_q0, physical_q1, current_mapping):

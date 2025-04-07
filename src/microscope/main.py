@@ -13,6 +13,20 @@ from qiskit.circuit.library.standard_gates import SwapGate
 from qiskit.transpiler.passes.routing.basic_swap import BasicSwap
 from qiskit.transpiler.passes.layout import disjoint_utils
 from qiskit import warnings
+from qiskit import QuantumRegister
+from qiskit.circuit import Qubit
+from qiskit.transpiler import generate_preset_pass_manager
+from qiskit.transpiler import PassManager
+from qiskit.transpiler.passes import (
+    UnitarySynthesis,
+    HighLevelSynthesis,
+    Unroll3qOrMore,
+    SetLayout,
+    TrivialLayout,
+    FullAncillaAllocation,
+    EnlargeWithAncilla,
+    ApplyLayout,
+)
 
 from qiskit import transpile
 
@@ -38,20 +52,40 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     # Ignore deprecation warnings
     warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-    circuit = QuantumCircuit.from_qasm_file(filename)
-    circuit.draw("mpl")
-
-    input_dag = circuit_to_dag(circuit)
+    input_circuit = QuantumCircuit.from_qasm_file(filename)
+    # Idle-wires is a nice parameter here
+    input_circuit.draw("mpl")
 
     # A line with 10 physical qubits
     coupling_map = CouplingMap.from_line(10)
 
+    # TODO: Hier wird auch schon transpiled
+    pass_manager = generate_preset_pass_manager(
+        optimization_level=0, coupling_map=coupling_map
+    )
+    pass_manager.draw("pm")
+
+    circuit = pass_manager.run(input_circuit)
+    circuit.draw("mpl")
+
+    pre_input_dag = circuit_to_dag(input_circuit)
     # Generate initial 'trivial' mapping
+    pre_initial_mapping = generate_initial_mapping(pre_input_dag)
+
+    pass_manager2 = PassManager([SetLayout(pre_initial_mapping), ApplyLayout()])
+    pass_manager2.draw("pm_2")
+    test_res = pass_manager2.run(input_circuit)
+    print(test_res.__dict__)
+    test_res.draw("mpl")
+
+    input_dag = circuit_to_dag(test_res)
+
     initial_mapping = generate_initial_mapping(input_dag)
 
     micro_mapping = mapping_to_micro_mapping(initial_mapping)
 
     micro_dag = DAG().from_qiskit_dag(input_dag)
+    print(micro_dag.__dict__)
 
     if show_dag:
         input_dag_image = dag_drawer(input_dag)
@@ -106,9 +140,7 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     transpiled_qc.draw("mpl")
 
     # MicroSABRE implementation
-    transpiled_sabre_dag = micro_sabre(
-        micro_dag, coupling_map, micro_mapping, "lookahead"
-    )
+    transpiled_sabre_dag = micro_sabre(micro_dag, coupling_map, micro_mapping, "basic")
     transpiled_qiskit_sabre_dag = transpiled_micro_dag_to_transpiled_qiskit_dag(
         transpiled_sabre_dag, input_dag, initial_mapping
     )

@@ -33,3 +33,8 @@ following assumptions:
 
 - The input circuit has an arbitrary number of qubits
 - The QPU can have an arbitrary topology
+
+## Benchmarks
+
+The examples are taken from
+[here](https://github.com/pnnl/QASMBench/blob/master/large/adder_n28/adder_n28.qasm).
