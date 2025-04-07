@@ -128,7 +128,9 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
 
     # MicroSABRE implementation
     # TODO: Bug spotted in adder_n10 where CNOT's span multiple qubits
-    transpiled_sabre_dag = micro_sabre(micro_dag, coupling_map, micro_mapping, "lookahead")
+    transpiled_sabre_dag = micro_sabre(
+        micro_dag, coupling_map, micro_mapping, "lookahead"
+    )
     transpiled_qiskit_sabre_dag = transpiled_micro_dag_to_transpiled_qiskit_dag(
         transpiled_sabre_dag, input_dag, initial_mapping
     )
