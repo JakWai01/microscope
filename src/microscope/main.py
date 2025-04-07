@@ -53,39 +53,26 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     warnings.filterwarnings("ignore", category=DeprecationWarning)
 
     input_circuit = QuantumCircuit.from_qasm_file(filename)
-    # Idle-wires is a nice parameter here
     input_circuit.draw("mpl")
 
     # A line with 10 physical qubits
     coupling_map = CouplingMap.from_line(10)
 
-    # TODO: Hier wird auch schon transpiled
-    pass_manager = generate_preset_pass_manager(
-        optimization_level=0, coupling_map=coupling_map
-    )
-    pass_manager.draw("pm")
+    preprocessing_dag = circuit_to_dag(input_circuit)
+    preprocessing_layout = generate_initial_mapping(preprocessing_dag)
 
-    circuit = pass_manager.run(input_circuit)
-    circuit.draw("mpl")
+    pm = PassManager([Unroll3qOrMore(), SetLayout(preprocessing_layout), ApplyLayout()])
 
-    pre_input_dag = circuit_to_dag(input_circuit)
-    # Generate initial 'trivial' mapping
-    pre_initial_mapping = generate_initial_mapping(pre_input_dag)
+    preprocessed_circuit = pm.run(input_circuit)
+    preprocessed_circuit.draw("mpl")
 
-    pass_manager2 = PassManager([SetLayout(pre_initial_mapping), ApplyLayout()])
-    pass_manager2.draw("pm_2")
-    test_res = pass_manager2.run(input_circuit)
-    print(test_res.__dict__)
-    test_res.draw("mpl")
-
-    input_dag = circuit_to_dag(test_res)
+    input_dag = circuit_to_dag(preprocessed_circuit)
 
     initial_mapping = generate_initial_mapping(input_dag)
 
     micro_mapping = mapping_to_micro_mapping(initial_mapping)
 
     micro_dag = DAG().from_qiskit_dag(input_dag)
-    print(micro_dag.__dict__)
 
     if show_dag:
         input_dag_image = dag_drawer(input_dag)
@@ -130,7 +117,7 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     # Qiskit SABRE implementation
     # TODO: Defining the basis_gates is kind of unidiomatic but we want to make sure that we just add SWAP gates
     transpiled_qc = transpile(
-        circuit,
+        preprocessed_circuit,
         coupling_map=coupling_map,
         routing_method="sabre",
         layout_method="trivial",
@@ -140,7 +127,8 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     transpiled_qc.draw("mpl")
 
     # MicroSABRE implementation
-    transpiled_sabre_dag = micro_sabre(micro_dag, coupling_map, micro_mapping, "basic")
+    # TODO: Bug spotted in adder_n10 where CNOT's span multiple qubits
+    transpiled_sabre_dag = micro_sabre(micro_dag, coupling_map, micro_mapping, "lookahead")
     transpiled_qiskit_sabre_dag = transpiled_micro_dag_to_transpiled_qiskit_dag(
         transpiled_sabre_dag, input_dag, initial_mapping
     )
@@ -148,6 +136,7 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     transpiled_qiskit_sabre_circuit.draw("mpl")
 
     # show circuits
+    # TODO: Idle-wires is a nice parameter
     plt.show()
 
 
