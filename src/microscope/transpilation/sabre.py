@@ -1,5 +1,5 @@
 from graph.dag import DAG, DAGNode
-from transpilation.helper import swap_physical_qubits
+from transpilation.helper import swap_physical_qubits, pretty_print_mapping
 from transpilation.heuristics import calculate_heuristic
 
 
@@ -7,17 +7,25 @@ def micro_sabre(dag, coupling_map, initial_mapping, heuristic):
     current_mapping = initial_mapping.copy()
     front_layer = set(initial_front(dag))
 
-    operation_log = []
     new_dag = DAG()
 
     while front_layer:
         execute_gate_list = []
         for gate in front_layer:
+            # print("Id ", gate)
+            # Der Fehler ist schon in der Node
             node = dag.get(gate)
+            # print(node)
 
             physical_q0 = current_mapping[node.control]
             physical_q1 = current_mapping[node.target]
+
+            # AHA! 1 5 statt eigentlich 0 5
+            # print(f"Physical {physical_q0} {physical_q1} Logical {node.control} {node.target}")
+            # print(f"Distance: {coupling_map.distance(physical_q0, physical_q1)}")
+
             if coupling_map.distance(physical_q0, physical_q1) == 1:
+                # print(f"Added {physical_q0} {physical_q1} {node.control} {node.target} to execute gate list")
                 execute_gate_list.append(gate)
 
         if execute_gate_list:
@@ -25,11 +33,10 @@ def micro_sabre(dag, coupling_map, initial_mapping, heuristic):
                 # Remove from front since we execute it
                 front_layer.remove(gate)
 
-                # Add to operation logic
-                operation_log.append(gate)
                 node = dag.get(gate)
                 new_dag.insert(node.control, node.target, False)
 
+                # print(new_dag.__dict__)
                 # Get successors
                 successors = get_successors(dag, gate)
                 for successor in successors:
@@ -60,15 +67,21 @@ def micro_sabre(dag, coupling_map, initial_mapping, heuristic):
                 )
 
             best_swap = min_score(scores)
-            operation_log.append(30)
+
             # Swap physical qubits
             physical_q0 = current_mapping[best_swap[0]]
             physical_q1 = current_mapping[best_swap[1]]
 
+            # Das stimmt auch alles, aber die SWAPs werden in der falschen Reihenfolge angezeigt
             new_dag.insert(physical_q0, physical_q1, True)
+            # pretty_print_mapping(current_mapping)
             current_mapping = swap_physical_qubits(
                 physical_q0, physical_q1, current_mapping
             )
+
+            # print(f"SWAPPED {physical_q0} and {physical_q1}")
+            # pretty_print_mapping(current_mapping)
+            # print(new_dag.__dict__)
 
     return new_dag
 

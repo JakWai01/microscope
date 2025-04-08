@@ -7,7 +7,7 @@ inserted into the circuit in order to support two-qubit operations between two
 logical qubits. During the process of inserting SWAPs, the precedence relations
 defined in the DAG have to be respected.
 
-### Example 
+### Example
 
 The following circuit resembles a 4-qubit adder that is given as an input
 circuit.
