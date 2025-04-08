@@ -13,6 +13,7 @@ def h_lookahead(dag, front_layer, coupling_map, current_mapping, weight):
     h_basic_result = h_basic(dag, front_layer, coupling_map, current_mapping)
 
     extended_set = get_extended_set(dag, front_layer)
+
     h_basic_result_extended = h_basic(dag, extended_set, coupling_map, current_mapping)
     return (
         1 / len(front_layer) * h_basic_result

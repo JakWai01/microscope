@@ -26,6 +26,7 @@ from qiskit.transpiler.passes import (
     FullAncillaAllocation,
     EnlargeWithAncilla,
     ApplyLayout,
+    SabreSwap,
 )
 
 from qiskit import transpile
@@ -152,6 +153,14 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
 
     # show circuits
     # TODO: Idle-wires is a nice parameter
+
+    pass_manager = PassManager(
+        [SabreSwap(heuristic="lookahead", coupling_map=coupling_map)]
+    )
+
+    res = pass_manager.run(preprocessed_circuit)
+    res.draw("mpl", fold=160)
+
     plt.show()
 
 

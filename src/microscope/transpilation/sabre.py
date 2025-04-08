@@ -1,6 +1,7 @@
 from graph.dag import DAG, DAGNode
 from transpilation.helper import swap_physical_qubits, pretty_print_mapping
 from transpilation.heuristics import calculate_heuristic
+import random
 
 
 def micro_sabre(dag, coupling_map, initial_mapping, heuristic):
@@ -57,11 +58,17 @@ def micro_sabre(dag, coupling_map, initial_mapping, heuristic):
                     dag, front_layer, coupling_map, temporary_mapping, heuristic
                 )
 
+            print(scores)
+
             best_swap = min_score(scores)
 
             # Swap physical qubits
             physical_q0 = current_mapping[best_swap[0]]
             physical_q1 = current_mapping[best_swap[1]]
+
+            print(
+                f"Best swap: {best_swap} with score {scores[best_swap]} phys: {physical_q0} {physical_q1}"
+            )
 
             new_dag.insert(physical_q0, physical_q1, True)
             current_mapping = swap_physical_qubits(
@@ -102,11 +109,17 @@ def compute_swap_candidates(dag, front_layer, current_mapping, coupling_map):
 def min_score(scores):
     min_swap = list(scores)[0]
     min_score = scores[min_swap]
+    best_swaps = []
     for swap, score in scores.items():
         if score < min_score:
             min_score = scores[swap]
             min_swap = swap
-    return min_swap
+            best_swaps = []
+            best_swaps.append(swap)
+        if score == min_score:
+            best_swaps.append(swap)
+
+    return random.choice(best_swaps)
 
 
 def no_dependencies(dag, front_layer, successor):
