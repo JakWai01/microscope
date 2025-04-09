@@ -33,6 +33,9 @@ def micro_sabre(dag, coupling_map, initial_mapping, heuristic):
                 node = dag.get(gate)
                 new_dag.insert(node.control, node.target, False)
 
+                # I thought this is not necessary, but apparently this fixes the redundant swaps
+                execute_gate_list.remove(gate)
+
                 # Get successors
                 successors = get_successors(dag, gate)
                 for successor in successors:
@@ -135,7 +138,7 @@ def min_score(scores):
             best_swaps.append(swap)
 
     # TODO: Make seed optional
-    random.seed(0)
+    # random.seed(0)
 
     return random.choice(best_swaps)
 

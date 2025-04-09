@@ -143,6 +143,7 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
         if node.is_swap:
             topological_swaps.append(node)
 
+    # TODO: Why do we print 22 but actually display 25?
     print(f"Number of SWAPs in DAG: {len(topological_swaps)}")
 
     transpiled_qiskit_sabre_dag = merge_top_swap(
