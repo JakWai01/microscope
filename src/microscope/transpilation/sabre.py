@@ -98,18 +98,26 @@ def compute_swap_candidates(dag, front_layer, current_mapping, coupling_map):
         physical_q0 = current_mapping[node.control]
         physical_q1 = current_mapping[node.target]
 
+        print(physical_q0, physical_q1)
         for edge in coupling_map:
-            # What happens if we remove this if here
-            # if edge[0] < len(current_mapping) and edge[1] < len(current_mapping):
-            if edge[0] == physical_q0 or edge[0] == physical_q1:
-                logical_q0 = [
-                    key for key, value in current_mapping.items() if value == edge[0]
-                ][0]
-                logical_q1 = [
-                    key for key, value in current_mapping.items() if value == edge[1]
-                ][0]
-                # Important: SWAP candidates are logical qubits! Not like in micro_swap!
-                swap_candidates.append((logical_q0, logical_q1))
+            # This is necessary since we go through each edge in the coupling_map. Only proceed if the physical qubits are mapped.
+            if (
+                edge[0] in current_mapping.values()
+                and edge[1] in current_mapping.values()
+            ):
+                if edge[0] == physical_q0 or edge[0] == physical_q1:
+                    logical_q0 = [
+                        key
+                        for key, value in current_mapping.items()
+                        if value == edge[0]
+                    ][0]
+                    logical_q1 = [
+                        key
+                        for key, value in current_mapping.items()
+                        if value == edge[1]
+                    ][0]
+                    # Important: SWAP candidates are logical qubits! Not like in micro_swap!
+                    swap_candidates.append((logical_q0, logical_q1))
     return swap_candidates
 
 

@@ -1,5 +1,7 @@
 from qiskit.dagcircuit import DAGCircuit
+from qiskit.converters import circuit_to_dag, dag_to_circuit
 from qiskit.circuit.library.standard_gates import SwapGate
+import matplotlib.pyplot as plt
 
 
 def merge_top_swap(micro_dag, input_dag, initial_mapping, coupling_map):
@@ -13,8 +15,10 @@ def merge_top_swap(micro_dag, input_dag, initial_mapping, coupling_map):
     topological_swaps = []
 
     for idx, node in micro_dag.nodes.items():
-        if node.is_swap == True:
+        if node.is_swap:
             topological_swaps.append(node)
+
+    print(len(topological_swaps))
 
     # Go through graph and execute gates if possible
     for layer in input_dag.serial_layers():
@@ -27,6 +31,15 @@ def merge_top_swap(micro_dag, input_dag, initial_mapping, coupling_map):
             while coupling_map.distance(physical_q0, physical_q1) != 1:
                 swap_layer = DAGCircuit()
                 swap_layer.add_qreg(canonical_register)
+
+                print(
+                    f"Distance between {physical_q0} and {physical_q1}: {coupling_map.distance(physical_q0, physical_q1)}"
+                )
+                print(f"SWAPs: {topological_swaps}")
+
+                # if len(topological_swaps) == 0:
+                #     circuit = dag_to_circuit(transpiled_qiskit_dag).draw("mpl", fold=160)
+                #     plt.show()
 
                 # Pop first swap from list
                 swap = topological_swaps.pop(0)
