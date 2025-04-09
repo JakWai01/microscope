@@ -32,7 +32,6 @@ def merge_top_swap(micro_dag, input_dag, initial_mapping, coupling_map):
                 swap = topological_swaps.pop(0)
 
                 # Die indizes hier im swap müssen die physischen swaps sein
-
                 swap_layer.apply_operation_back(
                     SwapGate(),
                     (
