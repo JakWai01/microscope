@@ -18,8 +18,6 @@ def merge_top_swap(micro_dag, input_dag, initial_mapping, coupling_map):
         if node.is_swap:
             topological_swaps.append(node)
 
-    print(len(topological_swaps))
-
     # Go through graph and execute gates if possible
     for layer in input_dag.serial_layers():
         subdag = layer["graph"]

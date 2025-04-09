@@ -136,7 +136,14 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
         micro_dag, coupling_map, micro_mapping, "lookahead"
     )
 
-    print(transpiled_sabre_dag.__dict__)
+    # print(transpiled_sabre_dag.__dict__)
+    topological_swaps = []
+
+    for idx, node in transpiled_sabre_dag.nodes.items():
+        if node.is_swap:
+            topological_swaps.append(node)
+
+    print(f"Number of SWAPs in DAG: {len(topological_swaps)}")
 
     transpiled_qiskit_sabre_dag = merge_top_swap(
         transpiled_sabre_dag, input_dag, initial_mapping, coupling_map

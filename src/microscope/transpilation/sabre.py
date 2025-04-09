@@ -134,6 +134,9 @@ def min_score(scores):
         if score == min_score:
             best_swaps.append(swap)
 
+    # TODO: Make seed optional
+    random.seed(0)
+
     return random.choice(best_swaps)
 
 
