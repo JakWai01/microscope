@@ -8,6 +8,10 @@ def micro_sabre(dag, coupling_map, initial_mapping, heuristic):
     current_mapping = initial_mapping.copy()
     front_layer = set(initial_front(dag))
 
+    for gate in front_layer:
+        nd = dag.get(gate)
+        print(f"{gate} in initial front_layer -> CNOT({nd.control},{nd.target})")
+
     new_dag = DAG()
 
     while front_layer:
@@ -35,6 +39,13 @@ def micro_sabre(dag, coupling_map, initial_mapping, heuristic):
                     # Check if dependencies are resolved
                     if no_dependencies(dag, front_layer, successor):
                         front_layer.add(successor)
+
+                        node_suc = dag.get(successor)
+                        print(
+                            f"Insert {successor} into front_layer -> CNOT({node_suc.control},{node_suc.target})"
+                        )
+
+                print("=================")
             continue
         else:
             # Gates in front_layer cannot be executed on hardware.
@@ -58,7 +69,7 @@ def micro_sabre(dag, coupling_map, initial_mapping, heuristic):
                     dag, front_layer, coupling_map, temporary_mapping, heuristic
                 )
 
-            print(scores)
+            # print(scores)
 
             best_swap = min_score(scores)
 
@@ -66,9 +77,8 @@ def micro_sabre(dag, coupling_map, initial_mapping, heuristic):
             physical_q0 = current_mapping[best_swap[0]]
             physical_q1 = current_mapping[best_swap[1]]
 
-            print(
-                f"Best swap: {best_swap} with score {scores[best_swap]} phys: {physical_q0} {physical_q1}"
-            )
+            # print(
+            # f"Best swap: {best_swap} with score {scores[best_swap]} phys: {physical_q0} {physical_q1}"
 
             new_dag.insert(physical_q0, physical_q1, True)
             current_mapping = swap_physical_qubits(
@@ -89,20 +99,17 @@ def compute_swap_candidates(dag, front_layer, current_mapping, coupling_map):
         physical_q1 = current_mapping[node.target]
 
         for edge in coupling_map:
-            if edge[0] < len(current_mapping) and edge[1] < len(current_mapping):
-                if edge[0] == physical_q0 or edge[0] == physical_q1:
-                    logical_q0 = [
-                        key
-                        for key, value in current_mapping.items()
-                        if value == edge[0]
-                    ][0]
-                    logical_q1 = [
-                        key
-                        for key, value in current_mapping.items()
-                        if value == edge[1]
-                    ][0]
-                    # Important: SWAP candidates are logical qubits! Not like in micro_swap!
-                    swap_candidates.append((logical_q0, logical_q1))
+            # What happens if we remove this if here
+            # if edge[0] < len(current_mapping) and edge[1] < len(current_mapping):
+            if edge[0] == physical_q0 or edge[0] == physical_q1:
+                logical_q0 = [
+                    key for key, value in current_mapping.items() if value == edge[0]
+                ][0]
+                logical_q1 = [
+                    key for key, value in current_mapping.items() if value == edge[1]
+                ][0]
+                # Important: SWAP candidates are logical qubits! Not like in micro_swap!
+                swap_candidates.append((logical_q0, logical_q1))
     return swap_candidates
 
 
