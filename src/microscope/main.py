@@ -63,7 +63,14 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     preprocessing_dag = circuit_to_dag(input_circuit)
     preprocessing_layout = generate_initial_mapping(preprocessing_dag)
 
-    pm = PassManager([Unroll3qOrMore(), SetLayout(preprocessing_layout), ApplyLayout()])
+    pm = PassManager(
+        [
+            Unroll3qOrMore(),
+            SetLayout(preprocessing_layout),
+            FullAncillaAllocation(coupling_map),
+            ApplyLayout(),
+        ]
+    )
 
     preprocessed_circuit = pm.run(input_circuit)
     preprocessed_circuit.draw("mpl", fold=160)
@@ -119,15 +126,8 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     transpiled_circuit.draw("mpl", fold=160)
 
     # Qiskit SABRE implementation
-    # TODO: Defining the basis_gates is kind of unidiomatic but we want to make sure that we just add SWAP gates
-    transpiled_qc = transpile(
-        preprocessed_circuit,
-        coupling_map=coupling_map,
-        routing_method="sabre",
-        layout_method="trivial",
-        optimization_level=3,
-        basis_gates=["h", "t", "measure", "s", "swap", "cx", "tdg", "x"],
-    )
+    qiskit_pm = PassManager([SabreSwap(coupling_map)])
+    transpiled_qc = qiskit_pm.run(preprocessed_circuit)
     transpiled_qc.draw("mpl", fold=160)
 
     # MicroSABRE implementation
