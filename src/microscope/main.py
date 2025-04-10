@@ -87,36 +87,36 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     else:
         pass
         # Rust implementation
-        # boosted_transpiled_micro_dag = microscope.micro_swap_boosted(
-        #     micro_dag, coupling_map, micro_mapping
-        # )
-        # boosted_transpiled_qiskit_dag = merge_top_swap(
-        #     boosted_transpiled_micro_dag, input_dag, initial_mapping, coupling_map
-        # )
-        # boosted_transpiled_qiskit_dag_circuit = dag_to_circuit(
-        #     boosted_transpiled_qiskit_dag
-        # )
-        # boosted_transpiled_qiskit_dag_circuit.draw("mpl", fold=160)
+        boosted_transpiled_micro_dag = microscope.micro_swap_boosted(
+            micro_dag, coupling_map, micro_mapping
+        )
+        boosted_transpiled_qiskit_dag = merge_top_swap(
+            boosted_transpiled_micro_dag, input_dag, initial_mapping, coupling_map
+        )
+        boosted_transpiled_qiskit_dag_circuit = dag_to_circuit(
+            boosted_transpiled_qiskit_dag
+        )
+        boosted_transpiled_qiskit_dag_circuit.draw("mpl", fold=160)
 
         # MicroDAG implementation
-        # transpiled_micro_dag = micro_swap(micro_dag, coupling_map, micro_mapping)
-        # transpiled_qiskit_dag = merge_top_swap(
-        #     transpiled_micro_dag, input_dag, initial_mapping, coupling_map
-        # )
+        transpiled_micro_dag = micro_swap(micro_dag, coupling_map, micro_mapping)
+        transpiled_qiskit_dag = merge_top_swap(
+            transpiled_micro_dag, input_dag, initial_mapping, coupling_map
+        )
 
-        # transpiled_qiskit_dag_circuit = dag_to_circuit(transpiled_qiskit_dag)
-        # transpiled_qiskit_dag_circuit.draw("mpl", fold=160)
+        transpiled_qiskit_dag_circuit = dag_to_circuit(transpiled_qiskit_dag)
+        transpiled_qiskit_dag_circuit.draw("mpl", fold=160)
 
-        # # Qiskit-style implementation
-        # transpiled_dag = basic_swap(input_dag, coupling_map, initial_mapping)
+        # Qiskit-style implementation
+        transpiled_dag = basic_swap(input_dag, coupling_map, initial_mapping)
 
     if show_dag:
         output_dag_image = dag_drawer(transpiled_dag)
         output_dag_image.show()
 
     # Convert DAG to circuit
-    # transpiled_circuit = dag_to_circuit(transpiled_dag)
-    # transpiled_circuit.draw("mpl")
+    transpiled_circuit = dag_to_circuit(transpiled_dag)
+    transpiled_circuit.draw("mpl", fold=160)
 
     # Qiskit SABRE implementation
     # TODO: Defining the basis_gates is kind of unidiomatic but we want to make sure that we just add SWAP gates
@@ -131,20 +131,9 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     transpiled_qc.draw("mpl", fold=160)
 
     # MicroSABRE implementation
-    # TODO: Bug spotted in adder_n10 where CNOT's span multiple qubits
     transpiled_sabre_dag = micro_sabre(
         micro_dag, coupling_map, micro_mapping, "lookahead"
     )
-
-    # print(transpiled_sabre_dag.__dict__)
-    topological_swaps = []
-
-    for idx, node in transpiled_sabre_dag.nodes.items():
-        if node.is_swap:
-            topological_swaps.append(node)
-
-    # TODO: Why do we print 22 but actually display 25?
-    print(f"Number of SWAPs in DAG: {len(topological_swaps)}")
 
     transpiled_qiskit_sabre_dag = merge_top_swap(
         transpiled_sabre_dag, input_dag, initial_mapping, coupling_map

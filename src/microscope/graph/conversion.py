@@ -30,15 +30,6 @@ def merge_top_swap(micro_dag, input_dag, initial_mapping, coupling_map):
                 swap_layer = DAGCircuit()
                 swap_layer.add_qreg(canonical_register)
 
-                print(
-                    f"Distance between {physical_q0} and {physical_q1}: {coupling_map.distance(physical_q0, physical_q1)}"
-                )
-                print(f"SWAPs: {topological_swaps}")
-
-                # if len(topological_swaps) == 0:
-                #     circuit = dag_to_circuit(transpiled_qiskit_dag).draw("mpl", fold=160)
-                #     plt.show()
-
                 # Pop first swap from list
                 swap = topological_swaps.pop(0)
 
@@ -77,7 +68,7 @@ def merge_top_swap(micro_dag, input_dag, initial_mapping, coupling_map):
 def transpiled_micro_dag_to_transpiled_qiskit_dag(
     micro_dag, input_dag, initial_mapping
 ):
-    # mapping phyiscal qubits to logical qubits e.g. {"physical": "logical"}
+    # Mapping phyiscal qubits to logical qubits e.g. {"physical": "logical"}
     current_mapping = initial_mapping.copy()
 
     transpiled_qiskit_dag = input_dag.copy_empty_like()
@@ -86,16 +77,14 @@ def transpiled_micro_dag_to_transpiled_qiskit_dag(
 
     current_dag_pointer = 0
 
-    # iterate through each gate
+    # Iterate through each gate
     for layer in input_dag.serial_layers():
         subdag = layer["graph"]
 
-        # if gate is two qubit operation (max. one)
+        # If gate is two qubit operation (max. one)
         for gate in subdag.two_qubit_ops():
 
             micro_dag_node = micro_dag.get(current_dag_pointer)
-            # Die IDs könnten das Problem sein
-            # print(f"Currently working on executing {micro_dag_node}")
 
             if micro_dag_node.is_swap:
                 swap_layer = DAGCircuit()
