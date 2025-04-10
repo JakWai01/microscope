@@ -30,6 +30,11 @@ def merge_top_swap(micro_dag, input_dag, initial_mapping, coupling_map):
                 swap_layer = DAGCircuit()
                 swap_layer.add_qreg(canonical_register)
 
+                if len(topological_swaps) == 0:
+                    ct = dag_to_circuit(transpiled_qiskit_dag)
+                    ct.draw("mpl", fold=160)
+                    plt.show()
+
                 # Pop first swap from list
                 swap = topological_swaps.pop(0)
 
