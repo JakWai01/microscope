@@ -27,6 +27,7 @@ way by adhering to the following constraints:
 - No three- or more qubit-gates. This implementation limits itself to the usage
   of two-qubit gates.
 - No barriers. The implementation limits itself to using a single circuit.
+- No control flow
 
 What this research is trying to achieve is to tackle the problem based on the
 following assumptions:
