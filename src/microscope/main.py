@@ -135,12 +135,12 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
         micro_dag, coupling_map, micro_mapping, "lookahead"
     )
 
-    transpiled_qiskit_sabre_dag = merge_top_swap(
+    transpiled_micro_sabre_dag = merge_top_swap(
         transpiled_sabre_dag, input_dag, initial_mapping, coupling_map
     )
 
-    transpiled_qiskit_sabre_circuit = dag_to_circuit(transpiled_qiskit_sabre_dag)
-    transpiled_qiskit_sabre_circuit.draw("mpl", fold=160)
+    transpiled_micro_sabre_circuit = dag_to_circuit(transpiled_micro_sabre_dag)
+    transpiled_micro_sabre_circuit.draw("mpl", fold=160)
 
     plt.show()
 

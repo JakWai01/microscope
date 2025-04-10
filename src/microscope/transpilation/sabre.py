@@ -4,77 +4,29 @@ from transpilation.heuristics import calculate_heuristic
 import random
 
 
-def micro_sabre(dag, coupling_map, initial_mapping, heuristic):
-    current_mapping = initial_mapping.copy()
-    front_layer = set(initial_front(dag))
+def choose_best_swap(dag, front_layer, coupling_map, current_mapping, heuristic):
+    # Gates in front_layer cannot be executed on hardware.
+    scores = dict()
+    swap_candidates = compute_swap_candidates(
+        dag, front_layer, current_mapping, coupling_map
+    )
+    for swap in swap_candidates:
+        # For now, convert to physical qubits again
+        # If this works, insert physical qubits in the first place
+        physical_q0 = current_mapping[swap[0]]
+        physical_q1 = current_mapping[swap[1]]
 
-    new_dag = DAG()
+        # Create temporary mapping to calculate score with
+        temporary_mapping = swap_physical_qubits(
+            physical_q0, physical_q1, current_mapping
+        )
 
-    while front_layer:
-        execute_gate_list = []
-        for gate in front_layer:
-            node = dag.get(gate)
+        # Calculate score using front_layer, DAG, temporary_mapping, distance_matrix and swap
+        scores[swap] = calculate_heuristic(
+            dag, front_layer, coupling_map, temporary_mapping, heuristic
+        )
 
-            physical_q0 = current_mapping[node.control]
-            physical_q1 = current_mapping[node.target]
-
-            if coupling_map.distance(physical_q0, physical_q1) == 1:
-                execute_gate_list.append(gate)
-
-        if execute_gate_list:
-            for gate in execute_gate_list:
-                # Remove from front since we execute it
-                front_layer.remove(gate)
-
-                node = dag.get(gate)
-                new_dag.insert(node.control, node.target, False)
-
-                # I thought this is not necessary, but apparently this fixes the redundant swaps
-                execute_gate_list.remove(gate)
-
-                # Get successors
-                successors = get_successors(dag, gate)
-                for successor in successors:
-                    # Check if dependencies are resolved
-                    if no_dependencies(dag, front_layer, successor):
-                        front_layer.add(successor)
-
-                        node_suc = dag.get(successor)
-            continue
-        else:
-            # Gates in front_layer cannot be executed on hardware.
-            scores = dict()
-            swap_candidates = compute_swap_candidates(
-                dag, front_layer, current_mapping, coupling_map
-            )
-            for swap in swap_candidates:
-                # For now, convert to physical qubits again
-                # If this works, insert physical qubits in the first place
-                physical_q0 = current_mapping[swap[0]]
-                physical_q1 = current_mapping[swap[1]]
-
-                # Create temporary mapping to calculate score with
-                temporary_mapping = swap_physical_qubits(
-                    physical_q0, physical_q1, current_mapping
-                )
-
-                # Calculate score using front_layer, DAG, temporary_mapping, distance_matrix and swap
-                scores[swap] = calculate_heuristic(
-                    dag, front_layer, coupling_map, temporary_mapping, heuristic
-                )
-
-            best_swap = min_score(scores)
-
-            # Swap physical qubits
-            physical_q0 = current_mapping[best_swap[0]]
-            physical_q1 = current_mapping[best_swap[1]]
-
-            new_dag.insert(physical_q0, physical_q1, True)
-            current_mapping = swap_physical_qubits(
-                physical_q0, physical_q1, current_mapping
-            )
-
-    return new_dag
+    return min_score(scores)
 
 
 def compute_swap_candidates(dag, front_layer, current_mapping, coupling_map):
@@ -88,7 +40,8 @@ def compute_swap_candidates(dag, front_layer, current_mapping, coupling_map):
         physical_q1 = current_mapping[node.target]
 
         for edge in coupling_map:
-            # This is necessary since we go through each edge in the coupling_map. Only proceed if the physical qubits are mapped.
+            # This is necessary since we go through each edge in the coupling_map.edge.
+            # Only proceed if the physical qubits are mapped.
             if (
                 edge[0] in current_mapping.values()
                 and edge[1] in current_mapping.values()
@@ -159,3 +112,56 @@ def initial_front(dag):
         nodes_with_predecessors.add(t)
 
     return list(nodes - nodes_with_predecessors)
+
+
+def micro_sabre(dag, coupling_map, initial_mapping, heuristic):
+    current_mapping = initial_mapping.copy()
+    front_layer = set(initial_front(dag))
+
+    new_dag = DAG()
+
+    while front_layer:
+        execute_gate_list = []
+        for gate in front_layer:
+            node = dag.get(gate)
+
+            physical_q0 = current_mapping[node.control]
+            physical_q1 = current_mapping[node.target]
+
+            if coupling_map.distance(physical_q0, physical_q1) == 1:
+                execute_gate_list.append(gate)
+
+        if execute_gate_list:
+            for gate in execute_gate_list:
+                # Remove from front since we execute it
+                front_layer.remove(gate)
+
+                node = dag.get(gate)
+
+                # Instead of new_dag, qiskit maintains an out_map
+                new_dag.insert(node.control, node.target, False)
+
+                # I thought this is not necessary, but apparently this fixes the redundant swaps
+                execute_gate_list.remove(gate)
+
+                # Get successors
+                successors = get_successors(dag, gate)
+                for successor in successors:
+                    # Check if dependencies are resolved
+                    if no_dependencies(dag, front_layer, successor):
+                        front_layer.add(successor)
+            continue
+        else:
+            best_swap = choose_best_swap(
+                dag, front_layer, coupling_map, current_mapping, heuristic
+            )
+            # Swap physical qubits
+            physical_q0 = current_mapping[best_swap[0]]
+            physical_q1 = current_mapping[best_swap[1]]
+
+            new_dag.insert(physical_q0, physical_q1, True)
+            current_mapping = swap_physical_qubits(
+                physical_q0, physical_q1, current_mapping
+            )
+
+    return new_dag
