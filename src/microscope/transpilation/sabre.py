@@ -2,6 +2,7 @@ from graph.dag import DAG, DAGNode
 from transpilation.helper import swap_physical_qubits, pretty_print_mapping
 from transpilation.heuristics import calculate_heuristic
 import random
+from collections import defaultdict
 
 
 # Returns current front be advancing as much as possible without inserting
@@ -10,6 +11,7 @@ import random
 # the front_layer.
 # Search forward from the nodes provided. They should have no predecessors.
 # TODO: Check if we behave correctly when the front_layer already contains items
+# TODO: Returning the gate order might become important
 def advance_front_layer(nodes, dag, current_mapping, coupling_map):
     node_queue = nodes.copy()
 
@@ -47,13 +49,76 @@ def micro_sabre_v2(dag, coupling_map, initial_mapping, heuristic):
     front_layer = advance_front_layer(
         initial_front(dag), dag, current_mapping, coupling_map
     )
-    print(front_layer)
 
-    another_time = advance_front_layer([5, 6], dag, current_mapping, coupling_map)
-    print(another_time)
+    execute_gate_list = []
 
-    # while front_layer:
-    #     pass
+    out_map = defaultdict(list)
+
+    while front_layer:
+        current_swaps = []
+
+        while not execute_gate_list:
+            best_swap = choose_best_swap(
+                dag, front_layer, coupling_map, current_mapping, heuristic
+            )
+            print(f"Best Swap: {best_swap}")
+
+            # Swap physical qubits
+            physical_q0 = current_mapping[best_swap[0]]
+            physical_q1 = current_mapping[best_swap[1]]
+
+            current_swaps.append(best_swap)
+            current_mapping = swap_physical_qubits(
+                physical_q0, physical_q1, current_mapping
+            )
+
+            # Check if we can execute any gates from front_layer due to the
+            # SWAP
+            if (
+                node := executable_node_on_qubit(
+                    front_layer, physical_q0, dag, coupling_map, current_mapping
+                )
+            ) is not None:
+                execute_gate_list.append(node)
+
+            if (
+                node := executable_node_on_qubit(
+                    front_layer, physical_q1, dag, coupling_map, current_mapping
+                )
+            ) is not None:
+                execute_gate_list.append(node)
+
+        # We found something to execute (execute_gate_list is not empty anymore)
+        # TODO: Think about decomposing this part into another function
+        out_map[execute_gate_list[0]].append(*current_swaps)
+
+        print(f"Front Layer: {front_layer}")
+        print(f"Execute Gate List: {execute_gate_list}")
+        for node in execute_gate_list:
+            front_layer.remove(node)
+
+        # TODO: Maybe this part leads to a failure in the following iterations
+        front_layer = advance_front_layer(
+            execute_gate_list, dag, current_mapping, coupling_map
+        )
+        print(f"Next Front Layer: {front_layer}")
+        execute_gate_list.clear()
+
+    return dict(out_map)
+
+
+def executable_node_on_qubit(
+    front_layer, physical_qubit, dag, coupling_map, current_mapping
+):
+    for node_id in front_layer:
+        node = dag.get(node_id)
+
+        physical_q0 = current_mapping[node.control]
+        physical_q1 = current_mapping[node.target]
+
+        if physical_q0 == physical_qubit or physical_q1 == physical_qubit:
+            return node_id
+    return None
 
 
 def micro_sabre(dag, coupling_map, initial_mapping, heuristic):

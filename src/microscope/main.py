@@ -135,6 +135,8 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
         micro_dag, coupling_map, micro_mapping, "lookahead"
     )
 
+    print(transpiled_sabre_dag)
+
     # transpiled_micro_sabre_dag = merge_top_swap(
     #     transpiled_sabre_dag, input_dag, initial_mapping, coupling_map
     # )
