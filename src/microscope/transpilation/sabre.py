@@ -5,120 +5,252 @@ import random
 from collections import defaultdict
 
 
-# Returns current front be advancing as much as possible without inserting
-# SWAPs.
-# Add the gates that can be executed to the execute_gate_list. Add the rest to
-# the front_layer.
-# Search forward from the nodes provided. They should have no predecessors.
-# TODO: Check if we behave correctly when the front_layer already contains items
-# TODO: Returning the gate order might become important
-def advance_front_layer(nodes, dag, current_mapping, coupling_map):
-    node_queue = nodes.copy()
+class MicroSabre:
+    def __init__(self, dag, initial_mapping, coupling_map, heuristic):
+        self.current_mapping = initial_mapping.copy()
+        self.coupling_map = coupling_map
+        self.dag = dag
+        self.heuristic = heuristic
+        self.out_map = defaultdict(list)
+        # Initialize the front_layer by executing all gates that can be executed
+        # immediately without inserting any SWAP gates. Assign the gates to the
+        # front_layer that have  no dependencies but cannot be executed without any
+        # SWAPs.
+        self.front_layer = self._advance_front_layer(self._initial_front())
 
-    current_front = []
+    """
+    Returns current front be advancing as much as possible without inserting
+    SWAPs.
+    Add the gates that can be executed to the execute_gate_list. Add the rest to
+    the front_layer.
+    Search forward from the nodes provided. They should have no predecessors.
+    TODO: Check if we behave correctly when the front_layer already contains items
+    TODO: Returning the gate order might become important
+    """
 
-    while node_queue:
-        node_id = node_queue.pop(0)
+    def _advance_front_layer(self, nodes):
+        node_queue = nodes.copy()
 
-        node = dag.get(node_id)
+        current_front = []
 
-        physical_q0 = current_mapping[node.control]
-        physical_q1 = current_mapping[node.target]
+        while node_queue:
+            node_id = node_queue.pop(0)
 
-        # Check whether the node can be executed on the current mapping
-        if coupling_map.distance(physical_q0, physical_q1) == 1:
-            # Node can be executed, check successors
-            successors = get_successors(dag, node_id)
-            for successor in successors:
-                if no_dependencies(dag, current_front, successor):
-                    node_queue.append(successor)
-        else:
-            # Node cannot be executed without adding SWAPs. Add to front_layer.
-            current_front.append(node_id)
+            node = self.dag.get(node_id)
 
-    return list(set(current_front))
+            physical_q0 = self.current_mapping[node.control]
+            physical_q1 = self.current_mapping[node.target]
 
+            # Check whether the node can be executed on the current mapping
+            if self.coupling_map.distance(physical_q0, physical_q1) == 1:
+                # Node can be executed, check successors
+                successors = self._get_successors(node_id)
+                for successor in successors:
+                    if self._no_dependencies(current_front, successor):
+                        node_queue.append(successor)
+            else:
+                # Node cannot be executed without adding SWAPs. Add to front_layer.
+                current_front.append(node_id)
 
-def micro_sabre_v2(dag, coupling_map, initial_mapping, heuristic):
-    current_mapping = initial_mapping.copy()
+        return list(set(current_front))
 
-    # Initialize the front_layer by executing all gates that can be executed
-    # immediately without inserting any SWAP gates. Assign the gates to the
-    # front_layer that have  no dependencies but cannot be executed without any
-    # SWAPs.
-    front_layer = advance_front_layer(
-        initial_front(dag), dag, current_mapping, coupling_map
-    )
+    def run(self):
+        execute_gate_list = []
 
-    execute_gate_list = []
+        while self.front_layer:
+            current_swaps = []
 
-    out_map = defaultdict(list)
+            while not execute_gate_list:
+                best_swap = self._choose_best_swap()
+                print(f"Best Swap: {best_swap}")
 
-    while front_layer:
-        current_swaps = []
+                # Swap physical qubits
+                physical_q0 = self.current_mapping[best_swap[0]]
+                physical_q1 = self.current_mapping[best_swap[1]]
 
-        while not execute_gate_list:
-            best_swap = choose_best_swap(
-                dag, front_layer, coupling_map, current_mapping, heuristic
-            )
-            print(f"Best Swap: {best_swap}")
-
-            # Swap physical qubits
-            physical_q0 = current_mapping[best_swap[0]]
-            physical_q1 = current_mapping[best_swap[1]]
-
-            current_swaps.append(best_swap)
-            current_mapping = swap_physical_qubits(
-                physical_q0, physical_q1, current_mapping
-            )
-
-            # Check if we can execute any gates from front_layer due to the
-            # SWAP
-            if (
-                node := executable_node_on_qubit(
-                    front_layer, physical_q0, dag, coupling_map, current_mapping
+                current_swaps.append(best_swap)
+                self.current_mapping = swap_physical_qubits(
+                    physical_q0, physical_q1, self.current_mapping
                 )
-            ) is not None:
-                execute_gate_list.append(node)
+
+                # Check if we can execute any gates from front_layer due to the
+                # SWAP
+                if (node := self._executable_node_on_qubit(physical_q0)) is not None:
+                    execute_gate_list.append(node)
+
+                if (node := self._executable_node_on_qubit(physical_q1)) is not None:
+                    execute_gate_list.append(node)
+
+            print(f"Out MAP: {self.out_map}")
+            # We found something to execute (execute_gate_list is not empty anymore)
+            # TODO: Think about decomposing this part into another function
+            self.out_map[execute_gate_list[0]].append(*current_swaps)
+
+            # print(f"Front Layer: {front_layer}")
+            print(f"Execute Gate List: {execute_gate_list}")
+            for node in execute_gate_list:
+                self.front_layer.remove(node)
+
+            # TODO: Maybe this part leads to a failure in the following iterations
+            self.front_layer = self._advance_front_layer(execute_gate_list)
+            # print(f"Next Front Layer: {front_layer}")
+            execute_gate_list.clear()
+
+        return dict(self.out_map)
+
+    def _executable_node_on_qubit(self, physical_qubit):
+        for node_id in self.front_layer:
+            node = self.dag.get(node_id)
+
+            physical_q0 = self.current_mapping[node.control]
+            physical_q1 = self.current_mapping[node.target]
+
+            if physical_q0 == physical_qubit or physical_q1 == physical_qubit:
+                return node_id
+        return None
+
+    def _choose_best_swap(self):
+        # Gates in front_layer cannot be executed on hardware.
+        scores = dict()
+        swap_candidates = self._compute_swap_candidates()
+        for swap in swap_candidates:
+            # For now, convert to physical qubits again
+            # If this works, insert physical qubits in the first place
+            physical_q0 = self.current_mapping[swap[0]]
+            physical_q1 = self.current_mapping[swap[1]]
+
+            # Create temporary mapping to calculate score with
+            temporary_mapping = swap_physical_qubits(
+                physical_q0, physical_q1, self.current_mapping
+            )
+
+            # Calculate score using front_layer, DAG, temporary_mapping, distance_matrix and swap
+            scores[swap] = self._calculate_heuristic(
+                self.front_layer, temporary_mapping
+            )
+        return min_score(scores)
+
+    def _compute_swap_candidates(self):
+        swap_candidates = []
+        # Compute neighbours
+        for gate in self.front_layer:
+            node = self.dag.get(gate)
+            # TODO: Check that we are always mapping "logical":"physical"
+            # TODO: Check that looking for both, control and target, is fine
+            physical_q0 = self.current_mapping[node.control]
+            physical_q1 = self.current_mapping[node.target]
+
+            for edge in self.coupling_map:
+                # This is necessary since we go through each edge in the coupling_map.edge.
+                # Only proceed if the physical qubits are mapped.
+                if (
+                    edge[0] in self.current_mapping.values()
+                    and edge[1] in self.current_mapping.values()
+                ):
+                    if edge[0] == physical_q0 or edge[0] == physical_q1:
+                        logical_q0 = [
+                            key
+                            for key, value in self.current_mapping.items()
+                            if value == edge[0]
+                        ][0]
+                        logical_q1 = [
+                            key
+                            for key, value in self.current_mapping.items()
+                            if value == edge[1]
+                        ][0]
+                        # Important: SWAP candidates are logical qubits! Not like in micro_swap!
+                        swap_candidates.append((logical_q0, logical_q1))
+        return swap_candidates
+
+    def _min_score(self, scores):
+        min_swap = list(scores)[0]
+        min_score = scores[min_swap]
+        best_swaps = []
+        for swap, score in scores.items():
+            if score < min_score:
+                min_score = scores[swap]
+                min_swap = swap
+                best_swaps = []
+                best_swaps.append(swap)
+            if score == min_score:
+                best_swaps.append(swap)
+
+        # TODO: Make seed optional
+        random.seed(0)
+
+        return random.choice(best_swaps)
+
+    def _no_dependencies(self, front_layer, successor):
+        for gate in front_layer:
+            node = self.dag.get(gate)
+            successor_node = self.dag.get(successor)
 
             if (
-                node := executable_node_on_qubit(
-                    front_layer, physical_q1, dag, coupling_map, current_mapping
-                )
-            ) is not None:
-                execute_gate_list.append(node)
+                node.control == successor_node.control
+                or node.target == successor_node.control
+                or node.control == successor_node.target
+                or node.target == successor_node.target
+            ):
+                return False
+        return True
 
-        # We found something to execute (execute_gate_list is not empty anymore)
-        # TODO: Think about decomposing this part into another function
-        out_map[execute_gate_list[0]].append(*current_swaps)
+    def _get_successors(self, node_id):
+        successors = []
+        for s, t in self.dag.edges:
+            if s == node_id:
+                successors.append(t)
+        return successors
 
-        print(f"Front Layer: {front_layer}")
-        print(f"Execute Gate List: {execute_gate_list}")
-        for node in execute_gate_list:
-            front_layer.remove(node)
+    def _initial_front(self):
+        nodes_with_predecessors = set()
+        nodes = set(range(len(self.dag)))
 
-        # TODO: Maybe this part leads to a failure in the following iterations
-        front_layer = advance_front_layer(
-            execute_gate_list, dag, current_mapping, coupling_map
+        for s, t in self.dag.edges:
+            nodes_with_predecessors.add(t)
+
+        return list(nodes - nodes_with_predecessors)
+
+    def _calculate_heuristic(self, front_layer, current_mapping):
+        # TODO: Switch here
+        if self.heuristic == "basic":
+            return self._h_basic(front_layer, current_mapping)
+        if self.heuristic == "lookahead":
+            return self._h_lookahead(front_layer, current_mapping, 1)
+
+    # Look-Ahead Ability
+    def _h_lookahead(self, front_layer, current_mapping, weight):
+        h_basic_result = self._h_basic(front_layer, current_mapping)
+
+        extended_set = self._get_extended_set()
+
+        h_basic_result_extended = self._h_basic(extended_set, current_mapping)
+        return (
+            1 / len(front_layer) * h_basic_result
+            + weight * 1 / len(extended_set) * h_basic_result_extended
         )
-        print(f"Next Front Layer: {front_layer}")
-        execute_gate_list.clear()
 
-    return dict(out_map)
+    # Nearest Neighbour Cost Function
+    def _h_basic(self, front_layer, current_mapping):
+        h_sum = 0
 
+        for gate in front_layer:
+            node = self.dag.get(gate)
 
-def executable_node_on_qubit(
-    front_layer, physical_qubit, dag, coupling_map, current_mapping
-):
-    for node_id in front_layer:
-        node = dag.get(node_id)
+            physical_q0 = current_mapping[node.control]
+            physical_q1 = current_mapping[node.target]
 
-        physical_q0 = current_mapping[node.control]
-        physical_q1 = current_mapping[node.target]
+            h_sum += self.coupling_map.distance(physical_q0, physical_q1)
+        return h_sum
 
-        if physical_q0 == physical_qubit or physical_q1 == physical_qubit:
-            return node_id
-    return None
+    # Returning the successors of the current front_layer
+    # TODO: Think about allowing multiple hops
+    def _get_extended_set(self):
+        extended_set = set()
+        for gate in self.front_layer:
+            successors = self._get_successors(gate)
+            for successor in successors:
+                extended_set.add(successor)
+        return extended_set
 
 
 def micro_sabre(dag, coupling_map, initial_mapping, heuristic):

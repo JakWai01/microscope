@@ -39,7 +39,7 @@ from graph.conversion import (
 )
 from graph.dag import DAG, DAGNode
 from transpilation.basic_swap import micro_swap, basic_swap
-from transpilation.sabre import micro_sabre, micro_sabre_v2
+from transpilation.sabre import micro_sabre, MicroSabre
 
 
 @click.command()
@@ -131,9 +131,11 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     transpiled_qc.draw("mpl", fold=160)
 
     # MicroSABRE implementation
-    transpiled_sabre_dag = micro_sabre_v2(
-        micro_dag, coupling_map, micro_mapping, "lookahead"
-    )
+    ms = MicroSabre(micro_dag, micro_mapping, coupling_map, "lookahead")
+    # transpiled_sabre_dag = micro_sabre_v2(
+    #     micro_dag, coupling_map, micro_mapping, "lookahead"
+    # )
+    transpiled_sabre_dag = ms.run()
 
     print(transpiled_sabre_dag)
 
