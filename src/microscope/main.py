@@ -132,17 +132,13 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
 
     # MicroSABRE implementation
     ms = MicroSabre(micro_dag, micro_mapping, coupling_map, "lookahead")
-    # transpiled_sabre_dag = micro_sabre_v2(
-    #     micro_dag, coupling_map, micro_mapping, "lookahead"
-    # )
     transpiled_sabre_dag = ms.run()
 
-    print(transpiled_sabre_dag)
+    print(transpiled_sabre_dag[0], transpiled_sabre_dag[1])
 
     # transpiled_micro_sabre_dag = merge_top_swap(
     #     transpiled_sabre_dag, input_dag, initial_mapping, coupling_map
     # )
-    #
     # transpiled_micro_sabre_circuit = dag_to_circuit(transpiled_micro_sabre_dag)
     # transpiled_micro_sabre_circuit.draw("mpl", fold=160)
 

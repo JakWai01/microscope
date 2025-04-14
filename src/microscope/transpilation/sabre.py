@@ -12,11 +12,8 @@ class MicroSabre:
         self.dag = dag
         self.heuristic = heuristic
         self.out_map = defaultdict(list)
-        # Initialize the front_layer by executing all gates that can be executed
-        # immediately without inserting any SWAP gates. Assign the gates to the
-        # front_layer that have  no dependencies but cannot be executed without any
-        # SWAPs.
-        self.front_layer = self._advance_front_layer(self._initial_front())
+        self.gate_order = []
+        self.front_layer = []
 
     """
     Returns current front be advancing as much as possible without inserting
@@ -31,8 +28,6 @@ class MicroSabre:
     def _advance_front_layer(self, nodes):
         node_queue = nodes.copy()
 
-        current_front = []
-
         while node_queue:
             node_id = node_queue.pop(0)
 
@@ -43,19 +38,26 @@ class MicroSabre:
 
             # Check whether the node can be executed on the current mapping
             if self.coupling_map.distance(physical_q0, physical_q1) == 1:
-                # Node can be executed, check successors
+                # Node can be executed
+                self.gate_order.append(node_id)
+
+                # check successors
                 successors = self._get_successors(node_id)
                 for successor in successors:
-                    if self._no_dependencies(current_front, successor):
+                    if self._no_dependencies(self.front_layer, successor):
                         node_queue.append(successor)
             else:
                 # Node cannot be executed without adding SWAPs. Add to front_layer.
-                current_front.append(node_id)
-
-        return list(set(current_front))
+                self.front_layer.append(node_id)
 
     def run(self):
         execute_gate_list = []
+
+        # Initialize the front_layer by executing all gates that can be executed
+        # immediately without inserting any SWAP gates. Assign the gates to the
+        # front_layer that have  no dependencies but cannot be executed without any
+        # SWAPs.
+        self._advance_front_layer(self._initial_front())
 
         while self.front_layer:
             current_swaps = []
@@ -92,11 +94,11 @@ class MicroSabre:
                 self.front_layer.remove(node)
 
             # TODO: Maybe this part leads to a failure in the following iterations
-            self.front_layer = self._advance_front_layer(execute_gate_list)
+            self._advance_front_layer(execute_gate_list)
             # print(f"Next Front Layer: {front_layer}")
             execute_gate_list.clear()
 
-        return dict(self.out_map)
+        return (dict(self.out_map), self.gate_order)
 
     def _executable_node_on_qubit(self, physical_qubit):
         for node_id in self.front_layer:
