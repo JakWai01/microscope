@@ -39,7 +39,8 @@ class MicroSabre:
                 # Check whether the node can be executed on the current mapping
                 if self.coupling_map.distance(physical_q0, physical_q1) == 1:
                     # Node can be executed
-                    self.gate_order.append(node.node_id)
+                    if node.node_id not in self.gate_order:
+                        self.gate_order.append(node.node_id)
 
                     # check successors
                     successors = self._get_successors(node_index)
@@ -50,7 +51,8 @@ class MicroSabre:
                     # Node cannot be executed without adding SWAPs. Add to front_layer.
                     self.front_layer.append(node_index)
             elif len(node.qubits) == 1:
-                self.gate_order.append(node.node_id)
+                if node.node_id not in self.gate_order:
+                    self.gate_order.append(node.node_id)
 
                 successors = self._get_successors(node_index)
                 for successor in successors:
