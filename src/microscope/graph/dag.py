@@ -4,13 +4,14 @@ class DAG:
         self.edges = []
         self._last_op_on_qubit = dict()
 
-    def insert(self, control, target, is_swap):
-        node_id = len(self.nodes)
+    def insert(self, node_id, control, target, is_swap):
         node = DAGNode(node_id, control, target, is_swap)
 
-        self.nodes[node_id] = node
+        node_index = len(self.nodes)
 
-        self._update_edges(node_id)
+        self.nodes[node_index] = node
+
+        self._update_edges(node_index)
 
         return node_id
 
@@ -29,9 +30,9 @@ class DAG:
         self._last_op_on_qubit[node.control] = node_id
         self._last_op_on_qubit[node.target] = node_id
 
-    # Get node by id
-    def get(self, node_id):
-        return self.nodes[node_id]
+    # TODO: This method is wrong node
+    def get(self, node_index):
+        return self.nodes[node_index]
 
     def from_qiskit_dag(self, dag):
         """Create DAG from qiskit DAGCircuit
@@ -45,7 +46,9 @@ class DAG:
         for node in dag.topological_op_nodes():
             if node.op.num_qubits == 2:
                 # SWAP boolean is false since there are no SWAP gates before the transpilation
-                self.insert(node.qargs[0]._index, node.qargs[1]._index, False)
+                self.insert(
+                    node._node_id, node.qargs[0]._index, node.qargs[1]._index, False
+                )
 
         return self
 
