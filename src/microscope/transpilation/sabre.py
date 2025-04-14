@@ -13,7 +13,7 @@ class MicroSabre:
         self.heuristic = heuristic
         self.out_map = defaultdict(list)
         self.gate_order = []
-        self.front_layer = []
+        self.front_layer = set()
 
     """
     Returns current front be advancing as much as possible without inserting
@@ -49,7 +49,10 @@ class MicroSabre:
                             node_queue.append(successor)
                 else:
                     # Node cannot be executed without adding SWAPs. Add to front_layer.
-                    self.front_layer.append(node_index)
+                    print(
+                        f"Node {node.__dict__} cannot be executed without adding swaps"
+                    )
+                    self.front_layer.add(node_index)
             elif len(node.qubits) == 1:
                 if node.node_id not in self.gate_order:
                     self.gate_order.append(node.node_id)
@@ -66,14 +69,20 @@ class MicroSabre:
         # immediately without inserting any SWAP gates. Assign the gates to the
         # front_layer that have  no dependencies but cannot be executed without any
         # SWAPs.
-        self._advance_front_layer(self._initial_front())
+        # TODO: This executes way too many gates
+        initial_front = self._initial_front()
+        print(f"Initial front: {initial_front}")
+        self._advance_front_layer(initial_front)
 
+        print(f"Already executed gates: {self.gate_order}")
+        print(f"Initial front layer: {self.front_layer}")
         while self.front_layer:
+            print(f"Current front layer: {self.front_layer}")
             current_swaps = []
 
             while not execute_gate_list:
                 best_swap = self._choose_best_swap()
-
+                print(f"Choose best swap: {best_swap}")
                 # Swap physical qubits
                 physical_q0 = self.current_mapping[best_swap[0]]
                 physical_q1 = self.current_mapping[best_swap[1]]
@@ -96,6 +105,7 @@ class MicroSabre:
             self.out_map[self.dag.get(execute_gate_list[0]).node_id].append(
                 *current_swaps
             )
+            print(f"Current out_map: {self.out_map}")
 
             for node in execute_gate_list:
                 self.front_layer.remove(node)
