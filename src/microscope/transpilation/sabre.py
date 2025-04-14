@@ -37,30 +37,18 @@ class MicroSabre:
                 physical_q1 = self.current_mapping[node.qubits[1]]
 
                 # Check whether the node can be executed on the current mapping
-                if self.coupling_map.distance(physical_q0, physical_q1) == 1:
-                    # Node can be executed
-                    if node.node_id not in self.gate_order:
-                        self.gate_order.append(node.node_id)
-
-                    # check successors
-                    successors = self._get_successors(node_index)
-                    for successor in successors:
-                        if self._no_dependencies(self.front_layer, successor):
-                            node_queue.append(successor)
-                else:
-                    # Node cannot be executed without adding SWAPs. Add to front_layer.
-                    print(
-                        f"Node {node.__dict__} cannot be executed without adding swaps"
-                    )
+                if self.coupling_map.distance(physical_q0, physical_q1) != 1:
                     self.front_layer.add(node_index)
-            elif len(node.qubits) == 1:
-                if node.node_id not in self.gate_order:
-                    self.gate_order.append(node.node_id)
 
-                successors = self._get_successors(node_index)
-                for successor in successors:
-                    if self._no_dependencies(self.front_layer, successor):
-                        node_queue.append(successor)
+            # Node can be executed
+            if node.node_id not in self.gate_order:
+                self.gate_order.append(node.node_id)
+
+            # check successors
+            successors = self._get_successors(node_index)
+            for successor in successors:
+                if self._no_dependencies(self.front_layer, successor):
+                    node_queue.append(successor)
 
     def run(self):
         execute_gate_list = []

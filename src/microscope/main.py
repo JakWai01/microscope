@@ -172,14 +172,12 @@ def apply_sabre_result(
     )
 
     swap_map, node_order = sabre_result
-    print(swap_map)
-    print(node_order)
 
-    # TODO: Vermutlich müssen alle Nodes in die Node-Order aufgenommen werden
+    print(f"Swap map: {swap_map}")
+    print(f"Node order: {node_order}")
     for node_id in node_order:
         node = source_dag.node(node_id)
         if node_id in swap_map:
-            print("Inserting swaps")
             apply_swaps(dest_dag, swap_map[node_id], initial_layout, physical_qubits)
 
         qubits = [
