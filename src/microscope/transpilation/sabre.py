@@ -14,6 +14,7 @@ class MicroSabre:
         self.out_map = defaultdict(list)
         self.gate_order = []
         self.front_layer = set()
+        self.required_predecessors = [0 for i in range(len(self.dag.nodes))]
 
     """
     Returns current front be advancing as much as possible without inserting
@@ -59,6 +60,10 @@ class MicroSabre:
     def run(self):
         execute_gate_list = []
 
+        for edge in self.dag.edges:
+            self.required_predecessors[edge[1]] += 1
+
+        print(self.required_predecessors)
         # Initialize the front_layer by executing all gates that can be executed
         # immediately without inserting any SWAP gates. Assign the gates to the
         # front_layer that have  no dependencies but cannot be executed without any
