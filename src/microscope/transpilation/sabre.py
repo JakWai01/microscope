@@ -39,6 +39,7 @@ class MicroSabre:
                 # Check whether the node can be executed on the current mapping
                 if self.coupling_map.distance(physical_q0, physical_q1) != 1:
                     self.front_layer.add(node_index)
+                    continue
 
             # Node can be executed
             if node.node_id not in self.gate_order:
@@ -48,6 +49,11 @@ class MicroSabre:
             successors = self._get_successors(node_index)
             for successor in successors:
                 if self._no_dependencies(self.front_layer, successor):
+                    suc_node = self.dag.get(successor)
+                    print(f"Front Layer before: {self.front_layer}")
+                    print(
+                        f"Successor of {node_index} {node.__dict__} is {successor} {suc_node.__dict__} and has no dependencies"
+                    )
                     node_queue.append(successor)
 
     def run(self):
@@ -57,7 +63,6 @@ class MicroSabre:
         # immediately without inserting any SWAP gates. Assign the gates to the
         # front_layer that have  no dependencies but cannot be executed without any
         # SWAPs.
-        # TODO: This executes way too many gates
         initial_front = self._initial_front()
         print(f"Initial front: {initial_front}")
         self._advance_front_layer(initial_front)
