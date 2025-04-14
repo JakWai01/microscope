@@ -148,7 +148,7 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     plt.show()
 
 
-def apply_swaps(dest_dag, swaps, layout):
+def apply_swaps(dest_dag, swaps, layout, physical_qubits):
     for a, b in swaps:
         qubits = (physical_qubits[a], physical_qubits[b])
         layout.swap_physical(a, b)
@@ -172,11 +172,12 @@ def apply_sabre_result(
     )
 
     swap_map, node_order = sabre_result
+    print(swap_map)
     for node_id in node_order:
         node = source_dag.node(node_id)
         if node_id in swap_map:
             print("Inserting swaps")
-            apply_swaps(dest_dag, swap_map[node_id], initial_layout)
+            apply_swaps(dest_dag, swap_map[node_id], initial_layout, physical_qubits)
 
         qubits = [
             physical_qubits[initial_layout.virtual_to_physical(root_logical_map[q])]

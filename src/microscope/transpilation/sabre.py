@@ -83,7 +83,9 @@ class MicroSabre:
 
             # We found something to execute (execute_gate_list is not empty anymore)
             # TODO: Think about decomposing this part into another function
-            self.out_map[execute_gate_list[0]].append(*current_swaps)
+            self.out_map[self.dag.get(execute_gate_list[0]).node_id].append(
+                *current_swaps
+            )
 
             for node in execute_gate_list:
                 self.front_layer.remove(node)
