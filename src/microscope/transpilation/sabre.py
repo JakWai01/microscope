@@ -32,22 +32,30 @@ class MicroSabre:
             node_index = node_queue.pop(0)
             node = self.dag.get(node_index)
 
-            physical_q0 = self.current_mapping[node.control]
-            physical_q1 = self.current_mapping[node.target]
+            if len(node.qubits) == 2:
+                physical_q0 = self.current_mapping[node.qubits[0]]
+                physical_q1 = self.current_mapping[node.qubits[1]]
 
-            # Check whether the node can be executed on the current mapping
-            if self.coupling_map.distance(physical_q0, physical_q1) == 1:
-                # Node can be executed
+                # Check whether the node can be executed on the current mapping
+                if self.coupling_map.distance(physical_q0, physical_q1) == 1:
+                    # Node can be executed
+                    self.gate_order.append(node.node_id)
+
+                    # check successors
+                    successors = self._get_successors(node_index)
+                    for successor in successors:
+                        if self._no_dependencies(self.front_layer, successor):
+                            node_queue.append(successor)
+                else:
+                    # Node cannot be executed without adding SWAPs. Add to front_layer.
+                    self.front_layer.append(node_index)
+            elif len(node.qubits) == 1:
                 self.gate_order.append(node.node_id)
 
-                # check successors
                 successors = self._get_successors(node_index)
                 for successor in successors:
                     if self._no_dependencies(self.front_layer, successor):
                         node_queue.append(successor)
-            else:
-                # Node cannot be executed without adding SWAPs. Add to front_layer.
-                self.front_layer.append(node_index)
 
     def run(self):
         execute_gate_list = []
@@ -100,8 +108,8 @@ class MicroSabre:
         for node_id in self.front_layer:
             node = self.dag.get(node_id)
 
-            physical_q0 = self.current_mapping[node.control]
-            physical_q1 = self.current_mapping[node.target]
+            physical_q0 = self.current_mapping[node.qubits[0]]
+            physical_q1 = self.current_mapping[node.qubits[1]]
 
             if physical_q0 == physical_qubit or physical_q1 == physical_qubit:
                 return node_id
@@ -135,8 +143,8 @@ class MicroSabre:
             node = self.dag.get(gate)
             # TODO: Check that we are always mapping "logical":"physical"
             # TODO: Check that looking for both, control and target, is fine
-            physical_q0 = self.current_mapping[node.control]
-            physical_q1 = self.current_mapping[node.target]
+            physical_q0 = self.current_mapping[node.qubits[0]]
+            physical_q1 = self.current_mapping[node.qubits[1]]
 
             for edge in self.coupling_map:
                 # This is necessary since we go through each edge in the coupling_map.edge.
@@ -183,12 +191,7 @@ class MicroSabre:
             node = self.dag.get(gate)
             successor_node = self.dag.get(successor)
 
-            if (
-                node.control == successor_node.control
-                or node.target == successor_node.control
-                or node.control == successor_node.target
-                or node.target == successor_node.target
-            ):
+            if set(node.qubits).intersection(set(successor_node.qubits)):
                 return False
         return True
 
@@ -234,8 +237,8 @@ class MicroSabre:
         for gate in front_layer:
             node = self.dag.get(gate)
 
-            physical_q0 = current_mapping[node.control]
-            physical_q1 = current_mapping[node.target]
+            physical_q0 = current_mapping[node.qubits[0]]
+            physical_q1 = current_mapping[node.qubits[1]]
 
             h_sum += self.coupling_map.distance(physical_q0, physical_q1)
         return h_sum

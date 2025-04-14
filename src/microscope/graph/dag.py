@@ -4,8 +4,8 @@ class DAG:
         self.edges = []
         self._last_op_on_qubit = dict()
 
-    def insert(self, node_id, control, target, is_swap):
-        node = DAGNode(node_id, control, target, is_swap)
+    def insert(self, node_id, qubits, is_swap):
+        node = DAGNode(node_id, qubits, is_swap)
 
         node_index = len(self.nodes)
 
@@ -18,17 +18,29 @@ class DAG:
     def _update_edges(self, node_id):
         node = self.nodes[node_id]
 
-        predecessor_node_a = self._last_op_on_qubit.get(node.control)
-        predecessor_node_b = self._last_op_on_qubit.get(node.target)
+        if len(node.qubits) == 2:
+            predecessor_node_a = self._last_op_on_qubit.get(node.qubits[0])
+            predecessor_node_b = self._last_op_on_qubit.get(node.qubits[1])
 
-        if predecessor_node_a != None:
-            self.edges.append((predecessor_node_a, node_id))
+            if predecessor_node_a != None:
+                self.edges.append((predecessor_node_a, node_id))
 
-        if predecessor_node_b != None and predecessor_node_a != predecessor_node_b:
-            self.edges.append((predecessor_node_b, node_id))
+            if predecessor_node_b != None and predecessor_node_a != predecessor_node_b:
+                self.edges.append((predecessor_node_b, node_id))
 
-        self._last_op_on_qubit[node.control] = node_id
-        self._last_op_on_qubit[node.target] = node_id
+            self._last_op_on_qubit[node.qubits[0]] = node_id
+            self._last_op_on_qubit[node.qubits[1]] = node_id
+        elif len(node.qubits) == 1:
+            predecessor_node_a = self._last_op_on_qubit.get(node.qubits[0])
+
+            if predecessor_node_a != None:
+                self.edges.append((predecessor_node_a, node_id))
+
+            self._last_op_on_qubit[node.qubits[0]] = node_id
+        else:
+            raise Exception(
+                "Cannot update edges. Operation has unsupported number of qubits"
+            )
 
     # TODO: This method is wrong node
     def get(self, node_index):
@@ -47,9 +59,14 @@ class DAG:
             if node.op.num_qubits == 2:
                 # SWAP boolean is false since there are no SWAP gates before the transpilation
                 self.insert(
-                    node._node_id, node.qargs[0]._index, node.qargs[1]._index, False
+                    node._node_id, [node.qargs[0]._index, node.qargs[1]._index], False
                 )
-
+            elif node.op.num_qubits == 1:
+                self.insert(node._node_id, [node.qargs[0]._index], False)
+            else:
+                raise Exception(
+                    "Cannot create DAG from Qiskit DAG. Operation has unsupported number of qubits"
+                )
         return self
 
     def __str__(self):
@@ -60,10 +77,9 @@ class DAG:
 
 
 class DAGNode:
-    def __init__(self, node_id, control, target, is_swap):
+    def __init__(self, node_id, qubits, is_swap):
         self.node_id = node_id
-        self.control = control
-        self.target = target
+        self.qubits = qubits
         self.is_swap = is_swap
 
     def __repr__(self):
