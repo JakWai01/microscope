@@ -83,6 +83,8 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     micro_dag = DAG().from_qiskit_dag(input_dag)
     micro_mapping = mapping_to_micro_mapping(initial_mapping)
 
+    print(micro_dag.__dict__)
+
     if show_dag:
         input_dag_image = dag_drawer(input_dag)
         input_dag_image.show()

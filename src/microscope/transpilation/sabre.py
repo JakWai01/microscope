@@ -49,12 +49,15 @@ class MicroSabre:
             # check successors
             successors = self._get_successors(node_index)
             for successor in successors:
-                if self._no_dependencies(self.front_layer, successor):
-                    suc_node = self.dag.get(successor)
-                    print(f"Front Layer before: {self.front_layer}")
-                    print(
-                        f"Successor of {node_index} {node.__dict__} is {successor} {suc_node.__dict__} and has no dependencies"
-                    )
+                # if self._no_dependencies(self.front_layer, successor):
+                #     suc_node = self.dag.get(successor)
+                #     print(f"Front Layer before: {self.front_layer}")
+                #     print(
+                #         f"Successor of {node_index} {node.__dict__} is {successor} {suc_node.__dict__} and has no dependencies"
+                #     )
+                #     node_queue.append(successor)
+                self.required_predecessors[successor] -= 1
+                if self.required_predecessors[successor] == 0:
                     node_queue.append(successor)
 
     def run(self):
