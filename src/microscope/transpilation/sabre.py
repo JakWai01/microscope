@@ -1,6 +1,5 @@
 from graph.dag import DAG, DAGNode
 from transpilation.helper import swap_physical_qubits, pretty_print_mapping
-from transpilation.heuristics import calculate_heuristic
 import random
 from collections import defaultdict
 
