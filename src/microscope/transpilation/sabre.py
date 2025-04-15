@@ -15,15 +15,12 @@ class MicroSabre:
         self.front_layer = set()
         self.required_predecessors = [0 for i in range(len(self.dag.nodes))]
 
-    """
-    Returns current front be advancing as much as possible without inserting
-    SWAPs.
-    Add the gates that can be executed to the execute_gate_list. Add the rest to
-    the front_layer.
-    Search forward from the nodes provided. They should have no predecessors.
-    """
-
     def _advance_front_layer(self, nodes):
+        """Advance front layer without inserting SWAPs.
+        Add the gates that can be executed to the execute_gate_list.
+        Add the rest to the front_layer. Search forward from the nodes
+        provided. They should have no predecessors.
+        """
         node_queue = nodes.copy()
 
         while node_queue:
