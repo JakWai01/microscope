@@ -22,8 +22,6 @@ class MicroSabre:
     Add the gates that can be executed to the execute_gate_list. Add the rest to
     the front_layer.
     Search forward from the nodes provided. They should have no predecessors.
-    TODO: Check if we behave correctly when the front_layer already contains items
-    TODO: Returning the gate order might become important
     """
 
     def _advance_front_layer(self, nodes):
@@ -46,16 +44,9 @@ class MicroSabre:
             if node.node_id not in self.gate_order:
                 self.gate_order.append(node.node_id)
 
-            # check successors
+            # Check successors
             successors = self._get_successors(node_index)
             for successor in successors:
-                # if self._no_dependencies(self.front_layer, successor):
-                #     suc_node = self.dag.get(successor)
-                #     print(f"Front Layer before: {self.front_layer}")
-                #     print(
-                #         f"Successor of {node_index} {node.__dict__} is {successor} {suc_node.__dict__} and has no dependencies"
-                #     )
-                #     node_queue.append(successor)
                 self.required_predecessors[successor] -= 1
                 if self.required_predecessors[successor] == 0:
                     node_queue.append(successor)
@@ -66,26 +57,14 @@ class MicroSabre:
         for edge in self.dag.edges:
             self.required_predecessors[edge[1]] += 1
 
-        print(self.required_predecessors)
         # Initialize the front_layer by executing all gates that can be executed
         # immediately without inserting any SWAP gates. Assign the gates to the
         # front_layer that have  no dependencies but cannot be executed without any
         # SWAPs.
         initial_front = self._initial_front()
-        print(f"Initial front: {initial_front}")
-        for gate in initial_front:
-            print(self.dag.get(gate).__dict__)
-
         self._advance_front_layer(initial_front)
 
-        print(f"Already executed gates: {self.gate_order}")
-        print(f"Front layer: {self.front_layer}")
-
-        for gate in self.front_layer:
-            print(self.dag.get(gate).__dict__)
-
         while self.front_layer:
-            print(f"Current front layer: {self.front_layer}")
             current_swaps = []
 
             while not execute_gate_list:
@@ -94,7 +73,6 @@ class MicroSabre:
                 physical_q0 = self.current_mapping[best_swap[0]]
                 physical_q1 = self.current_mapping[best_swap[1]]
 
-                print(f"Choose best swap: {physical_q0} {physical_q1}")
                 current_swaps.append(best_swap)
                 self.current_mapping = swap_physical_qubits(
                     physical_q0, physical_q1, self.current_mapping
@@ -102,26 +80,20 @@ class MicroSabre:
 
                 # Check if we can execute any gates from front_layer due to the
                 # SWAP
-                # TODO: BUG HERE: The gates are definitely not executable after adding the first swap (Don't we also need to check for the distance?)
                 if (node := self._executable_node_on_qubit(physical_q0)) is not None:
-                    print(f"Node {self.dag.get(node).__dict__} is executable now!")
                     execute_gate_list.append(node)
 
                 if (node := self._executable_node_on_qubit(physical_q1)) is not None:
-                    print(f"Node {self.dag.get(node).__dict__} is executable now!")
                     execute_gate_list.append(node)
 
             # We found something to execute (execute_gate_list is not empty anymore)
-            # TODO: Think about decomposing this part into another function
             self.out_map[self.dag.get(execute_gate_list[0]).node_id].extend(
                 current_swaps
             )
-            print(f"Current out_map: {self.out_map}")
 
             for node in execute_gate_list:
                 self.front_layer.remove(node)
 
-            # TODO: Maybe this part leads to a failure in the following iterations
             self._advance_front_layer(execute_gate_list)
             execute_gate_list.clear()
 
@@ -135,7 +107,7 @@ class MicroSabre:
             physical_q1 = self.current_mapping[node.qubits[1]]
 
             if physical_q0 == physical_qubit or physical_q1 == physical_qubit:
-                # TODO: Check if they are actually routable now
+                # Check if they are actually routable now
                 if self.coupling_map.distance(physical_q0, physical_q1) == 1:
                     return node_id
         return None
@@ -166,8 +138,6 @@ class MicroSabre:
         # Compute neighbours
         for gate in self.front_layer:
             node = self.dag.get(gate)
-            # TODO: Check that we are always mapping "logical":"physical"
-            # TODO: Check that looking for both, control and target, is fine
             physical_q0 = self.current_mapping[node.qubits[0]]
             physical_q1 = self.current_mapping[node.qubits[1]]
 
@@ -259,13 +229,9 @@ class MicroSabre:
     def _h_basic(self, front_layer, current_mapping):
         h_sum = 0
 
-        # for node_index in front_layer:
-        #     print(self.dag.get(node_index).__dict__)
-
         for gate in front_layer:
             node = self.dag.get(gate)
 
-            # TODO: This was a temporary fix. This case shouldn't even occur here
             if len(node.qubits) == 1:
                 continue
 
