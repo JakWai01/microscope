@@ -73,21 +73,28 @@ class MicroSabre:
         # SWAPs.
         initial_front = self._initial_front()
         print(f"Initial front: {initial_front}")
+        for gate in initial_front:
+            print(self.dag.get(gate).__dict__)
+
         self._advance_front_layer(initial_front)
 
         print(f"Already executed gates: {self.gate_order}")
-        print(f"Initial front layer: {self.front_layer}")
+        print(f"Front layer: {self.front_layer}")
+
+        for gate in self.front_layer:
+            print(self.dag.get(gate).__dict__)
+
         while self.front_layer:
             print(f"Current front layer: {self.front_layer}")
             current_swaps = []
 
             while not execute_gate_list:
                 best_swap = self._choose_best_swap()
-                print(f"Choose best swap: {best_swap}")
                 # Swap physical qubits
                 physical_q0 = self.current_mapping[best_swap[0]]
                 physical_q1 = self.current_mapping[best_swap[1]]
 
+                print(f"Choose best swap: {physical_q0} {physical_q1}")
                 current_swaps.append(best_swap)
                 self.current_mapping = swap_physical_qubits(
                     physical_q0, physical_q1, self.current_mapping
@@ -95,16 +102,19 @@ class MicroSabre:
 
                 # Check if we can execute any gates from front_layer due to the
                 # SWAP
+                # TODO: BUG HERE: The gates are definitely not executable after adding the first swap (Don't we also need to check for the distance?)
                 if (node := self._executable_node_on_qubit(physical_q0)) is not None:
+                    print(f"Node {self.dag.get(node).__dict__} is executable now!")
                     execute_gate_list.append(node)
 
                 if (node := self._executable_node_on_qubit(physical_q1)) is not None:
+                    print(f"Node {self.dag.get(node).__dict__} is executable now!")
                     execute_gate_list.append(node)
 
             # We found something to execute (execute_gate_list is not empty anymore)
             # TODO: Think about decomposing this part into another function
-            self.out_map[self.dag.get(execute_gate_list[0]).node_id].append(
-                *current_swaps
+            self.out_map[self.dag.get(execute_gate_list[0]).node_id].extend(
+                current_swaps
             )
             print(f"Current out_map: {self.out_map}")
 
@@ -125,7 +135,9 @@ class MicroSabre:
             physical_q1 = self.current_mapping[node.qubits[1]]
 
             if physical_q0 == physical_qubit or physical_q1 == physical_qubit:
-                return node_id
+                # TODO: Check if they are actually routable now
+                if self.coupling_map.distance(physical_q0, physical_q1) == 1:
+                    return node_id
         return None
 
     def _choose_best_swap(self):
@@ -195,7 +207,7 @@ class MicroSabre:
                 best_swaps.append(swap)
 
         # TODO: Make seed optional
-        random.seed(0)
+        # random.seed(0)
 
         return random.choice(best_swaps)
 
@@ -247,8 +259,15 @@ class MicroSabre:
     def _h_basic(self, front_layer, current_mapping):
         h_sum = 0
 
+        # for node_index in front_layer:
+        #     print(self.dag.get(node_index).__dict__)
+
         for gate in front_layer:
             node = self.dag.get(gate)
+
+            # TODO: This was a temporary fix. This case shouldn't even occur here
+            if len(node.qubits) == 1:
+                continue
 
             physical_q0 = current_mapping[node.qubits[0]]
             physical_q1 = current_mapping[node.qubits[1]]

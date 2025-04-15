@@ -27,6 +27,7 @@ from qiskit.transpiler.passes import (
     EnlargeWithAncilla,
     ApplyLayout,
     SabreSwap,
+    RemoveBarriers,
 )
 
 from qiskit import transpile
@@ -71,6 +72,8 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
             SetLayout(preprocessing_layout),
             FullAncillaAllocation(coupling_map),
             ApplyLayout(),
+            # TODO: Check if removing barriers can be a problem
+            RemoveBarriers(),
         ]
     )
 
@@ -83,7 +86,7 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     micro_dag = DAG().from_qiskit_dag(input_dag)
     micro_mapping = mapping_to_micro_mapping(initial_mapping)
 
-    print(micro_dag.__dict__)
+    # print(micro_dag.__dict__)
 
     if show_dag:
         input_dag_image = dag_drawer(input_dag)
@@ -151,16 +154,34 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
 
 
 def apply_swaps(dest_dag, swaps, layout, physical_qubits):
+    # TODO: Das current_mapping wird hier nicht geupdated
     for a, b in swaps:
-        qubits = (physical_qubits[a], physical_qubits[b])
-        layout.swap_physical(a, b)
+        print(f"Swapping {a}, {b}")
+        print(f"Swapping physical {physical_qubits[a]} {physical_qubits[b]}")
+        print(
+            f"Layout virt to phys {a} {layout.virtual_to_physical(a)} Physical: {physical_qubits[layout.virtual_to_physical(a)]}"
+        )
+        print(
+            f"Layout virt to phys {b} {layout.virtual_to_physical(b)} Physical: {physical_qubits[layout.virtual_to_physical(b)]}"
+        )
+        qubits = (
+            physical_qubits[layout.virtual_to_physical(a)],
+            physical_qubits[layout.virtual_to_physical(b)],
+        )
+        print(f"Layout mapping: {layout.layout_mapping()}")
+        layout.swap_physical(
+            layout.virtual_to_physical(a), layout.virtual_to_physical(b)
+        )
+        print(f"Layout mapping after swap: {layout.layout_mapping()}")
+        # Der DAG selbst braucht keine Order
         dest_dag.apply_operation_back(SwapGate(), qubits, (), check=False)
 
 
 def apply_sabre_result(
     dest_dag, source_dag, sabre_result, physical_qubits, coupling_map
 ):
-    root_logical_map = {bit: index for index, bit in enumerate(source_dag.qubits)}
+    # Qubit: index
+    root_logical_map = {qbit: index for index, qbit in enumerate(source_dag.qubits)}
 
     # Generate Rust-space mapping of virtual indices
     canonical_register = source_dag.qregs["q"]
@@ -178,11 +199,13 @@ def apply_sabre_result(
     print(f"Swap map: {swap_map}")
     print(f"Node order: {node_order}")
     for node_id in node_order:
+        print(f"Currently at {node_id}")
         node = source_dag.node(node_id)
         if node_id in swap_map:
             apply_swaps(dest_dag, swap_map[node_id], initial_layout, physical_qubits)
 
         qubits = [
+            # TODO: Doch, das kann einen Unterschied machen
             physical_qubits[initial_layout.virtual_to_physical(root_logical_map[q])]
             for q in node.qargs
         ]
