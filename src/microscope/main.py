@@ -47,7 +47,7 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     input_circuit.draw("mpl", fold=-1)
 
     # A line with 10 physical qubits
-    coupling_map = CouplingMap.from_line(10)
+    coupling_map = CouplingMap.from_line(30)
 
     preprocessing_dag = circuit_to_dag(input_circuit)
     preprocessing_layout = generate_initial_mapping(preprocessing_dag)
@@ -114,7 +114,7 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     transpiled_qc.draw("mpl", fold=-1)
 
     # MicroSABRE implementation
-    ms = MicroSabre(micro_dag, micro_mapping, coupling_map, "lookahead")
+    ms = MicroSabre(micro_dag, micro_mapping, coupling_map, "basic")
     sabre_result = ms.run()
 
     transpiled_sabre_dag = apply_sabre_result(
@@ -126,8 +126,24 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     )
 
     transpiled_micro_sabre_circuit = dag_to_circuit(transpiled_sabre_dag)
-    micro_depth = transpiled_micro_sabre_circuit.depth()
-    micro_swaps = len(transpiled_sabre_dag.op_nodes(op=SwapGate))
+    micro_depth_basic = transpiled_micro_sabre_circuit.depth()
+    micro_swaps_basic = len(transpiled_sabre_dag.op_nodes(op=SwapGate))
+    transpiled_micro_sabre_circuit.draw("mpl", fold=-1)
+
+    ms = MicroSabre(micro_dag, micro_mapping, coupling_map, "basic")
+    sabre_result = ms.run()
+
+    transpiled_sabre_dag = apply_sabre_result(
+        input_dag.copy_empty_like(),
+        input_dag,
+        sabre_result,
+        input_dag.qubits,
+        coupling_map,
+    )
+
+    transpiled_micro_sabre_circuit = dag_to_circuit(transpiled_sabre_dag)
+    micro_depth_lookahead = transpiled_micro_sabre_circuit.depth()
+    micro_swaps_lookahead = len(transpiled_sabre_dag.op_nodes(op=SwapGate))
     transpiled_micro_sabre_circuit.draw("mpl", fold=-1)
 
     table = Table(title="Circuit Metrics")
@@ -137,18 +153,20 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
             str(basic_depth),
             str(lookahead_depth),
             str(decay_depth),
-            str(micro_depth),
+            str(micro_depth_basic),
+            str(micro_depth_lookahead),
         ],
         [
             "Swaps",
             str(basic_swaps),
             str(lookahead_swaps),
             str(decay_swaps),
-            str(micro_swaps),
+            str(micro_swaps_basic),
+            str(micro_swaps_lookahead),
         ],
     ]
 
-    columns = ["", "Basic", "Lookahead", "Decay", "Micro"]
+    columns = ["", "Basic", "Lookahead", "Decay", "Micro Basic", "Micro Lookahead"]
 
     for column in columns:
         table.add_column(column)
