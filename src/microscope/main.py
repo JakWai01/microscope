@@ -29,11 +29,6 @@ from qiskit.transpiler.passes import (
 from qiskit import transpile
 
 from transpilation.helper import generate_initial_mapping
-from graph.conversion import (
-    mapping_to_micro_mapping,
-    transpiled_micro_dag_to_transpiled_qiskit_dag,
-    merge_top_swap,
-)
 from graph.dag import DAG, DAGNode
 from transpilation.basic_swap import micro_swap, basic_swap
 from transpilation.sabre import MicroSabre
@@ -171,6 +166,14 @@ def apply_sabre_result(
             check=False,
         )
     return dest_dag
+
+
+def mapping_to_micro_mapping(initial_mapping):
+    micro_mapping = dict()
+    # important: keys are virtual qubits and values are physical qubits
+    for k, v in initial_mapping.get_virtual_bits().items():
+        micro_mapping[k._index] = v
+    return micro_mapping
 
 
 if __name__ == "__main__":
