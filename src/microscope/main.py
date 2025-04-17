@@ -27,6 +27,8 @@ from transpilation.basic_swap import basic_swap
 from transpilation.sabre import MicroSabre
 
 from qiskit._accelerate.nlayout import NLayout
+from rich.console import Console
+from rich.table import Table
 
 
 @click.command()
@@ -92,25 +94,23 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     # Qiskit SABRE implementation
     qiskit_pm = PassManager([SabreSwap(coupling_map, heuristic="basic")])
     transpiled_qc = qiskit_pm.run(preprocessed_circuit)
-    print(f"Qiskit SABRE basic depth: {transpiled_qc.depth()}")
+    basic_depth = transpiled_qc.depth()
     transpiled_qc_dag = circuit_to_dag(transpiled_qc)
-    print(f"Qiskit SABRE basic swaps: {len(transpiled_qc_dag.op_nodes(op=SwapGate))}")
+    basic_swaps = len(transpiled_qc_dag.op_nodes(op=SwapGate))
     transpiled_qc.draw("mpl", fold=-1)
 
     qiskit_pm = PassManager([SabreSwap(coupling_map, heuristic="lookahead")])
     transpiled_qc = qiskit_pm.run(preprocessed_circuit)
-    print(f"Qiskit SABRE lookahead depth: {transpiled_qc.depth()}")
+    lookahead_depth = transpiled_qc.depth()
     transpiled_qc_dag = circuit_to_dag(transpiled_qc)
-    print(
-        f"Qiskit SABRE lookahead swaps: {len(transpiled_qc_dag.op_nodes(op=SwapGate))}"
-    )
+    lookahead_swaps = len(transpiled_qc_dag.op_nodes(op=SwapGate))
     transpiled_qc.draw("mpl", fold=-1)
 
     qiskit_pm = PassManager([SabreSwap(coupling_map, heuristic="decay")])
     transpiled_qc = qiskit_pm.run(preprocessed_circuit)
-    print(f"Qiskit SABRE decay depth: {transpiled_qc.depth()}")
+    decay_depth = transpiled_qc.depth()
     transpiled_qc_dag = circuit_to_dag(transpiled_qc)
-    print(f"Qiskit SABRE decay swaps: {len(transpiled_qc_dag.op_nodes(op=SwapGate))}")
+    decay_swaps = len(transpiled_qc_dag.op_nodes(op=SwapGate))
     transpiled_qc.draw("mpl", fold=-1)
 
     # MicroSABRE implementation
@@ -126,11 +126,38 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     )
 
     transpiled_micro_sabre_circuit = dag_to_circuit(transpiled_sabre_dag)
-    print(f"Micro SABRE lookahead depth: {transpiled_micro_sabre_circuit.depth()}")
-    print(
-        f"Micro SABRE lookahead swaps: {len(transpiled_sabre_dag.op_nodes(op=SwapGate))}"
-    )
+    micro_depth = transpiled_micro_sabre_circuit.depth()
+    micro_swaps = len(transpiled_sabre_dag.op_nodes(op=SwapGate))
     transpiled_micro_sabre_circuit.draw("mpl", fold=-1)
+
+    table = Table(title="Circuit Metrics")
+    rows = [
+        [
+            "Depth",
+            str(basic_depth),
+            str(lookahead_depth),
+            str(decay_depth),
+            str(micro_depth),
+        ],
+        [
+            "Swaps",
+            str(basic_swaps),
+            str(lookahead_swaps),
+            str(decay_swaps),
+            str(micro_swaps),
+        ],
+    ]
+
+    columns = ["", "Basic", "Lookahead", "Decay", "Micro"]
+
+    for column in columns:
+        table.add_column(column)
+
+    for row in rows:
+        table.add_row(*row, style="bright_green")
+
+    console = Console()
+    console.print(table)
 
     plt.show()
 
