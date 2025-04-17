@@ -7,4 +7,7 @@ build:
 format:
 	black .
 
+lint:
+	pyflakes src/
+
 all: build run

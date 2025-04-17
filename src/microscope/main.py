@@ -1,21 +1,15 @@
 import click
 import matplotlib.pyplot as plt
-import microscope
 
 from qiskit import QuantumCircuit
 from qiskit.converters import circuit_to_dag, dag_to_circuit
 from qiskit.visualization.dag_visualization import dag_drawer
 from qiskit.transpiler import CouplingMap
 from qiskit.transpiler.layout import Layout
-from qiskit.transpiler.exceptions import TranspilerError
-from qiskit.dagcircuit import DAGCircuit, DAGOpNode
+from qiskit.dagcircuit import DAGOpNode
 from qiskit.circuit.library.standard_gates import SwapGate
 from qiskit.transpiler.passes.routing.basic_swap import BasicSwap
-from qiskit.transpiler.passes.layout import disjoint_utils
 from qiskit import warnings
-from qiskit import QuantumRegister
-from qiskit.circuit import Qubit
-from qiskit.transpiler import generate_preset_pass_manager
 from qiskit.transpiler import PassManager
 from qiskit.transpiler.passes import (
     Unroll3qOrMore,
@@ -26,11 +20,10 @@ from qiskit.transpiler.passes import (
     RemoveBarriers,
 )
 
-from qiskit import transpile
 
 from transpilation.helper import generate_initial_mapping
-from graph.dag import DAG, DAGNode
-from transpilation.basic_swap import micro_swap, basic_swap
+from graph.dag import DAG
+from transpilation.basic_swap import basic_swap
 from transpilation.sabre import MicroSabre
 
 from qiskit._accelerate.nlayout import NLayout

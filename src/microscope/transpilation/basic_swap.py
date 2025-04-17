@@ -3,6 +3,7 @@ from transpilation.helper import swap_physical_qubits
 
 from qiskit.dagcircuit import DAGCircuit
 from qiskit.circuit.library.standard_gates import SwapGate
+from qiskit.exceptions import TranspilerError
 
 
 def micro_swap(dag, coupling_map, initial_mapping):
