@@ -95,7 +95,7 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     transpiled_qc.draw("mpl", fold=-1)
 
     # MicroSABRE implementation
-    ms = MicroSabre(micro_dag, micro_mapping, coupling_map, "lookahead")
+    ms = MicroSabre(micro_dag, micro_mapping, coupling_map, "basic")
     sabre_result = ms.run()
 
     transpiled_sabre_dag = apply_sabre_result(
