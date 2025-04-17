@@ -49,7 +49,7 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     warnings.filterwarnings("ignore", category=DeprecationWarning)
 
     input_circuit = QuantumCircuit.from_qasm_file(filename)
-    input_circuit.draw("mpl", fold=160)
+    input_circuit.draw("mpl", fold=-1)
 
     # A line with 10 physical qubits
     coupling_map = CouplingMap.from_line(10)
@@ -69,7 +69,7 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     )
 
     preprocessed_circuit = pm.run(input_circuit)
-    preprocessed_circuit.draw("mpl", fold=160)
+    preprocessed_circuit.draw("mpl", fold=-1)
 
     input_dag = circuit_to_dag(preprocessed_circuit)
     initial_mapping = generate_initial_mapping(input_dag)
@@ -94,12 +94,12 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
 
     # Convert DAG to circuit
     transpiled_circuit = dag_to_circuit(transpiled_dag)
-    transpiled_circuit.draw("mpl", fold=160)
+    transpiled_circuit.draw("mpl", fold=-1)
 
     # Qiskit SABRE implementation
     qiskit_pm = PassManager([SabreSwap(coupling_map)])
     transpiled_qc = qiskit_pm.run(preprocessed_circuit)
-    transpiled_qc.draw("mpl", fold=160)
+    transpiled_qc.draw("mpl", fold=-1)
 
     # MicroSABRE implementation
     ms = MicroSabre(micro_dag, micro_mapping, coupling_map, "lookahead")
@@ -114,7 +114,7 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     )
 
     transpiled_micro_sabre_circuit = dag_to_circuit(transpiled_sabre_dag)
-    transpiled_micro_sabre_circuit.draw("mpl", fold=160)
+    transpiled_micro_sabre_circuit.draw("mpl", fold=-1)
 
     plt.show()
 
