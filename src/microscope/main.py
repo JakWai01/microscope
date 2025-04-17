@@ -90,12 +90,31 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     transpiled_circuit.draw("mpl", fold=-1)
 
     # Qiskit SABRE implementation
-    qiskit_pm = PassManager([SabreSwap(coupling_map)])
+    qiskit_pm = PassManager([SabreSwap(coupling_map, heuristic="basic")])
     transpiled_qc = qiskit_pm.run(preprocessed_circuit)
+    print(f"Qiskit SABRE basic depth: {transpiled_qc.depth()}")
+    transpiled_qc_dag = circuit_to_dag(transpiled_qc)
+    print(f"Qiskit SABRE basic swaps: {len(transpiled_qc_dag.op_nodes(op=SwapGate))}")
+    transpiled_qc.draw("mpl", fold=-1)
+
+    qiskit_pm = PassManager([SabreSwap(coupling_map, heuristic="lookahead")])
+    transpiled_qc = qiskit_pm.run(preprocessed_circuit)
+    print(f"Qiskit SABRE lookahead depth: {transpiled_qc.depth()}")
+    transpiled_qc_dag = circuit_to_dag(transpiled_qc)
+    print(
+        f"Qiskit SABRE lookahead swaps: {len(transpiled_qc_dag.op_nodes(op=SwapGate))}"
+    )
+    transpiled_qc.draw("mpl", fold=-1)
+
+    qiskit_pm = PassManager([SabreSwap(coupling_map, heuristic="decay")])
+    transpiled_qc = qiskit_pm.run(preprocessed_circuit)
+    print(f"Qiskit SABRE decay depth: {transpiled_qc.depth()}")
+    transpiled_qc_dag = circuit_to_dag(transpiled_qc)
+    print(f"Qiskit SABRE decay swaps: {len(transpiled_qc_dag.op_nodes(op=SwapGate))}")
     transpiled_qc.draw("mpl", fold=-1)
 
     # MicroSABRE implementation
-    ms = MicroSabre(micro_dag, micro_mapping, coupling_map, "basic")
+    ms = MicroSabre(micro_dag, micro_mapping, coupling_map, "lookahead")
     sabre_result = ms.run()
 
     transpiled_sabre_dag = apply_sabre_result(
@@ -107,6 +126,10 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     )
 
     transpiled_micro_sabre_circuit = dag_to_circuit(transpiled_sabre_dag)
+    print(f"Micro SABRE lookahead depth: {transpiled_micro_sabre_circuit.depth()}")
+    print(
+        f"Micro SABRE lookahead swaps: {len(transpiled_sabre_dag.op_nodes(op=SwapGate))}"
+    )
     transpiled_micro_sabre_circuit.draw("mpl", fold=-1)
 
     plt.show()
