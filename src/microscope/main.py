@@ -94,7 +94,7 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
 
     # Qiskit SABRE implementation
     cm = CheckMap(coupling_map=coupling_map)
-    qiskit_pm = PassManager([SabreSwap(coupling_map, heuristic="basic"), cm])
+    qiskit_pm = PassManager([SabreSwap(coupling_map, heuristic="basic", trials=1), cm])
     transpiled_qc = qiskit_pm.run(preprocessed_circuit)
     basic_depth = transpiled_qc.depth()
     transpiled_qc_dag = circuit_to_dag(transpiled_qc)
@@ -106,7 +106,9 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     transpiled_qc.draw("mpl", fold=-1)
 
     cm = CheckMap(coupling_map=coupling_map)
-    qiskit_pm = PassManager([SabreSwap(coupling_map, heuristic="lookahead"), cm])
+    qiskit_pm = PassManager(
+        [SabreSwap(coupling_map, heuristic="lookahead", trials=1), cm]
+    )
     transpiled_qc = qiskit_pm.run(preprocessed_circuit)
     lookahead_depth = transpiled_qc.depth()
     transpiled_qc_dag = circuit_to_dag(transpiled_qc)
@@ -117,7 +119,7 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
         raise ValueError("CheckMap identified invalid mapping from DAG to coupling_map")
 
     cm = CheckMap(coupling_map=coupling_map)
-    qiskit_pm = PassManager([SabreSwap(coupling_map, heuristic="decay"), cm])
+    qiskit_pm = PassManager([SabreSwap(coupling_map, heuristic="decay", trials=1), cm])
     transpiled_qc = qiskit_pm.run(preprocessed_circuit)
     decay_depth = transpiled_qc.depth()
     transpiled_qc_dag = circuit_to_dag(transpiled_qc)
