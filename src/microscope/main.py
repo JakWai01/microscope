@@ -18,6 +18,7 @@ from qiskit.transpiler.passes import (
     ApplyLayout,
     SabreSwap,
     RemoveBarriers,
+    CheckMap,
 )
 
 
@@ -92,26 +93,39 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     transpiled_circuit.draw("mpl", fold=-1)
 
     # Qiskit SABRE implementation
-    qiskit_pm = PassManager([SabreSwap(coupling_map, heuristic="basic")])
+    cm = CheckMap(coupling_map=coupling_map)
+    qiskit_pm = PassManager([SabreSwap(coupling_map, heuristic="basic"), cm])
     transpiled_qc = qiskit_pm.run(preprocessed_circuit)
     basic_depth = transpiled_qc.depth()
     transpiled_qc_dag = circuit_to_dag(transpiled_qc)
+
+    if not cm.property_set.get("is_swap_mapped"):
+        raise ValueError("CheckMap identified invalid mapping from DAG to coupling_map")
+
     basic_swaps = len(transpiled_qc_dag.op_nodes(op=SwapGate))
     transpiled_qc.draw("mpl", fold=-1)
 
-    qiskit_pm = PassManager([SabreSwap(coupling_map, heuristic="lookahead")])
+    cm = CheckMap(coupling_map=coupling_map)
+    qiskit_pm = PassManager([SabreSwap(coupling_map, heuristic="lookahead"), cm])
     transpiled_qc = qiskit_pm.run(preprocessed_circuit)
     lookahead_depth = transpiled_qc.depth()
     transpiled_qc_dag = circuit_to_dag(transpiled_qc)
     lookahead_swaps = len(transpiled_qc_dag.op_nodes(op=SwapGate))
     transpiled_qc.draw("mpl", fold=-1)
 
-    qiskit_pm = PassManager([SabreSwap(coupling_map, heuristic="decay")])
+    if not cm.property_set.get("is_swap_mapped"):
+        raise ValueError("CheckMap identified invalid mapping from DAG to coupling_map")
+
+    cm = CheckMap(coupling_map=coupling_map)
+    qiskit_pm = PassManager([SabreSwap(coupling_map, heuristic="decay"), cm])
     transpiled_qc = qiskit_pm.run(preprocessed_circuit)
     decay_depth = transpiled_qc.depth()
     transpiled_qc_dag = circuit_to_dag(transpiled_qc)
     decay_swaps = len(transpiled_qc_dag.op_nodes(op=SwapGate))
     transpiled_qc.draw("mpl", fold=-1)
+
+    if not cm.property_set.get("is_swap_mapped"):
+        raise ValueError("CheckMap identified invalid mapping from DAG to coupling_map")
 
     # MicroSABRE implementation
     ms = MicroSabre(micro_dag, micro_mapping, coupling_map, "basic")
