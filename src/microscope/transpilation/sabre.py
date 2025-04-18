@@ -81,6 +81,10 @@ class MicroSabre:
                 if (node := self._executable_node_on_qubit(physical_q1)) is not None:
                     execute_gate_list.append(node)
 
+            if len(current_swaps) >= 3:
+                print("Len of current swaps ", len(current_swaps))
+                self.force_enable_closest_node(current_swaps)
+
             # We found something to execute (execute_gate_list is not empty anymore)
             self.out_map[self.dag.get(execute_gate_list[0]).node_id].extend(
                 current_swaps
@@ -93,6 +97,31 @@ class MicroSabre:
             execute_gate_list.clear()
 
         return (dict(self.out_map), self.gate_order)
+
+    def force_enable_closest_node(self, current_swaps):
+        """
+        Add swaps to bring the closest nodes together. Prevents SABRE from getting
+        stuck after too many heuristic choices.
+        """
+
+        # TODO: Change this to something more future-proof
+        min_distance = 1000
+        closest_node = 1000
+
+        # Identify minimum distance qubits
+        for gate in self.front_layer:
+            node = self.dag.get(gate)
+            physical_q0 = self.current_mapping[node.qubits[0]]
+            physical_q1 = self.current_mapping[node.qubits[1]]
+
+            distance = self.coupling_map.distance(physical_q0, physical_q1)
+
+            if distance < min_distance:
+                min_distance = distance
+                closest_node = gate
+
+        print(min_distance)
+        print(closest_node)
 
     def _executable_node_on_qubit(self, physical_qubit):
         for node_id in self.front_layer:
