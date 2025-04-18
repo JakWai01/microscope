@@ -81,9 +81,9 @@ class MicroSabre:
                 if (node := self._executable_node_on_qubit(physical_q1)) is not None:
                     execute_gate_list.append(node)
 
-            if len(current_swaps) >= 3:
-                print("Len of current swaps ", len(current_swaps))
-                self.force_enable_closest_node(current_swaps)
+            # if len(current_swaps) >= 3:
+            #     print("Len of current swaps ", len(current_swaps))
+            #     self.force_enable_closest_node(current_swaps)
 
             # We found something to execute (execute_gate_list is not empty anymore)
             self.out_map[self.dag.get(execute_gate_list[0]).node_id].extend(
@@ -121,7 +121,62 @@ class MicroSabre:
                 closest_node = gate
 
         print(min_distance)
-        print(closest_node)
+
+        node = self.dag.get(closest_node)
+        physical_q0 = self.current_mapping[node.qubits[0]]
+        physical_q1 = self.current_mapping[node.qubits[1]]
+
+        path = self.coupling_map.shortest_undirected_path(physical_q0, physical_q1)
+
+        print("Path ", path)
+
+        # Split to alternate moving left and right
+        split = len(path) // 2
+
+        # TODO: Check if the indices are the right id's to insert
+        # Current swaps are physical bits here instead of logical before
+        current_swaps = []
+        for i in range(split):
+            current_swaps.append((path[i], path[i + 1]))
+
+        for i in range(split - 1):
+            end = len(path) - 1 - i
+            current_swaps.append((path[end], path[end - 1]))
+
+        for swap in current_swaps:
+            self.current_mapping = swap_physical_qubits(
+                swap[0], swap[1], self.current_mapping
+            )
+
+        if len(current_swaps) > 1:
+            return [closest_node]
+        else:
+            possible_other_qubit = None
+
+            s_1 = current_swaps[0][0]
+            s_2 = current_swaps[0][1]
+            for gate in self.front_layer:
+                node = self.dag.get(gate)
+                physical_q0 = self.current_mapping[node.qubits[0]]
+                physical_q1 = self.current_mapping[node.qubits[1]]
+
+                if gate != closest_node:
+                    if physical_q0 == s_1:
+                        possible_other_qubit = physical_q1
+                    if physical_q1 == s_1:
+                        possible_other_qubit = physical_q0
+                    if physical_q0 == s_2:
+                        possible_other_qubit = physical_q1
+                    if physical_q1 == s_2:
+                        possible_other_qubit = physical_q0
+
+            # TODO: Does this check for None?
+            if possible_other_qubit:
+                also_routed = self._executable_node_on_qubit(possible_other_qubit)
+                if also_routed:
+                    return [closest_node, also_routed]
+
+            return [closest_node]
 
     def _executable_node_on_qubit(self, physical_qubit):
         for node_id in self.front_layer:
