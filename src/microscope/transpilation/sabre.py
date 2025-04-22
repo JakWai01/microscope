@@ -161,15 +161,34 @@ class MicroSabre:
         # Current swaps are physical bits here instead of logical before
         current_swaps = []
         for i in range(split):
-            current_swaps.append((path[i], path[i + 1]))
+            logical_q0 = [
+                key for key, value in self.current_mapping.items() if value == path[i]
+            ][0]
+            logical_q1 = [
+                key
+                for key, value in self.current_mapping.items()
+                if value == path[i + 1]
+            ][0]
+            current_swaps.append((logical_q0, logical_q1))
 
         for i in range(split - 1):
             end = len(path) - 1 - i
-            current_swaps.append((path[end], path[end - 1]))
+            logical_q0 = [
+                key for key, value in self.current_mapping.items() if value == path[end]
+            ][0]
+            logical_q1 = [
+                key
+                for key, value in self.current_mapping.items()
+                if value == path[end - 1]
+            ][0]
+            current_swaps.append((logical_q0, logical_q1))
 
         for swap in current_swaps:
+            physical_q0 = self.current_mapping[swap[0]]
+            physical_q1 = self.current_mapping[swap[1]]
+
             self.current_mapping = swap_physical_qubits(
-                swap[0], swap[1], self.current_mapping
+                physical_q0, physical_q1, self.current_mapping
             )
 
         if len(current_swaps) > 1:
@@ -177,21 +196,24 @@ class MicroSabre:
         else:
             possible_other_qubit = None
 
+            # TODO: Check if this is also correct
             s_1 = current_swaps[0][0]
+            physical_s1 = self.current_mapping[s_1]
             s_2 = current_swaps[0][1]
+            physical_s2 = self.current_mapping[s_2]
             for gate in self.front_layer:
                 node = self.dag.get(gate)
                 physical_q0 = self.current_mapping[node.qubits[0]]
                 physical_q1 = self.current_mapping[node.qubits[1]]
 
                 if gate != closest_node:
-                    if physical_q0 == s_1:
+                    if physical_q0 == physical_s1:
                         possible_other_qubit = physical_q1
-                    if physical_q1 == s_1:
+                    if physical_q1 == physical_s1:
                         possible_other_qubit = physical_q0
-                    if physical_q0 == s_2:
+                    if physical_q0 == physical_s2:
                         possible_other_qubit = physical_q1
-                    if physical_q1 == s_2:
+                    if physical_q1 == physical_s2:
                         possible_other_qubit = physical_q0
 
             # TODO: Does this check for None?
