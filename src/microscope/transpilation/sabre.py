@@ -59,10 +59,16 @@ class MicroSabre:
         initial_front = self._initial_front()
         self._advance_front_layer(initial_front)
 
+        # HEURISTIC_ATTEMPT_LIMIT = 10 * len(self.current_mapping)
+        HEURISTIC_ATTEMPT_LIMIT = 2
+        print(f"Attempt limit: {HEURISTIC_ATTEMPT_LIMIT}")
+
         while self.front_layer:
             current_swaps = []
 
-            while not execute_gate_list:
+            while (not execute_gate_list) and (
+                len(current_swaps) <= HEURISTIC_ATTEMPT_LIMIT
+            ):
                 best_swap = self._choose_best_swap()
                 # Swap physical qubits
                 physical_q0 = self.current_mapping[best_swap[0]]
@@ -81,11 +87,29 @@ class MicroSabre:
                 if (node := self._executable_node_on_qubit(physical_q1)) is not None:
                     execute_gate_list.append(node)
 
-            # if len(current_swaps) >= 3:
-            #     print("Len of current swaps ", len(current_swaps))
-            #     self.force_enable_closest_node(current_swaps)
+            # Release-valve
+            if not execute_gate_list:
+                # Unwind SWAPs in reversed order
+                for swap in reversed(current_swaps):
+                    physical_q0 = self.current_mapping[swap[0]]
+                    physical_q1 = self.current_mapping[swap[1]]
 
-            # We found something to execute (execute_gate_list is not empty anymore)
+                    self.current_mapping = swap_physical_qubits(
+                        physical_q0, physical_q1, self.current_mapping
+                    )
+
+                force_routed, current_swaps = self.force_enable_closest_node()
+
+                print(f"Force routed: {force_routed}")
+                # TODO: Irgendwo werden physische und logische qubits vertauscht
+                print(f"Current swaps: {current_swaps}")
+
+                for node in force_routed:
+                    nd = self.dag.get(node)
+                    print(nd.__dict__)
+
+                execute_gate_list.extend(force_routed)
+
             self.out_map[self.dag.get(execute_gate_list[0]).node_id].extend(
                 current_swaps
             )
@@ -98,7 +122,7 @@ class MicroSabre:
 
         return (dict(self.out_map), self.gate_order)
 
-    def force_enable_closest_node(self, current_swaps):
+    def force_enable_closest_node(self):
         """
         Add swaps to bring the closest nodes together. Prevents SABRE from getting
         stuck after too many heuristic choices.
@@ -149,7 +173,7 @@ class MicroSabre:
             )
 
         if len(current_swaps) > 1:
-            return [closest_node]
+            return [closest_node], current_swaps
         else:
             possible_other_qubit = None
 
@@ -174,9 +198,9 @@ class MicroSabre:
             if possible_other_qubit:
                 also_routed = self._executable_node_on_qubit(possible_other_qubit)
                 if also_routed:
-                    return [closest_node, also_routed]
+                    return [closest_node, also_routed], current_swaps
 
-            return [closest_node]
+            return [closest_node], current_swaps
 
     def _executable_node_on_qubit(self, physical_qubit):
         for node_id in self.front_layer:
