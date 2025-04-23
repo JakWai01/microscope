@@ -233,6 +233,8 @@ class MicroSabre:
             return self._h_basic(front_layer, current_mapping)
         if self.heuristic == "lookahead":
             return self._h_lookahead(front_layer, current_mapping, 1)
+        if self.heuristic == "lookahead-0.5":
+            return self._h_lookahead(front_layer, current_mapping, 0.5)
 
     # Look-Ahead Ability
     def _h_lookahead(self, front_layer, current_mapping, weight):
