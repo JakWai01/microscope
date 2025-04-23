@@ -38,14 +38,16 @@ from rich.table import Table
 @click.option(
     "-q", "--qiskit-fallback", type=bool, help="Use qiskit algorithm implementation"
 )
-def main(filename: str, show_dag: bool, qiskit_fallback: bool):
+@click.option("--show", type=bool, help="True if circuits should be shown")
+def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool):
     """Read in a .qasm file and print out a syntax tree."""
 
     # Ignore deprecation warnings
     warnings.filterwarnings("ignore", category=DeprecationWarning)
 
     input_circuit = QuantumCircuit.from_qasm_file(filename)
-    input_circuit.draw("mpl", fold=-1)
+    if show:
+        input_circuit.draw("mpl", fold=-1)
 
     # A line with 10 physical qubits
     coupling_map = CouplingMap.from_line(28)
@@ -65,7 +67,8 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     )
 
     preprocessed_circuit = pm.run(input_circuit)
-    preprocessed_circuit.draw("mpl", fold=-1)
+    if show:
+        preprocessed_circuit.draw("mpl", fold=-1)
 
     input_dag = circuit_to_dag(preprocessed_circuit)
     initial_mapping = generate_initial_mapping(input_dag)
@@ -90,7 +93,8 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
 
     # Convert DAG to circuit
     transpiled_circuit = dag_to_circuit(transpiled_dag)
-    transpiled_circuit.draw("mpl", fold=-1)
+    if show:
+        transpiled_circuit.draw("mpl", fold=-1)
 
     # Qiskit SABRE implementation
     cm = CheckMap(coupling_map=coupling_map)
@@ -104,7 +108,8 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
         raise ValueError("CheckMap identified invalid mapping from DAG to coupling_map")
 
     basic_swaps = len(transpiled_qc_dag.op_nodes(op=SwapGate))
-    transpiled_qc.draw("mpl", fold=-1)
+    if show:
+        transpiled_qc.draw("mpl", fold=-1)
 
     cm = CheckMap(coupling_map=coupling_map)
     qiskit_pm = PassManager(
@@ -114,7 +119,8 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     lookahead_depth = transpiled_qc.depth()
     transpiled_qc_dag = circuit_to_dag(transpiled_qc)
     lookahead_swaps = len(transpiled_qc_dag.op_nodes(op=SwapGate))
-    transpiled_qc.draw("mpl", fold=-1)
+    if show:
+        transpiled_qc.draw("mpl", fold=-1)
 
     if not cm.property_set.get("is_swap_mapped"):
         raise ValueError("CheckMap identified invalid mapping from DAG to coupling_map")
@@ -125,7 +131,8 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     decay_depth = transpiled_qc.depth()
     transpiled_qc_dag = circuit_to_dag(transpiled_qc)
     decay_swaps = len(transpiled_qc_dag.op_nodes(op=SwapGate))
-    transpiled_qc.draw("mpl", fold=-1)
+    if show:
+        transpiled_qc.draw("mpl", fold=-1)
 
     if not cm.property_set.get("is_swap_mapped"):
         raise ValueError("CheckMap identified invalid mapping from DAG to coupling_map")
@@ -145,7 +152,8 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     transpiled_micro_sabre_circuit = dag_to_circuit(transpiled_sabre_dag)
     micro_depth_basic = transpiled_micro_sabre_circuit.depth()
     micro_swaps_basic = len(transpiled_sabre_dag.op_nodes(op=SwapGate))
-    transpiled_micro_sabre_circuit.draw("mpl", fold=-1)
+    if show:
+        transpiled_micro_sabre_circuit.draw("mpl", fold=-1)
 
     cm = CheckMap(coupling_map=coupling_map)
     qiskit_pm = PassManager([cm])
@@ -168,7 +176,8 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     transpiled_micro_sabre_circuit = dag_to_circuit(transpiled_sabre_dag)
     micro_depth_lookahead = transpiled_micro_sabre_circuit.depth()
     micro_swaps_lookahead = len(transpiled_sabre_dag.op_nodes(op=SwapGate))
-    transpiled_micro_sabre_circuit.draw("mpl", fold=-1)
+    if show:
+        transpiled_micro_sabre_circuit.draw("mpl", fold=-1)
 
     cm = CheckMap(coupling_map=coupling_map)
     qiskit_pm = PassManager([cm])
@@ -191,7 +200,8 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     transpiled_micro_sabre_circuit = dag_to_circuit(transpiled_sabre_dag)
     micro_depth_lookahead_05 = transpiled_micro_sabre_circuit.depth()
     micro_swaps_lookahead_05 = len(transpiled_sabre_dag.op_nodes(op=SwapGate))
-    transpiled_micro_sabre_circuit.draw("mpl", fold=-1)
+    if show:
+        transpiled_micro_sabre_circuit.draw("mpl", fold=-1)
 
     cm = CheckMap(coupling_map=coupling_map)
     qiskit_pm = PassManager([cm])
@@ -241,7 +251,8 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     console = Console()
     console.print(table)
 
-    plt.show()
+    if show:
+        plt.show()
 
 
 def apply_swaps(dest_dag, swaps, layout, physical_qubits):
