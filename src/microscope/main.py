@@ -147,12 +147,12 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     micro_swaps_basic = len(transpiled_sabre_dag.op_nodes(op=SwapGate))
     transpiled_micro_sabre_circuit.draw("mpl", fold=-1)
 
-    # cm = CheckMap(coupling_map=coupling_map)
-    # qiskit_pm = PassManager([cm])
-    # transpiled_qc = qiskit_pm.run(transpiled_micro_sabre_circuit)
+    cm = CheckMap(coupling_map=coupling_map)
+    qiskit_pm = PassManager([cm])
+    transpiled_qc = qiskit_pm.run(transpiled_micro_sabre_circuit)
 
-    # if not cm.property_set.get("is_swap_mapped"):
-    #     raise ValueError("CheckMap identified invalid mapping from DAG to coupling_map")
+    if not cm.property_set.get("is_swap_mapped"):
+        raise ValueError("CheckMap identified invalid mapping from DAG to coupling_map")
 
     ms = MicroSabre(micro_dag, micro_mapping, coupling_map, "lookahead")
     sabre_result = ms.run()
@@ -170,12 +170,12 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     micro_swaps_lookahead = len(transpiled_sabre_dag.op_nodes(op=SwapGate))
     transpiled_micro_sabre_circuit.draw("mpl", fold=-1)
 
-    # cm = CheckMap(coupling_map=coupling_map)
-    # qiskit_pm = PassManager([cm])
-    # transpiled_qc = qiskit_pm.run(transpiled_micro_sabre_circuit)
+    cm = CheckMap(coupling_map=coupling_map)
+    qiskit_pm = PassManager([cm])
+    transpiled_qc = qiskit_pm.run(transpiled_micro_sabre_circuit)
 
-    # if not cm.property_set.get("is_swap_mapped"):
-    #     raise ValueError("CheckMap identified invalid mapping from DAG to coupling_map")
+    if not cm.property_set.get("is_swap_mapped"):
+        raise ValueError("CheckMap identified invalid mapping from DAG to coupling_map")
 
     table = Table(title="Circuit Metrics")
     rows = [
