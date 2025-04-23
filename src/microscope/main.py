@@ -48,7 +48,7 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool):
     input_circuit.draw("mpl", fold=-1)
 
     # A line with 10 physical qubits
-    coupling_map = CouplingMap.from_line(30)
+    coupling_map = CouplingMap.from_line(28)
 
     preprocessing_dag = circuit_to_dag(input_circuit)
     preprocessing_layout = generate_initial_mapping(preprocessing_dag)
@@ -217,6 +217,8 @@ def apply_swaps(dest_dag, swaps, layout, physical_qubits):
             physical_qubits[layout.virtual_to_physical(a)],
             physical_qubits[layout.virtual_to_physical(b)],
         )
+        # print(f"Swapping logical {a} {b}")
+        # print(f"Swapping physical {layout.virtual_to_physical(a)} {layout.virtual_to_physical(b)}")
         layout.swap_physical(
             layout.virtual_to_physical(a), layout.virtual_to_physical(b)
         )
@@ -242,10 +244,15 @@ def apply_sabre_result(
 
     swap_map, node_order = sabre_result
 
+    # print(swap_map)
+    # print(current_layout)
+
     for node_id in node_order:
         node = source_dag.node(node_id)
         if node_id in swap_map:
+            # print(f"Applying SWAPs in order to route {node_id}: {node.qargs}")
             apply_swaps(dest_dag, swap_map[node_id], initial_layout, physical_qubits)
+            # print("Done")
 
         qubits = [
             physical_qubits[initial_layout.virtual_to_physical(root_logical_map[q])]
