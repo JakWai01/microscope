@@ -230,26 +230,39 @@ class MicroSabre:
     def _calculate_heuristic(self, front_layer, current_mapping):
         # TODO: Switch here
         if self.heuristic == "basic":
-            return self._h_basic(front_layer, current_mapping)
+            return self._h_basic(front_layer, current_mapping, 1, False)
+        if self.heuristic == "basic-scale":
+            return self._h_basic(front_layer, current_mapping, 1, True)
         if self.heuristic == "lookahead":
-            return self._h_lookahead(front_layer, current_mapping, 1)
+            return self._h_lookahead(front_layer, current_mapping, 1, False)
         if self.heuristic == "lookahead-0.5":
-            return self._h_lookahead(front_layer, current_mapping, 0.5)
+            return self._h_lookahead(front_layer, current_mapping, 0.5, False)
+        if self.heuristic == "lookahead-scaling":
+            return self._h_lookahead(front_layer, current_mapping, 1, False)
+        if self.heuristic == "lookahead-0.5-scaling":
+            return self._h_lookahead(front_layer, current_mapping, 1, True)
 
     # Look-Ahead Ability
-    def _h_lookahead(self, front_layer, current_mapping, weight):
-        h_basic_result = self._h_basic(front_layer, current_mapping)
+    def _h_lookahead(self, front_layer, current_mapping, weight, scale):
+        h_basic_result = self._h_basic(front_layer, current_mapping, 1, scale)
 
         extended_set = self._get_extended_set()
 
-        h_basic_result_extended = self._h_basic(extended_set, current_mapping)
+        h_basic_result_extended = self._h_basic(extended_set, current_mapping, 1, scale)
+
+        if scale:
+            if len(extended_set) == 0:
+                weight = 0
+            else:
+                weight = weight / len(extended_set)
+
         return (
             1 / len(front_layer) * h_basic_result
             + weight * 1 / len(extended_set) * h_basic_result_extended
         )
 
     # Nearest Neighbour Cost Function
-    def _h_basic(self, front_layer, current_mapping):
+    def _h_basic(self, front_layer, current_mapping, weight, scale):
         h_sum = 0
 
         for gate in front_layer:
@@ -261,7 +274,13 @@ class MicroSabre:
             physical_q0 = current_mapping[node.qubits[0]]
             physical_q1 = current_mapping[node.qubits[1]]
 
-            h_sum += self.coupling_map.distance(physical_q0, physical_q1)
+            if scale:
+                if len(front_layer) == 0:
+                    weight = 0
+                else:
+                    weight = weight / len(front_layer)
+
+            h_sum += weight * self.coupling_map.distance(physical_q0, physical_q1)
         return h_sum
 
     # Returning the successors of the current front_layer
