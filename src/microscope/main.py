@@ -265,8 +265,8 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool):
             str(lookahead_depth),
             str(decay_depth),
             # str(micro_depth_basic),
-            #        str(micro_depth_lookahead),
-            #        str(micro_depth_lookahead_05),
+            # str(micro_depth_lookahead),
+            # str(micro_depth_lookahead_05),
             str(micro_depth_lookahead_scaling),
             #         str(micro_depth_lookahead_05_scaling),
         ],
@@ -276,10 +276,10 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool):
             str(lookahead_swaps),
             str(decay_swaps),
             # str(micro_swaps_basic),
-            #         str(micro_swaps_lookahead),
-            #         str(micro_swaps_lookahead_05),
+            # str(micro_swaps_lookahead),
+            # str(micro_swaps_lookahead_05),
             str(micro_swaps_lookahead_scaling),
-            #         str(micro_swaps_lookahead_05_scaling),
+            # str(micro_swaps_lookahead_05_scaling),
         ],
     ]
 
@@ -289,10 +289,10 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool):
         "Lookahead",
         "Decay",
         # "Micro Basic",
-        #     "Micro Lookahead",
-        #     "Micro Lookahead 0.5",
+        # "Micro Lookahead",
+        # "Micro Lookahead 0.5",
         "Micro Lookahead Scaling",
-        #     "Micro Lookahead 0.5 Scaling",
+        # "Micro Lookahead 0.5 Scaling",
     ]
 
     for column in columns:
@@ -313,8 +313,6 @@ def apply_swaps(dest_dag, swaps, layout, physical_qubits):
             physical_qubits[layout.virtual_to_physical(a)],
             physical_qubits[layout.virtual_to_physical(b)],
         )
-        # print(f"Swapping logical {a} {b}")
-        # print(f"Swapping physical {layout.virtual_to_physical(a)} {layout.virtual_to_physical(b)}")
         layout.swap_physical(
             layout.virtual_to_physical(a), layout.virtual_to_physical(b)
         )
@@ -340,15 +338,10 @@ def apply_sabre_result(
 
     swap_map, node_order = sabre_result
 
-    # print(swap_map)
-    # print(current_layout)
-
     for node_id in node_order:
         node = source_dag.node(node_id)
         if node_id in swap_map:
-            # print(f"Applying SWAPs in order to route {node_id}: {node.qargs}")
             apply_swaps(dest_dag, swap_map[node_id], initial_layout, physical_qubits)
-            # print("Done")
 
         qubits = [
             physical_qubits[initial_layout.virtual_to_physical(root_logical_map[q])]

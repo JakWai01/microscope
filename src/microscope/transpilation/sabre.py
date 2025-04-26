@@ -59,10 +59,6 @@ class MicroSabre:
         initial_front = self._initial_front()
         self._advance_front_layer(initial_front)
 
-        # HEURISTIC_ATTEMPT_LIMIT = 10 * len(self.current_mapping)
-        # HEURISTIC_ATTEMPT_LIMIT = 2
-        # print(f"Attempt limit: {HEURISTIC_ATTEMPT_LIMIT}")
-
         while self.front_layer:
             current_swaps = []
 
@@ -84,29 +80,6 @@ class MicroSabre:
 
                 if (node := self._executable_node_on_qubit(physical_q1)) is not None:
                     execute_gate_list.append(node)
-
-            # Release-valve
-            # if not execute_gate_list:
-            #     # Unwind SWAPs in reversed order
-            #     for swap in reversed(current_swaps):
-            #         physical_q0 = self.current_mapping[swap[0]]
-            #         physical_q1 = self.current_mapping[swap[1]]
-
-            #         self.current_mapping = swap_physical_qubits(
-            #             physical_q0, physical_q1, self.current_mapping
-            #         )
-
-            #     force_routed, current_swaps = self.force_enable_closest_node()
-
-            #     print(f"Force routed: {force_routed}")
-            #     # TODO: Irgendwo werden physische und logische qubits vertauscht
-            #     print(f"Current swaps: {current_swaps}")
-
-            #     for node in force_routed:
-            #         nd = self.dag.get(node)
-            #         print(nd.__dict__)
-
-            #     execute_gate_list.extend(force_routed)
 
             self.out_map[self.dag.get(execute_gate_list[0]).node_id].extend(
                 current_swaps
@@ -233,25 +206,25 @@ class MicroSabre:
         return list(nodes - nodes_with_predecessors)
 
     def _calculate_heuristic(self, front_layer, current_mapping):
-        # TODO: Switch here
-        if self.heuristic == "basic":
-            return self._h_basic(front_layer, current_mapping, 1, False)
-        if self.heuristic == "basic-scale":
-            return self._h_basic(front_layer, current_mapping, 1, True)
-        if self.heuristic == "lookahead":
-            return self._h_lookahead(front_layer, current_mapping, 1, False)
-        if self.heuristic == "lookahead-0.5":
-            return self._h_lookahead(front_layer, current_mapping, 0.5, False)
-        if self.heuristic == "lookahead-scaling":
-            return self._h_lookahead(front_layer, current_mapping, 1, False)
-        if self.heuristic == "lookahead-0.5-scaling":
-            return self._h_lookahead(front_layer, current_mapping, 1, True)
+        match self.heuristic:
+            case "basic":
+                return self._h_basic(front_layer, current_mapping, 1, False)
+            case "basic-scale":
+                return self._h_basic(front_layer, current_mapping, 1, True)
+            case "lookahead":
+                return self._h_lookahead(front_layer, current_mapping, 1, False)
+            case "lookahead-0.5":
+                return self._h_lookahead(front_layer, current_mapping, 0.5, False)
+            case "lookahead-scaling":
+                return self._h_lookahead(front_layer, current_mapping, 1, False)
+            case "lookahead-0.5-scaling":
+                return self._h_lookahead(front_layer, current_mapping, 1, True)
 
     # Look-Ahead Ability
     def _h_lookahead(self, front_layer, current_mapping, weight, scale):
         h_basic_result = self._h_basic(front_layer, current_mapping, 1, scale)
 
-        extended_set = self._get_extended_set_bfs()
+        extended_set = self._get_extended_set()
 
         h_basic_result_extended = self._h_basic(extended_set, current_mapping, 1, scale)
 
@@ -288,17 +261,7 @@ class MicroSabre:
             h_sum += weight * self.coupling_map.distance(physical_q0, physical_q1)
         return h_sum
 
-    # Returning the successors of the current front_layer
-    # TODO: Think about allowing multiple hops
     def _get_extended_set(self):
-        extended_set = set()
-        for gate in self.front_layer:
-            successors = self._get_successors(gate)
-            for successor in successors:
-                extended_set.add(successor)
-        return extended_set
-
-    def _get_extended_set_bfs(self):
         to_visit = list(self.front_layer.copy())
         i = 0
 
@@ -329,110 +292,3 @@ class MicroSabre:
             self.required_predecessors[node] += amount
 
         return set(extended_set)
-
-    def force_enable_closest_node(self):
-        """
-        Add swaps to bring the closest nodes together. Prevents SABRE from getting
-        stuck after too many heuristic choices.
-        """
-
-        # TODO: Change this to something more future-proof
-        min_distance = 1000
-        closest_node_index = 1000
-
-        # Identify minimum distance qubits
-        for node_index in self.front_layer:
-            node = self.dag.get(node_index)
-            physical_q0 = self.current_mapping[node.qubits[0]]
-            physical_q1 = self.current_mapping[node.qubits[1]]
-
-            distance = self.coupling_map.distance(physical_q0, physical_q1)
-
-            if distance < min_distance:
-                min_distance = distance
-                closest_node_index = node_index
-
-        print(f"Min distance: {min_distance}")
-        print(f"Closest node: {closest_node_index}")
-
-        node = self.dag.get(closest_node_index)
-        physical_q0 = self.current_mapping[node.qubits[0]]
-        physical_q1 = self.current_mapping[node.qubits[1]]
-
-        path = self.coupling_map.shortest_undirected_path(physical_q0, physical_q1)
-
-        print("Path ", path)
-
-        # Split to alternate moving left and right
-        split = len(path) // 2
-
-        # TODO: Check if the indices are the right id's to insert
-        # Current swaps are physical bits here instead of logical before
-        current_swaps = []
-        for i in range(split):
-            logical_q0 = [
-                key for key, value in self.current_mapping.items() if value == path[i]
-            ][0]
-            logical_q1 = [
-                key
-                for key, value in self.current_mapping.items()
-                if value == path[i + 1]
-            ][0]
-            current_swaps.append((logical_q0, logical_q1))
-
-        for i in range(split - 1):
-            end = len(path) - 1 - i
-            logical_q0 = [
-                key for key, value in self.current_mapping.items() if value == path[end]
-            ][0]
-            logical_q1 = [
-                key
-                for key, value in self.current_mapping.items()
-                if value == path[end - 1]
-            ][0]
-            current_swaps.append((logical_q0, logical_q1))
-
-        print(f"Path length: {len(path)}")
-        print(f"Number of current swaps: {len(current_swaps)}")
-
-        for swap in current_swaps:
-            physical_q0 = self.current_mapping[swap[0]]
-            physical_q1 = self.current_mapping[swap[1]]
-
-            self.current_mapping = swap_physical_qubits(
-                physical_q0, physical_q1, self.current_mapping
-            )
-
-        if len(current_swaps) > 1:
-            return [closest_node_index], current_swaps
-        else:
-            possible_other_qubit = None
-
-            # TODO: Check if this is also correct
-            s_1 = current_swaps[0][0]
-            physical_s1 = self.current_mapping[s_1]
-            s_2 = current_swaps[0][1]
-            physical_s2 = self.current_mapping[s_2]
-            for gate in self.front_layer:
-                node = self.dag.get(gate)
-                physical_q0 = self.current_mapping[node.qubits[0]]
-                physical_q1 = self.current_mapping[node.qubits[1]]
-
-                if gate != closest_node_index:
-                    if physical_q0 == physical_s1:
-                        possible_other_qubit = physical_q1
-                    if physical_q1 == physical_s1:
-                        possible_other_qubit = physical_q0
-                    if physical_q0 == physical_s2:
-                        possible_other_qubit = physical_q1
-                    if physical_q1 == physical_s2:
-                        possible_other_qubit = physical_q0
-
-            # TODO: Does this check for None?
-            if possible_other_qubit is not None:
-                also_routed = self._executable_node_on_qubit(possible_other_qubit)
-                if also_routed is not None:
-                    print("Also routed")
-                    return [closest_node_index, also_routed], current_swaps
-
-            return [closest_node_index], current_swaps
