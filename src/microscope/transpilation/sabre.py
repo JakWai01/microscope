@@ -133,6 +133,9 @@ class MicroSabre:
                     return node_id
         return None
 
+    # TODO: If only two gates can be executed at any point in time, it should
+    # also be possible to just continue checking for all gates if they are
+    # unaffected. This should still yield the one with the biggest difference.
     def _choose_best_swap(self):
         # Gates in front_layer cannot be executed on hardware.
         scores = dict()
@@ -143,15 +146,17 @@ class MicroSabre:
             physical_q0 = self.current_mapping[swap[0]]
             physical_q1 = self.current_mapping[swap[1]]
 
+            before = self._calculate_heuristic(self.front_layer, self.current_mapping)
+
             # Create temporary mapping to calculate score with
             temporary_mapping = swap_physical_qubits(
                 physical_q0, physical_q1, self.current_mapping
             )
 
             # Calculate score using front_layer, DAG, temporary_mapping, distance_matrix and swap
-            scores[swap] = self._calculate_heuristic(
-                self.front_layer, temporary_mapping
-            )
+            after = self._calculate_heuristic(self.front_layer, temporary_mapping)
+
+            scores[swap] = after - before
         return self._min_score(scores)
 
     def _compute_swap_candidates(self):
@@ -246,7 +251,7 @@ class MicroSabre:
     def _h_lookahead(self, front_layer, current_mapping, weight, scale):
         h_basic_result = self._h_basic(front_layer, current_mapping, 1, scale)
 
-        extended_set = self._get_extended_set()
+        extended_set = self._get_extended_set_bfs()
 
         h_basic_result_extended = self._h_basic(extended_set, current_mapping, 1, scale)
 
@@ -292,6 +297,38 @@ class MicroSabre:
             for successor in successors:
                 extended_set.add(successor)
         return extended_set
+
+    def _get_extended_set_bfs(self):
+        to_visit = list(self.front_layer.copy())
+        i = 0
+
+        extended_set = []
+
+        visit_now = []
+
+        decremented = defaultdict(int)
+
+        while i < len(to_visit) and len(extended_set) < 20:
+            visit_now.append(to_visit[i])
+            j = 0
+
+            while j < len(visit_now):
+                for successor in self._get_successors(visit_now[j]):
+                    decremented[successor] += 1
+                    self.required_predecessors[successor] -= 1
+                    if self.required_predecessors[successor] == 0:
+                        if len(self.dag.get(successor).qubits) == 2:
+                            extended_set.append(successor)
+                            to_visit.append(successor)
+                            continue
+                    visit_now.append(successor)
+                j += 1
+            visit_now.clear()
+            i += 1
+        for node, amount in decremented.items():
+            self.required_predecessors[node] += amount
+
+        return set(extended_set)
 
     def force_enable_closest_node(self):
         """
