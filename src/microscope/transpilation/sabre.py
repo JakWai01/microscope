@@ -52,6 +52,7 @@ class MicroSabre:
         for edge in self.dag.edges:
             self.required_predecessors[edge[1]] += 1
 
+        print(get_successor_map(self.dag))
         # Initialize the front_layer by executing all gates that can be executed
         # immediately without inserting any SWAP gates. Assign the gates to the
         # front_layer that have  no dependencies but cannot be executed without any
@@ -292,3 +293,34 @@ class MicroSabre:
             self.required_predecessors[node] += amount
 
         return set(extended_set)
+
+
+# TODO: The idea is to prioritize successors that are not only successors
+# that can be executed immediatelly, but also are on the longest critical
+# path
+def get_extended_set_critical(dag):
+    pass
+
+
+def get_successor_map(dag):
+    adj = build_adjacency_list(dag)
+
+    successor_set = {node: set() for node in dag.nodes}
+
+    for u in range(len(dag.nodes), -1, -1):
+        for v in adj[u]:
+            successor_set[u].add(v)  # Direct successors
+            successor_set[u].update(successor_set[v])  # Indirect successors
+
+    successor_map = {node: len(successor_set[node]) for node in dag.nodes}
+
+    return dict(successor_map)
+
+
+def build_adjacency_list(dag):
+    adj = defaultdict(list)
+
+    for u, v in dag.edges:
+        adj[u].append(v)
+
+    return adj
