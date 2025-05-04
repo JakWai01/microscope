@@ -13,6 +13,7 @@ class MicroSabre:
         self.gate_order = []
         self.front_layer = set()
         self.required_predecessors = [0 for i in range(len(self.dag.nodes))]
+        self.adjacency_list = build_adjacency_list(dag)
 
     def _advance_front_layer(self, nodes):
         """Advance front layer without inserting SWAPs.
@@ -52,7 +53,6 @@ class MicroSabre:
         for edge in self.dag.edges:
             self.required_predecessors[edge[1]] += 1
 
-        print(get_successor_map(self.dag))
         # Initialize the front_layer by executing all gates that can be executed
         # immediately without inserting any SWAP gates. Assign the gates to the
         # front_layer that have  no dependencies but cannot be executed without any
@@ -272,12 +272,13 @@ class MicroSabre:
 
         decremented = defaultdict(int)
 
+        # Why 20? -> Because this scales the hardest
         while i < len(to_visit) and len(extended_set) < 20:
             visit_now.append(to_visit[i])
             j = 0
 
             while j < len(visit_now):
-                for successor in self._get_successors(visit_now[j]):
+                for successor in self.adjacency_list[visit_now[j]]:
                     decremented[successor] += 1
                     self.required_predecessors[successor] -= 1
                     if self.required_predecessors[successor] == 0:
