@@ -52,6 +52,8 @@ class MicroSabre:
 
         for edge in self.dag.edges:
             self.required_predecessors[edge[1]] += 1
+        
+        self.successor_map = get_successor_map(self.dag)
 
         # Initialize the front_layer by executing all gates that can be executed
         # immediately without inserting any SWAP gates. Assign the gates to the
@@ -113,7 +115,7 @@ class MicroSabre:
     def _choose_best_swap(self):
         # Gates in front_layer cannot be executed on hardware.
         scores = dict()
-        swap_candidates = self._compute_swap_candidates()
+        swap_candidates = self._compute_swap_candidate_critical_path()
         for swap in swap_candidates:
             # For now, convert to physical qubits again
             # If this works, insert physical qubits in the first place
@@ -132,6 +134,47 @@ class MicroSabre:
 
             scores[swap] = after - before
         return self._min_score(scores)
+    
+    def _compute_swap_candidate_critical_path(self):
+        swap_candidates = []
+        max_node = None
+        longest_path = 0
+        for gate in self.front_layer:
+            node = self.dag.get(gate)
+            
+            path_length = self.successor_map[gate]
+            if path_length > longest_path:
+                max_node = gate 
+                longest_path = path_length 
+    
+        max_node = self.dag.get(max_node)
+        physical_q0 = self.current_mapping[max_node.qubits[0]]
+        physical_q1 = self.current_mapping[max_node.qubits[1]]
+        
+        for edge in self.coupling_map:
+            # This is necessary since we go through each edge in the coupling_map.edge.
+            # Only proceed if the physical qubits are mapped.
+            if (
+                edge[0] in self.current_mapping.values()
+                and edge[1] in self.current_mapping.values()
+            ):
+                if edge[0] == physical_q0 or edge[0] == physical_q1:
+                    logical_q0 = [
+                        key
+                        for key, value in self.current_mapping.items()
+                        if value == edge[0]
+                    ][0]
+                    logical_q1 = [
+                        key
+                        for key, value in self.current_mapping.items()
+                        if value == edge[1]
+                    ][0]
+                    # Important: SWAP candidates are logical qubits! Not like in micro_swap!
+                    swap_candidates.append((logical_q0, logical_q1))
+
+        # print(swap_candidates)
+        return swap_candidates
+
 
     def _compute_swap_candidates(self):
         swap_candidates = []

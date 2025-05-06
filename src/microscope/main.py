@@ -93,6 +93,10 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool):
 
     # Convert DAG to circuit
     transpiled_circuit = dag_to_circuit(transpiled_dag)
+    basic_swap_depth = transpiled_circuit.depth()
+    basic_swap_swaps = len(transpiled_dag.op_nodes(op=SwapGate))
+
+    print(f"Finished basic swap with depth {basic_swap_depth} and {basic_swap_swaps} swaps")
     if show:
         transpiled_circuit.draw("mpl", fold=-1)
 
@@ -108,6 +112,7 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool):
         raise ValueError("CheckMap identified invalid mapping from DAG to coupling_map")
 
     basic_swaps = len(transpiled_qc_dag.op_nodes(op=SwapGate))
+    print(f"Finished qiskit sabre with depth {basic_depth} and {basic_swaps} swaps")
     if show:
         transpiled_qc.draw("mpl", fold=-1)
 
@@ -120,7 +125,8 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool):
     transpiled_qc_dag = circuit_to_dag(transpiled_qc)
     lookahead_swaps = len(transpiled_qc_dag.op_nodes(op=SwapGate))
 
-    if show_dag:
+    print(f"Finished qiskit sabre lookahead with depth {lookahead_depth} and {lookahead_swaps} swaps")
+    if show:
         transpiled_qc.draw("mpl", fold=-1)
 
     if not cm.property_set.get("is_swap_mapped"):
@@ -132,6 +138,7 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool):
     decay_depth = transpiled_qc.depth()
     transpiled_qc_dag = circuit_to_dag(transpiled_qc)
     decay_swaps = len(transpiled_qc_dag.op_nodes(op=SwapGate))
+    print(f"Finished qiskit sabre decay with depth {decay_depth} and {decay_swaps} swaps")
     if show:
         transpiled_qc.draw("mpl", fold=-1)
 
@@ -177,6 +184,7 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool):
     transpiled_micro_sabre_circuit = dag_to_circuit(transpiled_sabre_dag)
     micro_depth_lookahead = transpiled_micro_sabre_circuit.depth()
     micro_swaps_lookahead = len(transpiled_sabre_dag.op_nodes(op=SwapGate))
+    print(f"Finished microsabre lookahead with depth {micro_depth_lookahead} and {micro_swaps_lookahead} swaps")
     if show:
         transpiled_micro_sabre_circuit.draw("mpl", fold=-1)
 
@@ -262,6 +270,7 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool):
     rows = [
         [
             "Depth",
+            str(basic_swap_depth),
             str(basic_depth),
             str(lookahead_depth),
             str(decay_depth),
@@ -273,6 +282,7 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool):
         ],
         [
             "Swaps",
+            str(basic_swap_swaps),
             str(basic_swaps),
             str(lookahead_swaps),
             str(decay_swaps),
@@ -286,6 +296,7 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool):
 
     columns = [
         "",
+        "Basic Swap",
         "Basic",
         "Lookahead",
         "Decay",
@@ -304,8 +315,9 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool):
 
     console = Console()
     console.print(table)
-
-    plt.show()
+    
+    if show:
+        plt.show()
 
 
 def apply_swaps(dest_dag, swaps, layout, physical_qubits):
