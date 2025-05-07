@@ -170,7 +170,7 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool):
     # if not cm.property_set.get("is_swap_mapped"):
     #     raise ValueError("CheckMap identified invalid mapping from DAG to coupling_map")
 
-    ms = MicroSabre(micro_dag, micro_mapping, coupling_map, "lookahead")
+    ms = MicroSabre(micro_dag, micro_mapping, coupling_map, "lookahead", False)
     sabre_result = ms.run()
 
     transpiled_sabre_dag = apply_sabre_result(
@@ -185,6 +185,31 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool):
     micro_depth_lookahead = transpiled_micro_sabre_circuit.depth()
     micro_swaps_lookahead = len(transpiled_sabre_dag.op_nodes(op=SwapGate))
     print(f"Finished microsabre lookahead with depth {micro_depth_lookahead} and {micro_swaps_lookahead} swaps")
+    if show:
+        transpiled_micro_sabre_circuit.draw("mpl", fold=-1)
+
+    cm = CheckMap(coupling_map=coupling_map)
+    qiskit_pm = PassManager([cm])
+    transpiled_qc = qiskit_pm.run(transpiled_micro_sabre_circuit)
+
+    if not cm.property_set.get("is_swap_mapped"):
+        raise ValueError("CheckMap identified invalid mapping from DAG to coupling_map")
+
+    ms = MicroSabre(micro_dag, micro_mapping, coupling_map, "lookahead", True)
+    sabre_result = ms.run()
+
+    transpiled_sabre_dag = apply_sabre_result(
+        input_dag.copy_empty_like(),
+        input_dag,
+        sabre_result,
+        input_dag.qubits,
+        coupling_map,
+    )
+
+    transpiled_micro_sabre_circuit = dag_to_circuit(transpiled_sabre_dag)
+    micro_depth_lookahead_critical = transpiled_micro_sabre_circuit.depth()
+    micro_swaps_lookahead_critical = len(transpiled_sabre_dag.op_nodes(op=SwapGate))
+    print(f"Finished microsabre critical lookahead with depth {micro_depth_lookahead} and {micro_swaps_lookahead} swaps")
     if show:
         transpiled_micro_sabre_circuit.draw("mpl", fold=-1)
 
@@ -276,6 +301,7 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool):
             str(decay_depth),
             # str(micro_depth_basic),
             str(micro_depth_lookahead),
+            str(micro_depth_lookahead_critical),
             # str(micro_depth_lookahead_05),
             # str(micro_depth_lookahead_scaling),
             #         str(micro_depth_lookahead_05_scaling),
@@ -288,6 +314,7 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool):
             str(decay_swaps),
             # str(micro_swaps_basic),
             str(micro_swaps_lookahead),
+            str(micro_swaps_lookahead_critical),
             # str(micro_swaps_lookahead_05),
             # str(micro_swaps_lookahead_scaling),
             # str(micro_swaps_lookahead_05_scaling),
@@ -302,6 +329,7 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool):
         "Decay",
         # "Micro Basic",
         "Micro Lookahead",
+        "Micro Lookahead Critical"
         # "Micro Lookahead 0.5",
         # "Micro Lookahead Scaling",
         # "Micro Lookahead 0.5 Scaling",

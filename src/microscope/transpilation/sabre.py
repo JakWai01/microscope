@@ -4,7 +4,7 @@ from collections import defaultdict
 
 
 class MicroSabre:
-    def __init__(self, dag, initial_mapping, coupling_map, heuristic):
+    def __init__(self, dag, initial_mapping, coupling_map, heuristic, critical):
         self.current_mapping = initial_mapping.copy()
         self.coupling_map = coupling_map
         self.dag = dag
@@ -14,6 +14,7 @@ class MicroSabre:
         self.front_layer = set()
         self.required_predecessors = [0 for i in range(len(self.dag.nodes))]
         self.adjacency_list = build_adjacency_list(dag)
+        self.critical = critical
 
     def _advance_front_layer(self, nodes):
         """Advance front layer without inserting SWAPs.
@@ -115,7 +116,13 @@ class MicroSabre:
     def _choose_best_swap(self):
         # Gates in front_layer cannot be executed on hardware.
         scores = dict()
-        swap_candidates = self._compute_swap_candidate_critical_path()
+        swap_candidates = []
+        
+        if self.critical:
+            swap_candidates = self._compute_swap_candidate_critical_path()
+        else:
+            swap_candidates = self._compute_swap_candidates()
+
         for swap in swap_candidates:
             # For now, convert to physical qubits again
             # If this works, insert physical qubits in the first place
