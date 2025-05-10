@@ -146,7 +146,7 @@ class MicroSabre:
 
         if self.critical:
             for swap in critical_swap_candidates:
-                scores[swap] = scores[swap] * 1.5
+                scores[swap] = scores[swap] * 1.2
 
         return self._min_score(scores)
     
@@ -333,7 +333,7 @@ class MicroSabre:
         visited = defaultdict(bool)
         
         # Why 20? -> Because this scales the hardest
-        while i < len(to_visit) and len(extended_set) < 100:
+        while i < len(to_visit) and len(extended_set) < 20:
             visit_now.append(to_visit[i])
             j = 0
 
