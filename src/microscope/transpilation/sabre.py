@@ -337,6 +337,9 @@ class MicroSabre:
                             to_visit.append(successor)
                             continue
                         visit_now.append(successor)
+                    # Also adding the first layer of unroutable gates seems to improve the result
+                    if len(self.dag.get(successor).qubits) == 2:
+                        extended_set.append(successor)
                 j += 1
             visit_now.clear()
             i += 1
