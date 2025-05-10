@@ -39,3 +39,46 @@ following assumptions:
 
 The examples are taken from
 [here](https://github.com/pnnl/QASMBench/blob/master/large/adder_n28/adder_n28.qasm).
+
+## MicroSABRE
+
+The main goal of this chapter is to provide an intuitive understanding about
+the inner workings of the MicroSABRE algorithm and what it adds onto the SABRE
+algorithm.
+
+1. Initialize initial front layer. Do this by executing all gates that have no
+   predecessors. In the end, add the gates to the front layer that cannot be
+   executed but have no predecessors.
+
+2. While there are gates in the front layer and none of those gates can be
+   executed, choose the best swap using a heuristic function. Apply the swap
+   and check for executable gates again. Repeat this process until at least one
+   gate can be executed.
+
+3. After having found a gate that can be executed, store the sequence of swaps
+   that was necessary to be able to execute the gate(s) with the first gate
+   that was able to execute. Execute the gates that can be executed using the
+   sequence of swaps identified. Advance the front layer as done in step 1.
+
+Identifying the best swap is the central piece in the SABRE algorithm. To
+achieve this, all swap candidates (all possible swaps that can be made with
+qubits involved in the front layer) are computed. All possible candidates are
+then rated using a heuristic function. The swap that leads to the best
+improvement is then chosen to be applied to the circuit.
+
+In the case of MicroSABRE, in addition to the swap candidates, the swap
+candidates that lie on the longest critical path of the circuit are identified.
+After the heuristic function has rated all the possible swap candidates, the
+weight of the swap candidates on the critical path is increased by a constant
+factor in order to take the critical path into account.
+
+Other than that, MicroSABRE uses constant or scaled lookahead depending on the
+configuration. It still has to be tested which configuration yields the best
+results.
+
+The implementation of determining the extended set (compared to the Qiskit
+implementation) also considers the first layer of gates that cannot be executed
+inside of the extended set. This improves the result in that not only positive
+outcomes are considered inside of the heuristic. Furthermore, MicroSABRE
+introduces are visited array that prevents some unnecessary processing when
+considering a node multiple times.
