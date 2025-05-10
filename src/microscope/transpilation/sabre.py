@@ -117,9 +117,12 @@ class MicroSabre:
         # Gates in front_layer cannot be executed on hardware.
         scores = dict()
         swap_candidates = []
-        
+        critical_swap_candidates = []
+        # Modify critical path heuristic to increase weight for those candidates
         if self.critical:
-            swap_candidates = self._compute_swap_candidate_critical_path()
+            swap_candidates = self._compute_swap_candidates()
+
+            critical_swap_candidates = self._compute_swap_candidate_critical_path()
         else:
             swap_candidates = self._compute_swap_candidates()
 
@@ -140,6 +143,11 @@ class MicroSabre:
             after = self._calculate_heuristic(self.front_layer, temporary_mapping)
 
             scores[swap] = after - before
+
+        if self.critical:
+            for swap in critical_swap_candidates:
+                scores[swap] = scores[swap] * 1.5
+
         return self._min_score(scores)
     
     def _compute_swap_candidate_critical_path(self):
