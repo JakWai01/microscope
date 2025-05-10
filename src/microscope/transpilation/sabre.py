@@ -322,24 +322,29 @@ class MicroSabre:
 
         decremented = defaultdict(int)
 
+        visited = defaultdict(bool)
+        
         # Why 20? -> Because this scales the hardest
-        while i < len(to_visit) and len(extended_set) < 20:
+        while i < len(to_visit) and len(extended_set) < 100:
             visit_now.append(to_visit[i])
             j = 0
 
             while j < len(visit_now):
                 for successor in self.adjacency_list[visit_now[j]]:
-                    decremented[successor] += 1
-                    self.required_predecessors[successor] -= 1
-                    if self.required_predecessors[successor] == 0:
+                    if not visited[successor]:
+                        visited[successor] = True
+
+                        decremented[successor] += 1
+                        self.required_predecessors[successor] -= 1
+                        if self.required_predecessors[successor] == 0:
+                            if len(self.dag.get(successor).qubits) == 2:
+                                extended_set.append(successor)
+                                to_visit.append(successor)
+                                continue
+                            visit_now.append(successor)
+                        # Also adding the first layer of unroutable gates seems to improve the result
                         if len(self.dag.get(successor).qubits) == 2:
                             extended_set.append(successor)
-                            to_visit.append(successor)
-                            continue
-                        visit_now.append(successor)
-                    # Also adding the first layer of unroutable gates seems to improve the result
-                    if len(self.dag.get(successor).qubits) == 2:
-                        extended_set.append(successor)
                 j += 1
             visit_now.clear()
             i += 1
