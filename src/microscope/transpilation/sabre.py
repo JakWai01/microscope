@@ -336,13 +336,14 @@ class MicroSabre:
                             extended_set.append(successor)
                             to_visit.append(successor)
                             continue
-                    visit_now.append(successor)
+                        visit_now.append(successor)
                 j += 1
             visit_now.clear()
             i += 1
         for node, amount in decremented.items():
             self.required_predecessors[node] += amount
-
+        
+        # print(len(extended_set))
         return set(extended_set)
 
 
