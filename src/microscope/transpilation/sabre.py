@@ -362,14 +362,6 @@ class MicroSabre:
         # print(len(extended_set))
         return set(extended_set)
 
-
-# TODO: The idea is to prioritize successors that are not only successors
-# that can be executed immediatelly, but also are on the longest critical
-# path
-def get_extended_set_critical(dag):
-    pass
-
-
 def get_successor_map(dag):
     adj = build_adjacency_list(dag)
 
