@@ -99,198 +99,19 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool):
     print(f"Finished basic swap with depth {basic_swap_depth} and {basic_swap_swaps} swaps")
     if show:
         transpiled_circuit.draw("mpl", fold=-1)
-
-    # Qiskit SABRE implementation
-    cm = CheckMap(coupling_map=coupling_map)
-    qiskit_pm = PassManager([SabreSwap(coupling_map, heuristic="basic", trials=1), cm])
-    qiskit_pm.draw("sabre_pm.png")
-    transpiled_qc = qiskit_pm.run(preprocessed_circuit)
-    basic_depth = transpiled_qc.depth()
-    transpiled_qc_dag = circuit_to_dag(transpiled_qc)
-
-    if not cm.property_set.get("is_swap_mapped"):
-        raise ValueError("CheckMap identified invalid mapping from DAG to coupling_map")
-
-    basic_swaps = len(transpiled_qc_dag.op_nodes(op=SwapGate))
-    print(f"Finished qiskit sabre with depth {basic_depth} and {basic_swaps} swaps")
-    if show:
-        transpiled_qc.draw("mpl", fold=-1)
-
-    cm = CheckMap(coupling_map=coupling_map)
-    qiskit_pm = PassManager(
-        [SabreSwap(coupling_map, heuristic="lookahead", trials=1), cm]
-    )
-
-    transpiled_qc = qiskit_pm.run(preprocessed_circuit)
-    lookahead_depth = transpiled_qc.depth()
-    transpiled_qc_dag = circuit_to_dag(transpiled_qc)
-    lookahead_swaps = len(transpiled_qc_dag.op_nodes(op=SwapGate))
-
-    print(f"Finished qiskit sabre lookahead with depth {lookahead_depth} and {lookahead_swaps} swaps")
-    if show:
-        transpiled_qc.draw("mpl", fold=-1)
-
-    if not cm.property_set.get("is_swap_mapped"):
-        raise ValueError("CheckMap identified invalid mapping from DAG to coupling_map")
-
-    cm = CheckMap(coupling_map=coupling_map)
-    qiskit_pm = PassManager([SabreSwap(coupling_map, heuristic="decay", trials=1), cm])
-    transpiled_qc = qiskit_pm.run(preprocessed_circuit)
-    decay_depth = transpiled_qc.depth()
-    transpiled_qc_dag = circuit_to_dag(transpiled_qc)
-    decay_swaps = len(transpiled_qc_dag.op_nodes(op=SwapGate))
-    print(f"Finished qiskit sabre decay with depth {decay_depth} and {decay_swaps} swaps")
-    if show:
-        transpiled_qc.draw("mpl", fold=-1)
-
-    if not cm.property_set.get("is_swap_mapped"):
-        raise ValueError("CheckMap identified invalid mapping from DAG to coupling_map")
-
-    # MicroSABRE implementation
-    ms = MicroSabre(micro_dag, micro_mapping, coupling_map, "basic", False)
-    sabre_result = ms.run()
-
-    transpiled_sabre_dag = apply_sabre_result(
-        input_dag.copy_empty_like(),
-        input_dag,
-        sabre_result,
-        input_dag.qubits,
-        coupling_map,
-    )
-
-    transpiled_micro_sabre_circuit = dag_to_circuit(transpiled_sabre_dag)
-    micro_depth_basic = transpiled_micro_sabre_circuit.depth()
-    micro_swaps_basic = len(transpiled_sabre_dag.op_nodes(op=SwapGate))
-    if show:
-        transpiled_micro_sabre_circuit.draw("mpl", fold=-1)
-
-    cm = CheckMap(coupling_map=coupling_map)
-    qiskit_pm = PassManager([cm])
-    transpiled_qc = qiskit_pm.run(transpiled_micro_sabre_circuit)
-
-    if not cm.property_set.get("is_swap_mapped"):
-        raise ValueError("CheckMap identified invalid mapping from DAG to coupling_map")
     
-    ms = MicroSabre(micro_dag, micro_mapping, coupling_map, "lookahead", False)
-    sabre_result = ms.run()
+    # Qiskit SABRE 
+    basic_depth, basic_swaps = sabre(preprocessed_circuit, coupling_map, show, "basic")
+    lookahead_depth, lookahead_swaps = sabre(preprocessed_circuit, coupling_map, show, "lookahead")
+    decay_depth, decay_swaps = sabre(preprocessed_circuit, coupling_map, show, "decay")
 
-    transpiled_sabre_dag = apply_sabre_result(
-        input_dag.copy_empty_like(),
-        input_dag,
-        sabre_result,
-        input_dag.qubits,
-        coupling_map,
-    )
-
-    transpiled_micro_sabre_circuit = dag_to_circuit(transpiled_sabre_dag)
-    micro_depth_lookahead = transpiled_micro_sabre_circuit.depth()
-    micro_swaps_lookahead = len(transpiled_sabre_dag.op_nodes(op=SwapGate))
-    print(f"Finished microsabre lookahead with depth {micro_depth_lookahead} and {micro_swaps_lookahead} swaps")
-    if show:
-        transpiled_micro_sabre_circuit.draw("mpl", fold=-1)
-
-    cm = CheckMap(coupling_map=coupling_map)
-    qiskit_pm = PassManager([cm])
-    transpiled_qc = qiskit_pm.run(transpiled_micro_sabre_circuit)
-
-    if not cm.property_set.get("is_swap_mapped"):
-        raise ValueError("CheckMap identified invalid mapping from DAG to coupling_map")
-
-    ms = MicroSabre(micro_dag, micro_mapping, coupling_map, "lookahead", True)
-    sabre_result = ms.run()
-
-    transpiled_sabre_dag = apply_sabre_result(
-        input_dag.copy_empty_like(),
-        input_dag,
-        sabre_result,
-        input_dag.qubits,
-        coupling_map,
-    )
-
-    transpiled_micro_sabre_circuit = dag_to_circuit(transpiled_sabre_dag)
-    micro_depth_lookahead_critical = transpiled_micro_sabre_circuit.depth()
-    micro_swaps_lookahead_critical = len(transpiled_sabre_dag.op_nodes(op=SwapGate))
-    print(f"Finished microsabre critical lookahead with depth {micro_depth_lookahead} and {micro_swaps_lookahead} swaps")
-    if show:
-        transpiled_micro_sabre_circuit.draw("mpl", fold=-1)
-
-    cm = CheckMap(coupling_map=coupling_map)
-    qiskit_pm = PassManager([cm])
-    transpiled_qc = qiskit_pm.run(transpiled_micro_sabre_circuit)
-
-    if not cm.property_set.get("is_swap_mapped"):
-        raise ValueError("CheckMap identified invalid mapping from DAG to coupling_map")
-
-    ms = MicroSabre(micro_dag, micro_mapping, coupling_map, "lookahead-0.5", False)
-    sabre_result = ms.run()
-
-    transpiled_sabre_dag = apply_sabre_result(
-        input_dag.copy_empty_like(),
-        input_dag,
-        sabre_result,
-        input_dag.qubits,
-        coupling_map,
-    )
-
-    transpiled_micro_sabre_circuit = dag_to_circuit(transpiled_sabre_dag)
-    micro_depth_lookahead_05 = transpiled_micro_sabre_circuit.depth()
-    micro_swaps_lookahead_05 = len(transpiled_sabre_dag.op_nodes(op=SwapGate))
-    if show:
-        transpiled_micro_sabre_circuit.draw("mpl", fold=-1)
-
-    cm = CheckMap(coupling_map=coupling_map)
-    qiskit_pm = PassManager([cm])
-    transpiled_qc = qiskit_pm.run(transpiled_micro_sabre_circuit)
-
-    if not cm.property_set.get("is_swap_mapped"):
-        raise ValueError("CheckMap identified invalid mapping from DAG to coupling_map")
-
-    ms = MicroSabre(micro_dag, micro_mapping, coupling_map, "lookahead-scaling", False)
-    sabre_result = ms.run()
-
-    transpiled_sabre_dag = apply_sabre_result(
-        input_dag.copy_empty_like(),
-        input_dag,
-        sabre_result,
-        input_dag.qubits,
-        coupling_map,
-    )
-
-    transpiled_micro_sabre_circuit = dag_to_circuit(transpiled_sabre_dag)
-    micro_depth_lookahead_scaling = transpiled_micro_sabre_circuit.depth()
-    micro_swaps_lookahead_scaling = len(transpiled_sabre_dag.op_nodes(op=SwapGate))
-    transpiled_micro_sabre_circuit.draw("mpl", fold=-1)
-
-    cm = CheckMap(coupling_map=coupling_map)
-    qiskit_pm = PassManager([cm])
-    transpiled_qc = qiskit_pm.run(transpiled_micro_sabre_circuit)
-
-    if not cm.property_set.get("is_swap_mapped"):
-        raise ValueError("CheckMap identified invalid mapping from DAG to coupling_map")
-
-    ms = MicroSabre(micro_dag, micro_mapping, coupling_map, "lookahead-0.5-scaling", False)
-    sabre_result = ms.run()
-
-    transpiled_sabre_dag = apply_sabre_result(
-        input_dag.copy_empty_like(),
-        input_dag,
-        sabre_result,
-        input_dag.qubits,
-        coupling_map,
-    )
-
-    transpiled_micro_sabre_circuit = dag_to_circuit(transpiled_sabre_dag)
-    micro_depth_lookahead_05_scaling = transpiled_micro_sabre_circuit.depth()
-    micro_swaps_lookahead_05_scaling = len(transpiled_sabre_dag.op_nodes(op=SwapGate))
-    if show:
-        transpiled_micro_sabre_circuit.draw("mpl", fold=-1)
-
-    cm = CheckMap(coupling_map=coupling_map)
-    qiskit_pm = PassManager([cm])
-    transpiled_qc = qiskit_pm.run(transpiled_micro_sabre_circuit)
-
-    if not cm.property_set.get("is_swap_mapped"):
-        raise ValueError("CheckMap identified invalid mapping from DAG to coupling_map")
+    # Micro SABRE
+    micro_depth_basic, micro_swaps_basic = microsabre(input_dag, micro_dag, micro_mapping, coupling_map, show, "basic", False)
+    micro_depth_lookahead, micro_swaps_lookahead = microsabre(input_dag, micro_dag, micro_mapping, coupling_map, show, "lookahead", False)
+    micro_depth_lookahead_critical, micro_swaps_lookahead_critical = microsabre(input_dag, micro_dag, micro_mapping, coupling_map, show, "lookahead", True)
+    micro_depth_lookahead_05, micro_swaps_lookahead_05 = microsabre(input_dag, micro_dag, micro_mapping, coupling_map, show, "lookahead-0.5", False)
+    micro_depth_lookahead_scaling, micro_swaps_lookahead_scaling = microsabre(input_dag, micro_dag, micro_mapping, coupling_map, show, "lookahead-scaling", False)
+    micro_depth_lookahead_05_scaling, micro_swaps_lookahead_05_scaling = microsabre(input_dag, micro_dag, micro_mapping, coupling_map, show, "lookahead-scaling", False)
 
     table = Table(title="Circuit Metrics")
     rows = [
@@ -348,6 +169,51 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool):
     if show:
         plt.show()
 
+def sabre(preprocessed_circuit, coupling_map, show, heuristic):
+    cm = CheckMap(coupling_map=coupling_map)
+    qiskit_pm = PassManager([SabreSwap(coupling_map, heuristic=heuristic, trials=1), cm])
+    qiskit_pm.draw("sabre_pm.png")
+    transpiled_qc = qiskit_pm.run(preprocessed_circuit)
+    transpiled_qc_dag = circuit_to_dag(transpiled_qc)
+
+    if not cm.property_set.get("is_swap_mapped"):
+        raise ValueError("CheckMap identified invalid mapping from DAG to coupling_map")
+
+    depth = transpiled_qc.depth()
+    num_swaps = len(transpiled_qc_dag.op_nodes(op=SwapGate))
+
+    if show:
+        transpiled_qc.draw("mpl", fold=-1)
+
+    return depth, num_swaps 
+
+def microsabre(input_dag, micro_dag, micro_mapping, coupling_map, show, heuristic, critical):
+    ms = MicroSabre(micro_dag, micro_mapping, coupling_map, heuristic, critical)
+    sabre_result = ms.run()
+
+    transpiled_sabre_dag = apply_sabre_result(
+        input_dag.copy_empty_like(),
+        input_dag,
+        sabre_result,
+        input_dag.qubits,
+        coupling_map,
+    )
+
+    transpiled_micro_sabre_circuit = dag_to_circuit(transpiled_sabre_dag)
+    if show:
+        transpiled_micro_sabre_circuit.draw("mpl", fold=-1)
+
+    cm = CheckMap(coupling_map=coupling_map)
+    qiskit_pm = PassManager([cm])
+    transpiled_qc = qiskit_pm.run(transpiled_micro_sabre_circuit)
+
+    if not cm.property_set.get("is_swap_mapped"):
+        raise ValueError("CheckMap identified invalid mapping from DAG to coupling_map")
+    
+    depth = transpiled_micro_sabre_circuit.depth()
+    num_swaps = len(transpiled_sabre_dag.op_nodes(op=SwapGate))
+
+    return depth, num_swaps
 
 def apply_swaps(dest_dag, swaps, layout, physical_qubits):
     for a, b in swaps:
