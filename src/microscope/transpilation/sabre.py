@@ -53,7 +53,7 @@ class MicroSabre:
 
         for edge in self.dag.edges:
             self.required_predecessors[edge[1]] += 1
-        
+
         self.successor_map = get_successor_map(self.dag)
 
         # Initialize the front_layer by executing all gates that can be executed
@@ -149,23 +149,23 @@ class MicroSabre:
                 scores[swap] = scores[swap] * 1.2
 
         return self._min_score(scores)
-    
+
     def _compute_swap_candidate_critical_path(self):
         swap_candidates = []
         max_node = None
         longest_path = 0
         for gate in self.front_layer:
             node = self.dag.get(gate)
-            
+
             path_length = self.successor_map[gate]
             if path_length > longest_path:
-                max_node = gate 
-                longest_path = path_length 
-    
+                max_node = gate
+                longest_path = path_length
+
         max_node = self.dag.get(max_node)
         physical_q0 = self.current_mapping[max_node.qubits[0]]
         physical_q1 = self.current_mapping[max_node.qubits[1]]
-        
+
         for edge in self.coupling_map:
             # This is necessary since we go through each edge in the coupling_map.edge.
             # Only proceed if the physical qubits are mapped.
@@ -189,7 +189,6 @@ class MicroSabre:
 
         # print(swap_candidates)
         return swap_candidates
-
 
     def _compute_swap_candidates(self):
         swap_candidates = []
@@ -331,7 +330,7 @@ class MicroSabre:
         decremented = defaultdict(int)
 
         visited = defaultdict(bool)
-        
+
         # Why 20? -> Because this scales the hardest
         while i < len(to_visit) and len(extended_set) < 20:
             visit_now.append(to_visit[i])
@@ -358,9 +357,10 @@ class MicroSabre:
             i += 1
         for node, amount in decremented.items():
             self.required_predecessors[node] += amount
-        
+
         # print(len(extended_set))
         return set(extended_set)
+
 
 def get_successor_map(dag):
     adj = build_adjacency_list(dag)

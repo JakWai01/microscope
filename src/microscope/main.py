@@ -61,7 +61,6 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool):
             SetLayout(preprocessing_layout),
             FullAncillaAllocation(coupling_map),
             ApplyLayout(),
-            # Could this be a problem?
             RemoveBarriers(),
         ]
     )
@@ -80,82 +79,48 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool):
         input_dag_image = dag_drawer(input_dag)
         input_dag_image.show()
 
-    # Execute basic swap algorithm
-    if qiskit_fallback:
-        bs = BasicSwap(coupling_map)
-        transpiled_dag = bs.run(input_dag)
-    else:
-        transpiled_dag = basic_swap(input_dag, coupling_map, initial_mapping)
-
-    if show_dag:
-        output_dag_image = dag_drawer(transpiled_dag)
-        output_dag_image.show()
-
-    # Convert DAG to circuit
-    transpiled_circuit = dag_to_circuit(transpiled_dag)
-    basic_swap_depth = transpiled_circuit.depth()
-    basic_swap_swaps = len(transpiled_dag.op_nodes(op=SwapGate))
-
-    print(f"Finished basic swap with depth {basic_swap_depth} and {basic_swap_swaps} swaps")
-    if show:
-        transpiled_circuit.draw("mpl", fold=-1)
-    
-    # Qiskit SABRE 
-    basic_depth, basic_swaps = sabre(preprocessed_circuit, coupling_map, show, "basic")
-    lookahead_depth, lookahead_swaps = sabre(preprocessed_circuit, coupling_map, show, "lookahead")
-    decay_depth, decay_swaps = sabre(preprocessed_circuit, coupling_map, show, "decay")
-
-    # Micro SABRE
-    micro_depth_basic, micro_swaps_basic = microsabre(input_dag, micro_dag, micro_mapping, coupling_map, show, "basic", False)
-    micro_depth_lookahead, micro_swaps_lookahead = microsabre(input_dag, micro_dag, micro_mapping, coupling_map, show, "lookahead", False)
-    micro_depth_lookahead_critical, micro_swaps_lookahead_critical = microsabre(input_dag, micro_dag, micro_mapping, coupling_map, show, "lookahead", True)
-    micro_depth_lookahead_05, micro_swaps_lookahead_05 = microsabre(input_dag, micro_dag, micro_mapping, coupling_map, show, "lookahead-0.5", False)
-    micro_depth_lookahead_scaling, micro_swaps_lookahead_scaling = microsabre(input_dag, micro_dag, micro_mapping, coupling_map, show, "lookahead-scaling", False)
-    micro_depth_lookahead_05_scaling, micro_swaps_lookahead_05_scaling = microsabre(input_dag, micro_dag, micro_mapping, coupling_map, show, "lookahead-scaling", False)
-
-    table = Table(title="Circuit Metrics")
     rows = [
         [
             "Depth",
-            str(basic_swap_depth),
-            str(basic_depth),
-            str(lookahead_depth),
-            str(decay_depth),
-            str(micro_depth_basic),
-            str(micro_depth_lookahead),
-            str(micro_depth_lookahead_critical),
-            str(micro_depth_lookahead_05),
-            str(micro_depth_lookahead_scaling),
-            str(micro_depth_lookahead_05_scaling),
         ],
         [
             "Swaps",
-            str(basic_swap_swaps),
-            str(basic_swaps),
-            str(lookahead_swaps),
-            str(decay_swaps),
-            str(micro_swaps_basic),
-            str(micro_swaps_lookahead),
-            str(micro_swaps_lookahead_critical),
-            str(micro_swaps_lookahead_05),
-            str(micro_swaps_lookahead_scaling),
-            str(micro_swaps_lookahead_05_scaling),
         ],
     ]
 
-    columns = [
-        "",
-        "Basic Swap",
-        "Basic",
-        "Lookahead",
-        "Decay",
-        "Micro Basic",
-        "Micro Lookahead",
-        "Micro Lookahead Critical",
-        "Micro Lookahead 0.5",
-        "Micro Lookahead Scaling",
-        "Micro Lookahead 0.5 Scaling",
+    columns = [""]
+
+    # Qiskit SABRE
+    qiskit_test_executions = ["basic", "lookahead", "decay"]
+    for heuristic in qiskit_test_executions:
+        depth, swaps = sabre(preprocessed_circuit, coupling_map, show, heuristic)
+        rows[0].append(str(depth))
+        rows[1].append(str(swaps))
+        columns.append(f"{heuristic}")
+
+    # Micro SABRE
+    test_executions = [
+        ("basic", False),
+        ("basic", True),
+        ("lookahead", False),
+        ("lookahead", True),
+        ("lookahead-0.5", False),
+        ("lookahead-0.5", True),
+        ("lookahead-scaling", False),
+        ("lookahead-scaling", True),
+        ("lookahead-0.5-scaling", False),
+        ("lookahead-0.5-scaling", True),
     ]
+
+    for heuristic, critical in test_executions:
+        depth, swaps = microsabre(
+            input_dag, micro_dag, micro_mapping, coupling_map, show, heuristic, critical
+        )
+        rows[0].append(str(depth))
+        rows[1].append(str(swaps))
+        columns.append(f"{heuristic} {critical}")
+
+    table = Table(title="SABRE Results")
 
     for column in columns:
         table.add_column(column)
@@ -165,13 +130,16 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool):
 
     console = Console()
     console.print(table)
-    
+
     if show:
         plt.show()
 
+
 def sabre(preprocessed_circuit, coupling_map, show, heuristic):
     cm = CheckMap(coupling_map=coupling_map)
-    qiskit_pm = PassManager([SabreSwap(coupling_map, heuristic=heuristic, trials=1), cm])
+    qiskit_pm = PassManager(
+        [SabreSwap(coupling_map, heuristic=heuristic, trials=1), cm]
+    )
     qiskit_pm.draw("sabre_pm.png")
     transpiled_qc = qiskit_pm.run(preprocessed_circuit)
     transpiled_qc_dag = circuit_to_dag(transpiled_qc)
@@ -185,9 +153,12 @@ def sabre(preprocessed_circuit, coupling_map, show, heuristic):
     if show:
         transpiled_qc.draw("mpl", fold=-1)
 
-    return depth, num_swaps 
+    return depth, num_swaps
 
-def microsabre(input_dag, micro_dag, micro_mapping, coupling_map, show, heuristic, critical):
+
+def microsabre(
+    input_dag, micro_dag, micro_mapping, coupling_map, show, heuristic, critical
+):
     ms = MicroSabre(micro_dag, micro_mapping, coupling_map, heuristic, critical)
     sabre_result = ms.run()
 
@@ -209,11 +180,12 @@ def microsabre(input_dag, micro_dag, micro_mapping, coupling_map, show, heuristi
 
     if not cm.property_set.get("is_swap_mapped"):
         raise ValueError("CheckMap identified invalid mapping from DAG to coupling_map")
-    
+
     depth = transpiled_micro_sabre_circuit.depth()
     num_swaps = len(transpiled_sabre_dag.op_nodes(op=SwapGate))
 
     return depth, num_swaps
+
 
 def apply_swaps(dest_dag, swaps, layout, physical_qubits):
     for a, b in swaps:
