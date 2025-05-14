@@ -50,7 +50,7 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool):
         input_circuit.draw("mpl", fold=-1)
 
     # A line with 10 physical qubits
-    coupling_map = CouplingMap.from_line(64)
+    coupling_map = CouplingMap.from_line(28)
 
     preprocessing_dag = circuit_to_dag(input_circuit)
     preprocessing_layout = generate_initial_mapping(preprocessing_dag)
@@ -124,8 +124,15 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool):
         ("lookahead-0.5-scaling", False, 90), 
         ("lookahead-0.5-scaling", False, 100), 
         ("lookahead-0.5-scaling", False, 200), 
+        ("lookahead-0.5-scaling", False, 300), 
+        ("lookahead-0.5-scaling", False, 400), 
+        ("lookahead-0.5-scaling", False, 500), 
+        ("lookahead-0.5-scaling", False, 800), 
         ("lookahead-0.5-scaling", False, 1000), 
     ]
+
+    es_size = []
+    num_swaps = []
 
     for heuristic, critical, extended_set_size in test_executions:
         depth, swaps = microsabre(
@@ -133,6 +140,8 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool):
         )
         rows[0].append(str(depth))
         rows[1].append(str(swaps))
+        es_size.append(extended_set_size)
+        num_swaps.append(swaps)
         columns.append(f"{heuristic} {critical} {extended_set_size}")
 
     table = Table(title="SABRE Results")
@@ -145,9 +154,21 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool):
 
     console = Console()
     console.print(table)
+    
+    # Plot
+    import numpy as np
 
-    if show:
-        plt.show()
+    fig, ax = plt.subplots()
+
+    ax.plot(range(len(es_size)), num_swaps)
+    ax.xaxis.set_ticks(range(len(es_size)))
+    ax.xaxis.set_ticklabels(es_size)
+
+    ax.set(xlabel='extended set size', ylabel='swaps', title='extended set size scaling', ylim=(min(num_swaps)-10, max(num_swaps)+10))
+    ax.grid()
+    
+    plt.axis('auto')
+    plt.show()
 
 
 def sabre(preprocessed_circuit, coupling_map, show, heuristic):
