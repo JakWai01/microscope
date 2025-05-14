@@ -4,7 +4,7 @@ from collections import defaultdict
 
 
 class MicroSabre:
-    def __init__(self, dag, initial_mapping, coupling_map, heuristic, critical):
+    def __init__(self, dag, initial_mapping, coupling_map, heuristic, critical, extended_set_size):
         self.current_mapping = initial_mapping.copy()
         self.coupling_map = coupling_map
         self.dag = dag
@@ -15,6 +15,7 @@ class MicroSabre:
         self.required_predecessors = [0 for i in range(len(self.dag.nodes))]
         self.adjacency_list = build_adjacency_list(dag)
         self.critical = critical
+        self.extended_set_size = extended_set_size
 
     def _advance_front_layer(self, nodes):
         """Advance front layer without inserting SWAPs.
@@ -332,7 +333,7 @@ class MicroSabre:
         visited = defaultdict(bool)
 
         # Why 20? -> Because this scales the hardest
-        while i < len(to_visit) and len(extended_set) < 20:
+        while i < len(to_visit) and len(extended_set) < self.extended_set_size:
             visit_now.append(to_visit[i])
             j = 0
 

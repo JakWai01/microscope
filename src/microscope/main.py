@@ -50,7 +50,7 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool):
         input_circuit.draw("mpl", fold=-1)
 
     # A line with 10 physical qubits
-    coupling_map = CouplingMap.from_line(28)
+    coupling_map = CouplingMap.from_line(64)
 
     preprocessing_dag = circuit_to_dag(input_circuit)
     preprocessing_layout = generate_initial_mapping(preprocessing_dag)
@@ -99,26 +99,41 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool):
         columns.append(f"{heuristic}")
 
     # Micro SABRE
+    # test_executions = [
+    #     ("basic", False),
+    #     ("basic", True),
+    #     ("lookahead", False),
+    #     ("lookahead", True),
+    #     ("lookahead-0.5", False),
+    #     ("lookahead-0.5", True),
+    #     ("lookahead-scaling", False),
+    #     ("lookahead-scaling", True),
+    #     ("lookahead-0.5-scaling", False),
+    #     ("lookahead-0.5-scaling", True),
+    # ]
     test_executions = [
-        ("basic", False),
-        ("basic", True),
-        ("lookahead", False),
-        ("lookahead", True),
-        ("lookahead-0.5", False),
-        ("lookahead-0.5", True),
-        ("lookahead-scaling", False),
-        ("lookahead-scaling", True),
-        ("lookahead-0.5-scaling", False),
-        ("lookahead-0.5-scaling", True),
+        ("lookahead-0.5-scaling", False, 5), 
+        ("lookahead-0.5-scaling", False, 10), 
+        ("lookahead-0.5-scaling", False, 20), 
+        ("lookahead-0.5-scaling", False, 30), 
+        ("lookahead-0.5-scaling", False, 40), 
+        ("lookahead-0.5-scaling", False, 50), 
+        ("lookahead-0.5-scaling", False, 60), 
+        ("lookahead-0.5-scaling", False, 70), 
+        ("lookahead-0.5-scaling", False, 80), 
+        ("lookahead-0.5-scaling", False, 90), 
+        ("lookahead-0.5-scaling", False, 100), 
+        ("lookahead-0.5-scaling", False, 200), 
+        ("lookahead-0.5-scaling", False, 1000), 
     ]
 
-    for heuristic, critical in test_executions:
+    for heuristic, critical, extended_set_size in test_executions:
         depth, swaps = microsabre(
-            input_dag, micro_dag, micro_mapping, coupling_map, show, heuristic, critical
+            input_dag, micro_dag, micro_mapping, coupling_map, show, heuristic, critical, extended_set_size
         )
         rows[0].append(str(depth))
         rows[1].append(str(swaps))
-        columns.append(f"{heuristic} {critical}")
+        columns.append(f"{heuristic} {critical} {extended_set_size}")
 
     table = Table(title="SABRE Results")
 
@@ -157,9 +172,9 @@ def sabre(preprocessed_circuit, coupling_map, show, heuristic):
 
 
 def microsabre(
-    input_dag, micro_dag, micro_mapping, coupling_map, show, heuristic, critical
+    input_dag, micro_dag, micro_mapping, coupling_map, show, heuristic, critical=False, extended_set_size=20
 ):
-    ms = MicroSabre(micro_dag, micro_mapping, coupling_map, heuristic, critical)
+    ms = MicroSabre(micro_dag, micro_mapping, coupling_map, heuristic, critical, extended_set_size)
     sabre_result = ms.run()
 
     transpiled_sabre_dag = apply_sabre_result(
