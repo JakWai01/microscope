@@ -41,6 +41,9 @@ The examples are taken from
 [here](https://github.com/pnnl/QASMBench/blob/master/large/adder_n28/adder_n28.qasm).
 
 ![Qiskit vs Micro](./assets/comparison.png)
+
+![Extended Set Scaling](./assets/es_scaling.png)
+
 ## MicroSABRE
 
 The main goal of this chapter is to provide an intuitive understanding about

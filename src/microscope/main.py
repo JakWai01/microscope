@@ -32,7 +32,7 @@ from rich.table import Table
 
 
 @click.command()
-@click.option("-f", "--filename", type=str, required=True, help="Path to .qasm file")
+@click.argument("files", nargs=-1)
 @click.option("-d", "--show-dag", type=bool, help="True if DAG should be shown")
 @click.option(
     "-q", "--qiskit-fallback", type=bool, help="Use qiskit algorithm implementation"
@@ -41,7 +41,7 @@ from rich.table import Table
 @click.option("-t", "--table", type=bool, help="Print table of result")
 @click.option("--show", type=bool, help="True if circuits should be shown")
 def main(
-    filename: str,
+    files: tuple[str, ...],
     show_dag: bool,
     qiskit_fallback: bool,
     show: bool,
@@ -53,11 +53,26 @@ def main(
     # Ignore deprecation warnings
     warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-    input_circuit = QuantumCircuit.from_qasm_file(filename)
+    data = []
+
+    for file in files:
+        es, swaps = run(file, show, show_dag, table)
+        data.append((es, swaps, file))
+
+    if plot:
+        plot_result(data)
+
+    plt.show()
+
+
+def run(file: str, show: bool, show_dag: bool, table: bool):
+    print(file)
+
+    input_circuit = QuantumCircuit.from_qasm_file(file)
     if show:
         input_circuit.draw("mpl", fold=-1)
 
-    coupling_map = CouplingMap.from_line(28)
+    coupling_map = CouplingMap.from_line(input_circuit.num_qubits)
 
     preprocessing_dag = circuit_to_dag(input_circuit)
     preprocessing_layout = generate_initial_mapping(preprocessing_dag)
@@ -124,16 +139,13 @@ def main(
         num_swaps.append(swaps)
         columns.append(f"{heuristic} {critical} {extended_set_size}")
 
-    if plot:
-        plot_result(es_size, num_swaps)
-
     if table:
-        table(rows, columns)
+        result_table(rows, columns)
 
-    plt.show()
+    return es_size, num_swaps
 
 
-def table(rows, columns):
+def result_table(rows, columns):
     table = Table(title="SABRE Results")
 
     for column in columns:
@@ -145,10 +157,12 @@ def table(rows, columns):
     console.print(table)
 
 
-def plot_result(es_size, num_swaps):
+def plot_result(data):
     fig, ax = plt.subplots()
 
-    ax.plot(es_size, num_swaps, label="adder_n28")
+    for es, swaps, file in data:
+        ax.plot(es, swaps, label=f"{file}")
+
     ax.legend()
 
     ax.set(
@@ -161,7 +175,7 @@ def plot_result(es_size, num_swaps):
     ax.grid()
 
     plt.xlim((0, 1000))
-    plt.ylim((150, 300))
+    # plt.ylim((150, 300))
 
 
 def sabre(preprocessed_circuit, coupling_map, show, heuristic):
