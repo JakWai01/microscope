@@ -4,7 +4,9 @@ from collections import defaultdict
 
 
 class MicroSabre:
-    def __init__(self, dag, initial_mapping, coupling_map, heuristic, critical, extended_set_size):
+    def __init__(
+        self, dag, initial_mapping, coupling_map, heuristic, critical, extended_set_size
+    ):
         self.current_mapping = initial_mapping.copy()
         self.coupling_map = coupling_map
         self.dag = dag

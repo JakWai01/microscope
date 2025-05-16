@@ -1,4 +1,5 @@
 import click
+
 import matplotlib.pyplot as plt
 
 from qiskit import QuantumCircuit
@@ -99,44 +100,25 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool):
         columns.append(f"{heuristic}")
 
     # Micro SABRE
-    # test_executions = [
-    #     ("basic", False),
-    #     ("basic", True),
-    #     ("lookahead", False),
-    #     ("lookahead", True),
-    #     ("lookahead-0.5", False),
-    #     ("lookahead-0.5", True),
-    #     ("lookahead-scaling", False),
-    #     ("lookahead-scaling", True),
-    #     ("lookahead-0.5-scaling", False),
-    #     ("lookahead-0.5-scaling", True),
-    # ]
-    test_executions = [
-        ("lookahead-0.5-scaling", False, 5), 
-        ("lookahead-0.5-scaling", False, 10), 
-        ("lookahead-0.5-scaling", False, 20), 
-        ("lookahead-0.5-scaling", False, 30), 
-        ("lookahead-0.5-scaling", False, 40), 
-        ("lookahead-0.5-scaling", False, 50), 
-        ("lookahead-0.5-scaling", False, 60), 
-        ("lookahead-0.5-scaling", False, 70), 
-        ("lookahead-0.5-scaling", False, 80), 
-        ("lookahead-0.5-scaling", False, 90), 
-        ("lookahead-0.5-scaling", False, 100), 
-        ("lookahead-0.5-scaling", False, 200), 
-        ("lookahead-0.5-scaling", False, 300), 
-        ("lookahead-0.5-scaling", False, 400), 
-        ("lookahead-0.5-scaling", False, 500), 
-        ("lookahead-0.5-scaling", False, 800), 
-        ("lookahead-0.5-scaling", False, 1000), 
-    ]
+    test_executions = []
+
+    for i in range(5, 1000, 5):
+        test_executions.append(("lookahead-0.5-scaling", False, i))
 
     es_size = []
     num_swaps = []
+    from tqdm import tqdm
 
-    for heuristic, critical, extended_set_size in test_executions:
+    for heuristic, critical, extended_set_size in tqdm(test_executions):
         depth, swaps = microsabre(
-            input_dag, micro_dag, micro_mapping, coupling_map, show, heuristic, critical, extended_set_size
+            input_dag,
+            micro_dag,
+            micro_mapping,
+            coupling_map,
+            show,
+            heuristic,
+            critical,
+            extended_set_size,
         )
         rows[0].append(str(depth))
         rows[1].append(str(swaps))
@@ -152,22 +134,30 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool):
     for row in rows:
         table.add_row(*row, style="bright_green")
 
-    console = Console()
-    console.print(table)
-    
+    # console = Console()
+    # console.print(table)
+
     # Plot
     import numpy as np
 
     fig, ax = plt.subplots()
 
-    ax.plot(range(len(es_size)), num_swaps)
-    ax.xaxis.set_ticks(range(len(es_size)))
-    ax.xaxis.set_ticklabels(es_size)
+    ax.plot(es_size, num_swaps, label="adder_n28")
+    ax.legend()
+    # ax.xaxis.set_ticks(range(len(es_size)))
+    # ax.xaxis.set_ticklabels(range(0, 1000, 5))
 
-    ax.set(xlabel='extended set size', ylabel='swaps', title='extended set size scaling', ylim=(min(num_swaps)-10, max(num_swaps)+10))
+    ax.set(
+        xlabel="Extended-Set Size",
+        ylabel="Swaps",
+        title="Extended-Set Size Scaling",
+        xlim=(0, 8),
+        xticks=range(0, 1001, 100),
+    )
     ax.grid()
-    
-    plt.axis('auto')
+
+    plt.xlim((0, 1000))
+    plt.ylim((150, 300))
     plt.show()
 
 
@@ -193,9 +183,18 @@ def sabre(preprocessed_circuit, coupling_map, show, heuristic):
 
 
 def microsabre(
-    input_dag, micro_dag, micro_mapping, coupling_map, show, heuristic, critical=False, extended_set_size=20
+    input_dag,
+    micro_dag,
+    micro_mapping,
+    coupling_map,
+    show,
+    heuristic,
+    critical=False,
+    extended_set_size=20,
 ):
-    ms = MicroSabre(micro_dag, micro_mapping, coupling_map, heuristic, critical, extended_set_size)
+    ms = MicroSabre(
+        micro_dag, micro_mapping, coupling_map, heuristic, critical, extended_set_size
+    )
     sabre_result = ms.run()
 
     transpiled_sabre_dag = apply_sabre_result(
@@ -278,6 +277,43 @@ def mapping_to_micro_mapping(initial_mapping):
     for k, v in initial_mapping.get_virtual_bits().items():
         micro_mapping[k._index] = v
     return micro_mapping
+
+
+def compare_heuristic_tests():
+    return [
+        ("basic", False),
+        ("basic", True),
+        ("lookahead", False),
+        ("lookahead", True),
+        ("lookahead-0.5", False),
+        ("lookahead-0.5", True),
+        ("lookahead-scaling", False),
+        ("lookahead-scaling", True),
+        ("lookahead-0.5-scaling", False),
+        ("lookahead-0.5-scaling", True),
+    ]
+
+
+def extended_set_size_exponential():
+    return [
+        ("lookahead-0.5-scaling", False, 5),
+        ("lookahead-0.5-scaling", False, 10),
+        ("lookahead-0.5-scaling", False, 20),
+        ("lookahead-0.5-scaling", False, 30),
+        ("lookahead-0.5-scaling", False, 40),
+        ("lookahead-0.5-scaling", False, 50),
+        ("lookahead-0.5-scaling", False, 60),
+        ("lookahead-0.5-scaling", False, 70),
+        ("lookahead-0.5-scaling", False, 80),
+        ("lookahead-0.5-scaling", False, 90),
+        ("lookahead-0.5-scaling", False, 100),
+        ("lookahead-0.5-scaling", False, 200),
+        ("lookahead-0.5-scaling", False, 300),
+        ("lookahead-0.5-scaling", False, 400),
+        ("lookahead-0.5-scaling", False, 500),
+        ("lookahead-0.5-scaling", False, 800),
+        ("lookahead-0.5-scaling", False, 1000),
+    ]
 
 
 if __name__ == "__main__":
