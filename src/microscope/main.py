@@ -39,8 +39,14 @@ from rich.table import Table
 @click.option(
     "-q", "--qiskit-fallback", type=bool, help="Use qiskit algorithm implementation"
 )
+@click.option(
+    "-p", "--plot", type=bool, help="Plot the result"
+)
+@click.option(
+    "-t", "--table", type=bool, help="Print table of result"
+)
 @click.option("--show", type=bool, help="True if circuits should be shown")
-def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool):
+def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool, plot: bool, table: bool):
     """Read in a .qasm file and print out a syntax tree."""
 
     # Ignore deprecation warnings
@@ -50,7 +56,6 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool):
     if show:
         input_circuit.draw("mpl", fold=-1)
 
-    # A line with 10 physical qubits
     coupling_map = CouplingMap.from_line(28)
 
     preprocessing_dag = circuit_to_dag(input_circuit)
@@ -80,15 +85,7 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool):
         input_dag_image = dag_drawer(input_dag)
         input_dag_image.show()
 
-    rows = [
-        [
-            "Depth",
-        ],
-        [
-            "Swaps",
-        ],
-    ]
-
+    rows = [["Depth"],["Swaps"]]
     columns = [""]
 
     # Qiskit SABRE
@@ -126,6 +123,16 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool):
         num_swaps.append(swaps)
         columns.append(f"{heuristic} {critical} {extended_set_size}")
 
+    
+    if plot:
+        plot_result(es_size, num_swaps)
+    
+    if table:
+        table(rows, columns)
+
+    plt.show()
+
+def table(rows, columns):
     table = Table(title="SABRE Results")
 
     for column in columns:
@@ -133,19 +140,14 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool):
 
     for row in rows:
         table.add_row(*row, style="bright_green")
+    console = Console()
+    console.print(table)
 
-    # console = Console()
-    # console.print(table)
-
-    # Plot
-    import numpy as np
-
+def plot_result(es_size, num_swaps):
     fig, ax = plt.subplots()
 
     ax.plot(es_size, num_swaps, label="adder_n28")
     ax.legend()
-    # ax.xaxis.set_ticks(range(len(es_size)))
-    # ax.xaxis.set_ticklabels(range(0, 1000, 5))
 
     ax.set(
         xlabel="Extended-Set Size",
@@ -158,7 +160,6 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool):
 
     plt.xlim((0, 1000))
     plt.ylim((150, 300))
-    plt.show()
 
 
 def sabre(preprocessed_circuit, coupling_map, show, heuristic):
