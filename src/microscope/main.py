@@ -9,7 +9,6 @@ from qiskit.transpiler import CouplingMap
 from qiskit.transpiler.layout import Layout
 from qiskit.dagcircuit import DAGOpNode
 from qiskit.circuit.library.standard_gates import SwapGate
-from qiskit.transpiler.passes.routing.basic_swap import BasicSwap
 from qiskit import warnings
 from qiskit.transpiler import PassManager
 from qiskit.transpiler.passes import (
@@ -25,7 +24,6 @@ from qiskit.transpiler.passes import (
 
 from transpilation.helper import generate_initial_mapping
 from graph.dag import DAG
-from transpilation.basic_swap import basic_swap
 from transpilation.sabre import MicroSabre
 
 from qiskit._accelerate.nlayout import NLayout
@@ -39,14 +37,17 @@ from rich.table import Table
 @click.option(
     "-q", "--qiskit-fallback", type=bool, help="Use qiskit algorithm implementation"
 )
-@click.option(
-    "-p", "--plot", type=bool, help="Plot the result"
-)
-@click.option(
-    "-t", "--table", type=bool, help="Print table of result"
-)
+@click.option("-p", "--plot", type=bool, help="Plot the result")
+@click.option("-t", "--table", type=bool, help="Print table of result")
 @click.option("--show", type=bool, help="True if circuits should be shown")
-def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool, plot: bool, table: bool):
+def main(
+    filename: str,
+    show_dag: bool,
+    qiskit_fallback: bool,
+    show: bool,
+    plot: bool,
+    table: bool,
+):
     """Read in a .qasm file and print out a syntax tree."""
 
     # Ignore deprecation warnings
@@ -85,7 +86,7 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool, plot:
         input_dag_image = dag_drawer(input_dag)
         input_dag_image.show()
 
-    rows = [["Depth"],["Swaps"]]
+    rows = [["Depth"], ["Swaps"]]
     columns = [""]
 
     # Qiskit SABRE
@@ -107,7 +108,7 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool, plot:
     from tqdm import tqdm
 
     for heuristic, critical, extended_set_size in tqdm(test_executions):
-        depth, swaps = microsabre(
+        depth, swaps, _ = microsabre(
             input_dag,
             micro_dag,
             micro_mapping,
@@ -123,14 +124,14 @@ def main(filename: str, show_dag: bool, qiskit_fallback: bool, show: bool, plot:
         num_swaps.append(swaps)
         columns.append(f"{heuristic} {critical} {extended_set_size}")
 
-    
     if plot:
         plot_result(es_size, num_swaps)
-    
+
     if table:
         table(rows, columns)
 
     plt.show()
+
 
 def table(rows, columns):
     table = Table(title="SABRE Results")
@@ -142,6 +143,7 @@ def table(rows, columns):
         table.add_row(*row, style="bright_green")
     console = Console()
     console.print(table)
+
 
 def plot_result(es_size, num_swaps):
     fig, ax = plt.subplots()
@@ -220,7 +222,7 @@ def microsabre(
     depth = transpiled_micro_sabre_circuit.depth()
     num_swaps = len(transpiled_sabre_dag.op_nodes(op=SwapGate))
 
-    return depth, num_swaps
+    return depth, num_swaps, transpiled_qc
 
 
 def apply_swaps(dest_dag, swaps, layout, physical_qubits):

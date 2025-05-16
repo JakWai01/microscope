@@ -158,8 +158,6 @@ class MicroSabre:
         max_node = None
         longest_path = 0
         for gate in self.front_layer:
-            node = self.dag.get(gate)
-
             path_length = self.successor_map[gate]
             if path_length > longest_path:
                 max_node = gate
