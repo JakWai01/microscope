@@ -42,7 +42,7 @@ The examples are taken from
 
 ![Qiskit vs Micro](./assets/comparison.png)
 
-![Extended Set Scaling](./assets/es_scaling.png)
+![Extended Set Scaling](./assets/es_scaling_64.png)
 
 ## MicroSABRE
 
