@@ -62,7 +62,54 @@ def main(
     if plot:
         plot_result(data)
 
+    # transpiled_qc = transpile_circuit("examples/adder_n10.qasm")
+    # sliding_window(transpiled_qc)
+
     plt.show()
+
+
+def transpile_circuit(file):
+    input_circuit = QuantumCircuit.from_qasm_file(file)
+
+    coupling_map = CouplingMap.from_line(input_circuit.num_qubits)
+
+    preprocessing_dag = circuit_to_dag(input_circuit)
+    preprocessing_layout = generate_initial_mapping(preprocessing_dag)
+
+    pm = PassManager(
+        [
+            Unroll3qOrMore(),
+            SetLayout(preprocessing_layout),
+            FullAncillaAllocation(coupling_map),
+            ApplyLayout(),
+            RemoveBarriers(),
+        ]
+    )
+
+    preprocessed_circuit = pm.run(input_circuit)
+
+    input_dag = circuit_to_dag(preprocessed_circuit)
+    initial_mapping = generate_initial_mapping(input_dag)
+
+    micro_dag = DAG().from_qiskit_dag(input_dag)
+    micro_mapping = mapping_to_micro_mapping(initial_mapping)
+
+    _, _, transpiled_qc = microsabre(
+        input_dag,
+        micro_dag,
+        micro_mapping,
+        coupling_map,
+        False,
+        "lookahead",
+        False,
+        20,
+    )
+
+    return transpiled_qc
+
+
+def sliding_window(transpiled_circuit):
+    transpiled_circuit.draw("mpl", fold=-1)
 
 
 def run(file: str, show: bool, show_dag: bool, table: bool):
