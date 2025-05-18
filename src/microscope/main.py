@@ -108,6 +108,32 @@ def transpile_circuit(file):
     return transpiled_qc
 
 
+def circuit_to_segments(input_dag):
+    segments = [DAG()]
+    i = 0
+
+    state = ""
+    for node in input_dag.topological_op_nodes():
+        if node.op.num_qubits == 2:
+            if node.name == "swap":
+                state = node.name
+                continue
+            if state == "swap":
+                segments.append(DAG())
+                i += 1
+
+            state = node.name
+
+            segments[i].insert(
+                node._node_id, [node.qargs[0]._index, node.qargs[1]._index]
+            )
+        elif node.op.num_qubits == 1:
+            segments[i].insert(node._node_id, [node.qargs[0]._index])
+        else:
+            raise Exception("Error creating subcircuits")
+    return segments
+
+
 def sliding_window(transpiled_circuit):
     """
     Iterate over a given transpiled quantum circuit to find possible
@@ -132,30 +158,22 @@ def sliding_window(transpiled_circuit):
     Questions:
     - How can we skip optimal subcircuits?
         Can we utilize lightcone bounds?
+    - Do the qargs represent the original values or are they already the
+      swapped qubits?
     """
     transpiled_circuit.draw("mpl", fold=-1)
 
-    # TODO: Split circuits into fully qualified sub-circuits
     input_circuit = transpiled_circuit
     input_dag = circuit_to_dag(input_circuit)
 
-    initial_mapping = generate_initial_mapping(input_dag)
-    micro_dag = DAG().from_qiskit_dag(input_dag)
-    micro_mapping = mapping_to_micro_mapping(initial_mapping)
+    segments = circuit_to_segments(input_dag)
+    print(segments[0])
 
-    subcircuits = []
-    for node in input_dag.topological_op_nodes():
-        if node.op.num_qubits == 2:
-            if node.name == "swap":
-                # TODO: Continue here
-                continue
-            # SWAP boolean is false since there are no SWAP gates before the transpilation
-            # self.insert(node._node_id, [node.qargs[0]._index, node.qargs[1]._index])
-        elif node.op.num_qubits == 1:
-            # self.insert(node._node_id, [node.qargs[0]._index])
-            print(node.name)
-        else:
-            raise Exception("Error creating subcircuits")
+    # TODO: Check if we are using the original unswapped qubits
+
+    # TODO: Combine multiple adjascent segments to a subcircuit
+
+    # TODO: Run MicroSABRE on the subcircuits
 
 
 def run(file: str, show: bool, show_dag: bool, table: bool):
