@@ -53,17 +53,17 @@ def main(
     # Ignore deprecation warnings
     warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-    data = []
+    # data = []
 
-    for file in files:
-        es, swaps = run(file, show, show_dag, table)
-        data.append((es, swaps, file))
+    # for file in files:
+    #     es, swaps = run(file, show, show_dag, table)
+    #     data.append((es, swaps, file))
 
-    if plot:
-        plot_result(data)
+    # if plot:
+    #     plot_result(data)
 
-    # transpiled_qc = transpile_circuit("examples/adder_n10.qasm")
-    # sliding_window(transpiled_qc)
+    transpiled_qc = transpile_circuit("examples/adder_n10.qasm")
+    sliding_window(transpiled_qc)
 
     plt.show()
 
@@ -108,8 +108,34 @@ def transpile_circuit(file):
     return transpiled_qc
 
 
+"""
+Iterate over a given transpiled quantum circuit to find possible
+improvements.
+
+This is achieved by splitting the circuit into mutliple segments that
+resemble circuits themselves. Then, the SABRE algorithm is executed
+on these subcircuits to find possible improvements. The input and output
+permutations of all solutions are then matched to find solutions that
+can be merged together to form the overall lowest cost solution where
+cost is defined as the lowest number of swaps.
+
+Questions:
+    - How can we use the transpiled circuit to create the subcircuits?
+        Splitting the circuit does not necessarily require the transpiled
+        circuit. Instead, we could just split the input circuit into multiple
+        smaller ones and apply the same technique. So how can we gain
+        information by using the solution instead?
+
+        Segments between SWAPs can be executed directly. So the goal would be
+        to find segments that yield in the minimum number of overall swaps.
+    - Can we use lightcone bounds to skip nearly optimized segments?
+"""
+
+
 def sliding_window(transpiled_circuit):
     transpiled_circuit.draw("mpl", fold=-1)
+
+    # TODO: Split circuits into fully qualified sub-circuits
 
 
 def run(file: str, show: bool, show_dag: bool, table: bool):
@@ -119,6 +145,7 @@ def run(file: str, show: bool, show_dag: bool, table: bool):
     if show:
         input_circuit.draw("mpl", fold=-1)
 
+    # d = math.ceil(1/5 * (math.sqrt(10*input_circuit.num_qubits + 6) + 1))
     coupling_map = CouplingMap.from_line(input_circuit.num_qubits)
 
     preprocessing_dag = circuit_to_dag(input_circuit)
