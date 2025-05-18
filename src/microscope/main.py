@@ -108,34 +108,54 @@ def transpile_circuit(file):
     return transpiled_qc
 
 
-"""
-Iterate over a given transpiled quantum circuit to find possible
-improvements.
-
-This is achieved by splitting the circuit into mutliple segments that
-resemble circuits themselves. Then, the SABRE algorithm is executed
-on these subcircuits to find possible improvements. The input and output
-permutations of all solutions are then matched to find solutions that
-can be merged together to form the overall lowest cost solution where
-cost is defined as the lowest number of swaps.
-
-Questions:
-    - How can we use the transpiled circuit to create the subcircuits?
-        Splitting the circuit does not necessarily require the transpiled
-        circuit. Instead, we could just split the input circuit into multiple
-        smaller ones and apply the same technique. So how can we gain
-        information by using the solution instead?
-
-        Segments between SWAPs can be executed directly. So the goal would be
-        to find segments that yield in the minimum number of overall swaps.
-    - Can we use lightcone bounds to skip nearly optimized segments?
-"""
-
-
 def sliding_window(transpiled_circuit):
+    """
+    Iterate over a given transpiled quantum circuit to find possible
+    improvements.
+
+    This is achieved by splitting the circuit into mutliple segments that
+    resemble circuits themselves. Then, the SABRE algorithm is executed
+    on these subcircuits (SWAPs from solution removed) to find possible
+    improvements. The input and output permutations of all solutions are
+    then matched to find solutions that can be merged together to form the
+    overall lowest cost solution where cost is defined as the lowest number
+    of swaps.
+
+    Segments are separated by one or more SWAPs e.g.:
+
+        SEGMENT : SWAPS : SEGMENT : SWAPS : SEGMENT
+
+    After optimizing the subcircuits, the final solution can be obtained by
+    combining the segments, filling in the required SWAPs and choosing the
+    solution with the least SWAPs.
+
+    Questions:
+    - How can we skip optimal subcircuits?
+        Can we utilize lightcone bounds?
+    """
     transpiled_circuit.draw("mpl", fold=-1)
 
     # TODO: Split circuits into fully qualified sub-circuits
+    input_circuit = transpiled_circuit
+    input_dag = circuit_to_dag(input_circuit)
+
+    initial_mapping = generate_initial_mapping(input_dag)
+    micro_dag = DAG().from_qiskit_dag(input_dag)
+    micro_mapping = mapping_to_micro_mapping(initial_mapping)
+
+    subcircuits = []
+    for node in input_dag.topological_op_nodes():
+        if node.op.num_qubits == 2:
+            if node.name == "swap":
+                # TODO: Continue here
+                continue
+            # SWAP boolean is false since there are no SWAP gates before the transpilation
+            # self.insert(node._node_id, [node.qargs[0]._index, node.qargs[1]._index])
+        elif node.op.num_qubits == 1:
+            # self.insert(node._node_id, [node.qargs[0]._index])
+            print(node.name)
+        else:
+            raise Exception("Error creating subcircuits")
 
 
 def run(file: str, show: bool, show_dag: bool, table: bool):
