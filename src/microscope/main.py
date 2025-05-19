@@ -62,19 +62,17 @@ def main(
     # if plot:
     #     plot_result(data)
 
-    transpiled_qc = transpile_circuit("examples/adder_n10.qasm")
-    sliding_window(transpiled_qc)
+    circuit = QuantumCircuit.from_qasm_file("examples/adder_n10.qasm")
+
+    preprocessed_dag, transpiled_dag, segments = transpile_circuit(circuit)
+
+    sliding_window(segments)
 
     plt.show()
 
 
-def transpile_circuit(file):
-    input_circuit = QuantumCircuit.from_qasm_file(file)
-
-    coupling_map = CouplingMap.from_line(input_circuit.num_qubits)
-
-    preprocessing_dag = circuit_to_dag(input_circuit)
-    preprocessing_layout = generate_initial_mapping(preprocessing_dag)
+def preprocess(circuit, dag, coupling_map):
+    preprocessing_layout = generate_initial_mapping(dag)
 
     pm = PassManager(
         [
@@ -86,16 +84,27 @@ def transpile_circuit(file):
         ]
     )
 
-    preprocessed_circuit = pm.run(input_circuit)
+    preprocessed_circuit = pm.run(circuit)
 
-    input_dag = circuit_to_dag(preprocessed_circuit)
-    initial_mapping = generate_initial_mapping(input_dag)
+    preprocessed_dag = circuit_to_dag(preprocessed_circuit)
 
-    micro_dag = DAG().from_qiskit_dag(input_dag)
+    return preprocessed_circuit, preprocessed_dag
+
+
+def transpile_circuit(circuit):
+    coupling_map = CouplingMap.from_line(circuit.num_qubits)
+    dag = circuit_to_dag(circuit)
+
+    preprocessed_circuit, preprocessed_dag = preprocess(circuit, dag, coupling_map)
+    preprocessed_circuit.draw("mpl", fold=-1)
+
+    initial_mapping = generate_initial_mapping(preprocessed_dag)
+
+    micro_dag = DAG().from_qiskit_dag(preprocessed_dag)
     micro_mapping = mapping_to_micro_mapping(initial_mapping)
 
-    _, _, transpiled_qc = microsabre(
-        input_dag,
+    _, _, transpiled_dag, segments = microsabre(
+        preprocessed_dag,
         micro_dag,
         micro_mapping,
         coupling_map,
@@ -105,36 +114,10 @@ def transpile_circuit(file):
         20,
     )
 
-    return transpiled_qc
+    return preprocessed_dag, transpiled_dag, segments
 
 
-def circuit_to_segments(input_dag):
-    segments = [DAG()]
-    i = 0
-
-    state = ""
-    for node in input_dag.topological_op_nodes():
-        if node.op.num_qubits == 2:
-            if node.name == "swap":
-                state = node.name
-                continue
-            if state == "swap":
-                segments.append(DAG())
-                i += 1
-
-            state = node.name
-
-            segments[i].insert(
-                node._node_id, [node.qargs[0]._index, node.qargs[1]._index]
-            )
-        elif node.op.num_qubits == 1:
-            segments[i].insert(node._node_id, [node.qargs[0]._index])
-        else:
-            raise Exception("Error creating subcircuits")
-    return segments
-
-
-def sliding_window(transpiled_circuit):
+def sliding_window(segments):
     """
     Iterate over a given transpiled quantum circuit to find possible
     improvements.
@@ -161,13 +144,12 @@ def sliding_window(transpiled_circuit):
     - Do the qargs represent the original values or are they already the
       swapped qubits?
     """
-    transpiled_circuit.draw("mpl", fold=-1)
 
-    input_circuit = transpiled_circuit
-    input_dag = circuit_to_dag(input_circuit)
+    print(segments[0].__dict__)
+    print(segments[1].__dict__)
 
-    segments = circuit_to_segments(input_dag)
-    print(segments[0])
+    # segments = circuit_to_unswapped_segments(preprocessed_dag, transpiled_dag, micro_dag)
+    # print(segments[0])
 
     # TODO: Check if we are using the original unswapped qubits
 
@@ -224,7 +206,7 @@ def run(file: str, show: bool, show_dag: bool, table: bool):
         rows[1].append(str(swaps))
         columns.append(f"{heuristic}")
 
-    # Micro SABRE
+    # Micro SABREmain.py
     test_executions = []
 
     for i in range(5, 1000, 5):
@@ -235,7 +217,7 @@ def run(file: str, show: bool, show_dag: bool, table: bool):
     from tqdm import tqdm
 
     for heuristic, critical, extended_set_size in tqdm(test_executions):
-        depth, swaps, _ = microsabre(
+        depth, swaps, _, _, _ = microsabre(
             input_dag,
             micro_dag,
             micro_mapping,
@@ -287,7 +269,6 @@ def plot_result(data):
     ax.grid()
 
     plt.xlim((0, 1000))
-    # plt.ylim((150, 300))
 
 
 def sabre(preprocessed_circuit, coupling_map, show, heuristic):
@@ -312,7 +293,7 @@ def sabre(preprocessed_circuit, coupling_map, show, heuristic):
 
 
 def microsabre(
-    input_dag,
+    preprocessed_dag,
     micro_dag,
     micro_mapping,
     coupling_map,
@@ -326,11 +307,11 @@ def microsabre(
     )
     sabre_result = ms.run()
 
-    transpiled_sabre_dag = apply_sabre_result(
-        input_dag.copy_empty_like(),
-        input_dag,
+    transpiled_sabre_dag, segments = apply_sabre_result(
+        preprocessed_dag.copy_empty_like(),
+        preprocessed_dag,
         sabre_result,
-        input_dag.qubits,
+        preprocessed_dag.qubits,
         coupling_map,
     )
 
@@ -341,6 +322,7 @@ def microsabre(
     cm = CheckMap(coupling_map=coupling_map)
     qiskit_pm = PassManager([cm])
     transpiled_qc = qiskit_pm.run(transpiled_micro_sabre_circuit)
+    transpiled_qc.draw("mpl", fold=-1)
 
     if not cm.property_set.get("is_swap_mapped"):
         raise ValueError("CheckMap identified invalid mapping from DAG to coupling_map")
@@ -348,7 +330,7 @@ def microsabre(
     depth = transpiled_micro_sabre_circuit.depth()
     num_swaps = len(transpiled_sabre_dag.op_nodes(op=SwapGate))
 
-    return depth, num_swaps, transpiled_qc
+    return depth, num_swaps, transpiled_sabre_dag, segments
 
 
 def apply_swaps(dest_dag, swaps, layout, physical_qubits):
@@ -382,10 +364,25 @@ def apply_sabre_result(
 
     swap_map, node_order = sabre_result
 
+    new_id_to_old_id = dict()
+
+    segments = [DAG()]
+    i = 0
+
     for node_id in node_order:
         node = source_dag.node(node_id)
+
         if node_id in swap_map:
+            segments.append(DAG())
+            i += 1
             apply_swaps(dest_dag, swap_map[node_id], initial_layout, physical_qubits)
+
+        if node.op.num_qubits == 2:
+            segments[i].insert(node_id, [node.qargs[0]._index, node.qargs[1]._index])
+        elif node.op.num_qubits == 1:
+            segments[i].insert(node_id, [node.qargs[0]._index])
+        else:
+            raise Exception("Error creating segments")
 
         qubits = [
             physical_qubits[initial_layout.virtual_to_physical(root_logical_map[q])]
@@ -393,11 +390,11 @@ def apply_sabre_result(
         ]
         dest_dag._apply_op_node_back(
             DAGOpNode.from_instruction(
-                node._to_circuit_instruction().replace(qubits=qubits)
+                node._to_circuit_instruction().replace(qubits=qubits),
             ),
             check=False,
         )
-    return dest_dag
+    return dest_dag, segments
 
 
 def mapping_to_micro_mapping(initial_mapping):
