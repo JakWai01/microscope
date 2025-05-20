@@ -1,5 +1,5 @@
 import click
-
+import os
 import matplotlib.pyplot as plt
 
 from qiskit import QuantumCircuit
@@ -55,8 +55,11 @@ def main(
 
     data = []
 
+    path = "/home/jakob/Documents/hamiltonians"
+    # files = os.listdir(path)
     for file in files:
-        es, swaps = run(file, show, show_dag, table)
+        es, swaps = run(path + "/" + file, show, show_dag, table)
+        # es, swaps = run(file, show, show_dag, table)
         data.append((es, swaps, file))
 
     if plot:
@@ -159,9 +162,11 @@ def sliding_window(segments):
 
 
 def run(file: str, show: bool, show_dag: bool, table: bool):
-    print(file)
+    # print(file)
 
     input_circuit = QuantumCircuit.from_qasm_file(file)
+    print(f"Qubits: {input_circuit.num_qubits}")
+
     if show:
         input_circuit.draw("mpl", fold=-1)
 
@@ -199,45 +204,46 @@ def run(file: str, show: bool, show_dag: bool, table: bool):
     columns = [""]
 
     # Qiskit SABRE
-    qiskit_test_executions = ["basic", "lookahead", "decay"]
+    # qiskit_test_executions = ["basic", "lookahead", "decay"]
+    qiskit_test_executions = ["lookahead"]
     for heuristic in qiskit_test_executions:
         depth, swaps = sabre(preprocessed_circuit, coupling_map, show, heuristic)
-        print(depth, swaps)
+        print(file, depth, swaps, preprocessed_circuit.num_qubits)
         rows[0].append(str(depth))
         rows[1].append(str(swaps))
         columns.append(f"{heuristic}")
 
     # Micro SABREmain.py
-    test_executions = []
+    # test_executions = []
 
-    for i in range(5, 1000, 5):
-        test_executions.append(("lookahead-0.5-scaling", False, i))
+    # for i in range(10, 1000, 10):
+    #     test_executions.append(("lookahead-0.5-scaling", False, i))
 
-    es_size = []
-    num_swaps = []
-    from tqdm import tqdm
+    # es_size = []
+    # num_swaps = []
+    # from tqdm import tqdm
 
-    for heuristic, critical, extended_set_size in tqdm(test_executions):
-        depth, swaps, _, _ = microsabre(
-            input_dag,
-            micro_dag,
-            micro_mapping,
-            coupling_map,
-            show,
-            heuristic,
-            critical,
-            extended_set_size,
-        )
-        rows[0].append(str(depth))
-        rows[1].append(str(swaps))
-        es_size.append(extended_set_size)
-        num_swaps.append(swaps)
-        columns.append(f"{heuristic} {critical} {extended_set_size}")
+    # for heuristic, critical, extended_set_size in tqdm(test_executions):
+    #     depth, swaps, _, _ = microsabre(
+    #         input_dag,
+    #         micro_dag,
+    #         micro_mapping,
+    #         coupling_map,
+    #         show,
+    #         heuristic,
+    #         critical,
+    #         extended_set_size,
+    #     )
+    #     rows[0].append(str(depth))
+    #     rows[1].append(str(swaps))
+    #     es_size.append(extended_set_size)
+    #     num_swaps.append(swaps)
+    #     columns.append(f"{heuristic} {critical} {extended_set_size}")
 
-    if table:
-        result_table(rows, columns)
+    # if table:
+    #     result_table(rows, columns)
 
-    return es_size, num_swaps
+    return 1, 1
 
 
 def result_table(rows, columns):

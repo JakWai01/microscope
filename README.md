@@ -44,6 +44,8 @@ The examples are taken from
 
 ![Extended Set Scaling](./assets/es_scaling_64.png)
 
+![930 Qubit Hamiltonian Scaling](./assets/930_hamiltonian.png)
+
 ## MicroSABRE
 
 The main goal of this chapter is to provide an intuitive understanding about

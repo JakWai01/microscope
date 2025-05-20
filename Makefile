@@ -1,5 +1,5 @@
 run:
-	python3 src/microscope/main.py --plot True examples/adder_n28.qasm examples/adder_n10.qasm examples/adder_n4.qasm
+	python3 src/microscope/main.py ham_heis_graph_2D_grid_pbc_qubitnodes_Lx_5_Ly_186_h_3.qasm
 build:
 	maturin develop
 
