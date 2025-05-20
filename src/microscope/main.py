@@ -53,20 +53,20 @@ def main(
     # Ignore deprecation warnings
     warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-    # data = []
+    data = []
 
-    # for file in files:
-    #     es, swaps = run(file, show, show_dag, table)
-    #     data.append((es, swaps, file))
+    for file in files:
+        es, swaps = run(file, show, show_dag, table)
+        data.append((es, swaps, file))
 
-    # if plot:
-    #     plot_result(data)
+    if plot:
+        plot_result(data)
 
-    circuit = QuantumCircuit.from_qasm_file("examples/adder_n10.qasm")
+    # circuit = QuantumCircuit.from_qasm_file("examples/adder_n10.qasm")
 
-    preprocessed_dag, transpiled_dag, segments = transpile_circuit(circuit)
+    # preprocessed_dag, transpiled_dag, segments = transpile_circuit(circuit)
 
-    sliding_window(segments)
+    # sliding_window(segments)
 
     plt.show()
 
@@ -202,6 +202,7 @@ def run(file: str, show: bool, show_dag: bool, table: bool):
     qiskit_test_executions = ["basic", "lookahead", "decay"]
     for heuristic in qiskit_test_executions:
         depth, swaps = sabre(preprocessed_circuit, coupling_map, show, heuristic)
+        print(depth, swaps)
         rows[0].append(str(depth))
         rows[1].append(str(swaps))
         columns.append(f"{heuristic}")
@@ -217,7 +218,7 @@ def run(file: str, show: bool, show_dag: bool, table: bool):
     from tqdm import tqdm
 
     for heuristic, critical, extended_set_size in tqdm(test_executions):
-        depth, swaps, _, _, _ = microsabre(
+        depth, swaps, _, _ = microsabre(
             input_dag,
             micro_dag,
             micro_mapping,
@@ -322,7 +323,7 @@ def microsabre(
     cm = CheckMap(coupling_map=coupling_map)
     qiskit_pm = PassManager([cm])
     transpiled_qc = qiskit_pm.run(transpiled_micro_sabre_circuit)
-    transpiled_qc.draw("mpl", fold=-1)
+    # transpiled_qc.draw("mpl", fold=-1)
 
     if not cm.property_set.get("is_swap_mapped"):
         raise ValueError("CheckMap identified invalid mapping from DAG to coupling_map")
