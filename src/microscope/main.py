@@ -30,6 +30,7 @@ from qiskit._accelerate.nlayout import NLayout
 from rich.console import Console
 from rich.table import Table
 
+import microscope
 
 @click.command()
 @click.argument("files", nargs=-1)
@@ -49,7 +50,6 @@ def main(
     table: bool,
 ):
     """Read in a .qasm file and print out a syntax tree."""
-
     # Ignore deprecation warnings
     warnings.filterwarnings("ignore", category=DeprecationWarning)
 
@@ -71,6 +71,8 @@ def main(
 
     # sliding_window(segments)
 
+    # call Rust module
+    microscope.hello_sabre("jakob")
     plt.show()
 
 
@@ -283,7 +285,7 @@ def sabre(preprocessed_circuit, coupling_map, show, heuristic):
     qiskit_pm = PassManager(
         [SabreSwap(coupling_map, heuristic=heuristic, trials=1), cm]
     )
-    qiskit_pm.draw("sabre_pm.png")
+    # qiskit_pm.draw("sabre_pm.png")
     transpiled_qc = qiskit_pm.run(preprocessed_circuit)
     transpiled_qc_dag = circuit_to_dag(transpiled_qc)
 
