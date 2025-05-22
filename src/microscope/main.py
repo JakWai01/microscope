@@ -30,7 +30,7 @@ from qiskit._accelerate.nlayout import NLayout
 from rich.console import Console
 from rich.table import Table
 
-import microscope
+import microboost 
 
 @click.command()
 @click.argument("files", nargs=-1)
@@ -72,7 +72,7 @@ def main(
     # sliding_window(segments)
 
     # call Rust module
-    microscope.hello_sabre("jakob")
+    microboost.hello_sabre("jakob")
     plt.show()
 
 
@@ -196,6 +196,7 @@ def run(file: str, show: bool, show_dag: bool, table: bool):
     initial_mapping = generate_initial_mapping(input_dag)
 
     micro_dag = DAG().from_qiskit_dag(input_dag)
+    rust_dag = micro_dag.to_micro_dag()
     micro_mapping = mapping_to_micro_mapping(initial_mapping)
 
     if show_dag:

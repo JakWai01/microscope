@@ -8,9 +8,11 @@ use crate::routing::micro_swap::micro_swap_boosted;
 
 /// A Python module implemented in Rust.
 #[pymodule]
-fn microscope(m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn microboost(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(micro_swap_boosted, m)?)?;
     m.add_function(wrap_pyfunction!(hello_sabre, m)?)?;
+    m.add_class::<graph::dag::MicroDAG>()?;
+    m.add_class::<graph::dag::MicroDAGNode>()?;
     Ok(())
 }
 
