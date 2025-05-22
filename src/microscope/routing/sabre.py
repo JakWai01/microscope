@@ -1,4 +1,4 @@
-from transpilation.helper import swap_physical_qubits
+from routing.helper import swap_physical_qubits
 import random
 from collections import defaultdict
 

@@ -22,9 +22,9 @@ from qiskit.transpiler.passes import (
 )
 
 
-from transpilation.helper import generate_initial_mapping
+from routing.helper import generate_initial_mapping
 from graph.dag import DAG
-from transpilation.sabre import MicroSabre
+from routing.sabre import MicroSabre
 
 from qiskit._accelerate.nlayout import NLayout
 from rich.console import Console
@@ -174,7 +174,7 @@ def run(file: str, show: bool, show_dag: bool, table: bool):
 
     # d = math.ceil(1/5 * (math.sqrt(10*input_circuit.num_qubits + 6) + 1))
     coupling_map = CouplingMap.from_line(input_circuit.num_qubits)
-
+    print(coupling_map)
     preprocessing_dag = circuit_to_dag(input_circuit)
     preprocessing_layout = generate_initial_mapping(preprocessing_dag)
 

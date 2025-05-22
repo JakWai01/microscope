@@ -1,5 +1,5 @@
 from graph.dag import DAG
-from transpilation.helper import swap_physical_qubits
+from routing.helper import swap_physical_qubits
 
 from qiskit.dagcircuit import DAGCircuit
 from qiskit.circuit.library.standard_gates import SwapGate
