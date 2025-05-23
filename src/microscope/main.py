@@ -221,9 +221,9 @@ def run(file: str, show: bool, show_dag: bool, table: bool):
     # Micro SABREmain.py
     test_executions = []
 
-    for i in range(10, 1000, 10):
-        test_executions.append(("lookahead-0.5-scaling", False, i))
-    # test_executions.append(("lookahead-0.5-scaling", False, 20))
+    # for i in range(10, 1000, 10):
+        # test_executions.append(("lookahead-0.5-scaling", False, i))
+    test_executions.append(("lookahead-0.5-scaling", False, 20))
 
     es_size = []
     num_swaps = []
@@ -314,6 +314,12 @@ def microsabre(
     critical=False,
     extended_set_size=20,
 ):
+    print(coupling_map)
+    # Rust implementation
+    rust_ms = microboost.MicroSABRE(rust_dag, micro_mapping, coupling_map.get_edges())
+    rust_ms.run("lookahead", False, 20)
+
+    # ===================
     ms = MicroSabre(
         rust_dag, micro_mapping, coupling_map, heuristic, critical, extended_set_size
     )

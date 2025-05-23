@@ -13,6 +13,8 @@ fn microboost(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(hello_sabre, m)?)?;
     m.add_class::<graph::dag::MicroDAG>()?;
     m.add_class::<graph::dag::MicroDAGNode>()?;
+    m.add_class::<routing::sabre::MicroSABRE>()?;
+
     Ok(())
 }
 

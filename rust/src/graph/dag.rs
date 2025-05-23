@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use pyo3::{pyclass, pymethods, types::PyAnyMethods, Bound, PyAny, PyRef, PyResult, Python};
 
+#[derive(Clone)]
 #[pyclass(module = "microboost.graph.dag")]
 pub(crate) struct MicroDAG {
     nodes: HashMap<i32, MicroDAGNode>,

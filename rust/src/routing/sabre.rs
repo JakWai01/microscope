@@ -1,27 +1,43 @@
 use crate::graph::dag::{MicroDAG, NodeId, NodeIndex, PhysicalQubit, VirtualQubit};
 use std::collections::{HashMap, HashSet};
 
-struct MicroSABRE {
+use pyo3::{pyclass, pymethods, PyResult};
+
+#[pyclass(module="microboost.routing.sabre")]
+pub(crate) struct MicroSABRE {
     dag: MicroDAG,
-    current_mapping: HashMap<VirtualQubit, PhysicalQubit>,
-    coupling_map: Vec<(PhysicalQubit, PhysicalQubit)>,
-    out_map: HashMap<NodeId, Vec<(VirtualQubit, VirtualQubit)>>,
-    gate_order: Vec<NodeId>,
-    front_layer: HashSet<NodeIndex>,
-    required_predecessors: HashMap<NodeIndex, i32>,
-    adjacency_list: HashMap<NodeIndex, Vec<NodeIndex>>,
+    current_mapping: HashMap<i32, i32>,
+    coupling_map: Vec<Vec<i32>>,
+    out_map: HashMap<i32, Vec<(i32, i32)>>,
+    gate_order: Vec<i32>,
+    front_layer: HashSet<i32>,
+    required_predecessors: HashMap<i32, i32>,
+    adjacency_list: HashMap<i32, Vec<i32>>,
 }
 
+#[pymethods]
 impl MicroSABRE {
-    fn new(
+    #[new]
+    pub fn new(
         dag: MicroDAG,
-        initial_mapping: HashMap<VirtualQubit, PhysicalQubit>,
-        coupling_map: Vec<(PhysicalQubit, PhysicalQubit)>,
-    ) -> Self {
-        unimplemented!();
+        initial_mapping: HashMap<i32, i32>,
+        coupling_map: Vec<Vec<i32>>,
+    ) -> PyResult<Self> {
+        Ok(Self {
+            dag,
+            current_mapping: initial_mapping.clone(),
+            coupling_map,
+            // TODO: This was a defaultdict
+            out_map: HashMap::new(),
+            gate_order: Vec::new(),
+            front_layer: HashSet::new(),
+            // TODO: Those below shouldn't be empty
+            required_predecessors: HashMap::new(),
+            adjacency_list: HashMap::new()
+        })
     }
 
-    fn run(heuristic: String, critical_path: bool, extended_set_size: i32) {
+    fn run(&self, heuristic: String, critical_path: bool, extended_set_size: i32) {
         unimplemented!();
     }
 }
