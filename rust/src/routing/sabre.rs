@@ -11,7 +11,7 @@ pub(crate) struct MicroSABRE {
     out_map: HashMap<i32, Vec<(i32, i32)>>,
     gate_order: Vec<i32>,
     front_layer: HashSet<i32>,
-    required_predecessors: HashMap<i32, i32>,
+    required_predecessors: Vec<i32>,
     adjacency_list: HashMap<i32, Vec<i32>>,
 }
 
@@ -24,7 +24,8 @@ impl MicroSABRE {
         coupling_map: Vec<Vec<i32>>,
     ) -> PyResult<Self> {
         Ok(Self {
-            dag,
+            required_predecessors: vec![0; dag.nodes.len()],
+            dag: dag,
             current_mapping: initial_mapping.clone(),
             coupling_map,
             // TODO: This was a defaultdict
@@ -32,12 +33,25 @@ impl MicroSABRE {
             gate_order: Vec::new(),
             front_layer: HashSet::new(),
             // TODO: Those below shouldn't be empty
-            required_predecessors: HashMap::new(),
             adjacency_list: HashMap::new()
         })
     }
 
     fn run(&self, heuristic: String, critical_path: bool, extended_set_size: i32) {
-        unimplemented!();
+        self.dag.edges().unwrap().iter().for_each(|edge| println!("{:?}", edge));
+        println!("Required predecessors: {:?}", self.required_predecessors);
+        _ = build_ajacency_list(&self.dag)
     }
+}
+
+fn build_ajacency_list(dag: &MicroDAG) -> HashMap<i32, Vec<&i32>> {
+   let mut adj = HashMap::new();
+
+   for (u, v) in &dag.edges {
+       println!("{:?}, {:?}", u, v);
+       adj.entry(*u).or_insert(Vec::new()).push(v);
+   }
+
+   println!("{:?}", adj);
+   return adj
 }
