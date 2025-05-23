@@ -4,42 +4,48 @@ use pyo3::{pyclass, pymethods, types::PyAnyMethods, Bound, PyAny, PyRef, PyResul
 
 #[pyclass(module = "microboost.graph.dag")]
 pub(crate) struct MicroDAG {
-    nodes: HashMap<NodeIndex, MicroDAGNode>,
-    edges: Vec<(VirtualQubit, VirtualQubit)>,
+    nodes: HashMap<i32, MicroDAGNode>,
+    edges: Vec<(i32, i32)>,
 }
 
 #[pymethods]
 impl MicroDAG {
     #[new]
-    pub fn new(nodes: HashMap<i32, PyRef<'_, MicroDAGNode >>, edges: Vec<(i32, i32)>) -> PyResult<Self> {
-        // Currently working with https://pyo3.rs/v0.25.0/class.html
-        println!("Creating MicroDAG in Rust");
-    
+    pub fn new(nodes: HashMap<i32, MicroDAGNode>, edges: Vec<(i32, i32)>) -> PyResult<Self> {
+        Ok(Self { nodes, edges })
+    }
 
-        println!("Nodes: {:?}", nodes);
-        println!("Edges: {:?}", edges);
-        Ok(Self {
-            nodes: HashMap::new(),
-            edges: Vec::new()
-        })
+    #[getter]
+    pub fn nodes(&self) -> PyResult<HashMap<i32, MicroDAGNode>> {
+        Ok(self.nodes.clone())
+    }
+
+    #[getter]
+    pub fn edges(&self) -> PyResult<Vec<(i32, i32)>> {
+        Ok(self.edges.clone())
+    }
+
+    pub fn __len__(&self) -> PyResult<usize> {
+        Ok(self.nodes.len())
+    }
+
+    pub fn get(&self, node_index: i32) -> PyResult<MicroDAGNode> {
+        Ok(self.nodes.get(&node_index).unwrap().clone())
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[pyclass]
 pub(crate) struct MicroDAGNode {
     id: i32,
-    qubits: Vec<i32>
+    qubits: Vec<i32>,
 }
 
 #[pymethods]
 impl MicroDAGNode {
     #[new]
     pub fn new(id: i32, qubits: Vec<i32>) -> PyResult<Self> {
-        Ok(Self {
-            id,
-            qubits
-        })
+        Ok(Self { id, qubits })
     }
 
     #[getter]

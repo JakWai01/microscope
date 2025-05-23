@@ -54,6 +54,7 @@ class MicroSabre:
     def run(self):
         execute_gate_list = []
 
+        # print("Run edges: ", self.dag.edges)
         for edge in self.dag.edges:
             self.required_predecessors[edge[1]] += 1
 
@@ -147,6 +148,7 @@ class MicroSabre:
 
             scores[swap] = after - before
 
+        # TODO: Apply this in a dymanic fashion to all gates
         if self.critical:
             for swap in critical_swap_candidates:
                 scores[swap] = scores[swap] * 1.2

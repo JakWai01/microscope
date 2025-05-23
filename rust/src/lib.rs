@@ -1,8 +1,8 @@
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
 
-pub mod routing;
 pub mod graph;
+pub mod routing;
 
 use crate::routing::micro_swap::micro_swap_boosted;
 
@@ -20,6 +20,3 @@ fn microboost(m: &Bound<'_, PyModule>) -> PyResult<()> {
 fn hello_sabre(_py: Python, name: PyObject) {
     println!("Hello {}", name)
 }
-
-
-

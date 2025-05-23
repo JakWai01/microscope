@@ -7,7 +7,7 @@ build:
 	maturin develop
 
 format:
-	black .
+	black . && pushd rust > /dev/null && cargo fmt --all -- --check && popd > /dev/null
 
 lint:
 	pyflakes src/

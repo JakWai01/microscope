@@ -29,8 +29,10 @@ from routing.sabre import MicroSabre
 from qiskit._accelerate.nlayout import NLayout
 from rich.console import Console
 from rich.table import Table
+from tqdm import tqdm
 
-import microboost 
+import microboost
+
 
 @click.command()
 @click.argument("files", nargs=-1)
@@ -73,6 +75,7 @@ def main(
 
     # call Rust module
     microboost.hello_sabre("jakob")
+
     plt.show()
 
 
@@ -167,14 +170,14 @@ def run(file: str, show: bool, show_dag: bool, table: bool):
     # print(file)
 
     input_circuit = QuantumCircuit.from_qasm_file(file)
-    print(f"Qubits: {input_circuit.num_qubits}")
+    # print(f"Qubits: {input_circuit.num_qubits}")
 
     if show:
         input_circuit.draw("mpl", fold=-1)
 
     # d = math.ceil(1/5 * (math.sqrt(10*input_circuit.num_qubits + 6) + 1))
     coupling_map = CouplingMap.from_line(input_circuit.num_qubits)
-    print(coupling_map)
+    # print(coupling_map)
     preprocessing_dag = circuit_to_dag(input_circuit)
     preprocessing_layout = generate_initial_mapping(preprocessing_dag)
 
@@ -193,43 +196,42 @@ def run(file: str, show: bool, show_dag: bool, table: bool):
         preprocessed_circuit.draw("mpl", fold=-1)
 
     input_dag = circuit_to_dag(preprocessed_circuit)
-    initial_mapping = generate_initial_mapping(input_dag)
-
-    micro_dag = DAG().from_qiskit_dag(input_dag)
-    rust_dag = micro_dag.to_micro_dag()
-    micro_mapping = mapping_to_micro_mapping(initial_mapping)
-
     if show_dag:
         input_dag_image = dag_drawer(input_dag)
         input_dag_image.show()
+
+    initial_mapping = generate_initial_mapping(input_dag)
+
+    rust_dag = DAG().from_qiskit_dag(input_dag).to_micro_dag()
+    micro_mapping = mapping_to_micro_mapping(initial_mapping)
 
     rows = [["Depth"], ["Swaps"]]
     columns = [""]
 
     # Qiskit SABRE
     # qiskit_test_executions = ["basic", "lookahead", "decay"]
-    qiskit_test_executions = ["lookahead"]
-    for heuristic in qiskit_test_executions:
-        depth, swaps = sabre(preprocessed_circuit, coupling_map, show, heuristic)
-        # print(file, depth, swaps, preprocessed_circuit.num_qubits)
-        rows[0].append(str(depth))
-        rows[1].append(str(swaps))
-        columns.append(f"{heuristic}")
+    # qiskit_test_executions = ["lookahead"]
+    # for heuristic in qiskit_test_executions:
+    #     depth, swaps = sabre(preprocessed_circuit, coupling_map, show, heuristic)
+    #     # print(file, depth, swaps, preprocessed_circuit.num_qubits)
+    #     rows[0].append(str(depth))
+    #     rows[1].append(str(swaps))
+    #     columns.append(f"{heuristic}")
 
     # Micro SABREmain.py
     test_executions = []
 
     for i in range(10, 1000, 10):
         test_executions.append(("lookahead-0.5-scaling", False, i))
+    # test_executions.append(("lookahead-0.5-scaling", False, 20))
 
     es_size = []
     num_swaps = []
-    from tqdm import tqdm
 
     for heuristic, critical, extended_set_size in tqdm(test_executions):
         depth, swaps, _, _ = microsabre(
             input_dag,
-            micro_dag,
+            rust_dag,
             micro_mapping,
             coupling_map,
             show,
@@ -246,7 +248,7 @@ def run(file: str, show: bool, show_dag: bool, table: bool):
     if table:
         result_table(rows, columns)
 
-    return es_size, num_swaps 
+    return es_size, num_swaps
 
 
 def result_table(rows, columns):
@@ -304,7 +306,7 @@ def sabre(preprocessed_circuit, coupling_map, show, heuristic):
 
 def microsabre(
     preprocessed_dag,
-    micro_dag,
+    rust_dag,
     micro_mapping,
     coupling_map,
     show,
@@ -313,7 +315,7 @@ def microsabre(
     extended_set_size=20,
 ):
     ms = MicroSabre(
-        micro_dag, micro_mapping, coupling_map, heuristic, critical, extended_set_size
+        rust_dag, micro_mapping, coupling_map, heuristic, critical, extended_set_size
     )
     sabre_result = ms.run()
 
@@ -332,7 +334,6 @@ def microsabre(
     cm = CheckMap(coupling_map=coupling_map)
     qiskit_pm = PassManager([cm])
     transpiled_qc = qiskit_pm.run(transpiled_micro_sabre_circuit)
-    # transpiled_qc.draw("mpl", fold=-1)
 
     if not cm.property_set.get("is_swap_mapped"):
         raise ValueError("CheckMap identified invalid mapping from DAG to coupling_map")

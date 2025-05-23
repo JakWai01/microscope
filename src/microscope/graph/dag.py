@@ -1,5 +1,6 @@
 import microboost
 
+
 class DAG:
     def __init__(self):
         self.nodes = dict()
@@ -64,7 +65,7 @@ class DAG:
                     "Cannot create DAG from Qiskit DAG. Operation has unsupported number of qubits"
                 )
         return self
-    
+
     def to_micro_dag(self):
         # TODO: We need to have Rust DAGNode Objects as nodes
         return microboost.MicroDAG(self.nodes, self.edges)

@@ -1,7 +1,15 @@
-use pyo3::{types::{PyAnyMethods, PyDict, PyDictMethods}, *};
+use pyo3::{
+    types::{PyAnyMethods, PyDict, PyDictMethods},
+    *,
+};
 
 #[pyfunction]
-pub fn micro_swap_boosted(py: Python, dag: PyObject, coupling_map: PyObject, initial_mapping:  &Bound<PyDict>) -> PyResult<PyObject> {
+pub fn micro_swap_boosted(
+    py: Python,
+    dag: PyObject,
+    coupling_map: PyObject,
+    initial_mapping: &Bound<PyDict>,
+) -> PyResult<PyObject> {
     let mut current_mapping = initial_mapping.copy()?;
 
     let main_module = py.import("main")?;
@@ -17,9 +25,15 @@ pub fn micro_swap_boosted(py: Python, dag: PyObject, coupling_map: PyObject, ini
         let physical_q0 = current_mapping.get_item(control).unwrap().unwrap();
         let physical_q1 = current_mapping.get_item(target).unwrap().unwrap();
 
-        if coupling_map.call_method1(py, "distance", (&physical_q0, &physical_q1))?.extract::<i32>(py)? != 1 {
+        if coupling_map
+            .call_method1(py, "distance", (&physical_q0, &physical_q1))?
+            .extract::<i32>(py)?
+            != 1
+        {
             // Returns the shortest undirected path between two physical qubits
-            let path = coupling_map.call_method1(py, "shortest_undirected_path", (&physical_q0, &physical_q1))?.extract::<Vec<i32>>(py)?;
+            let path = coupling_map
+                .call_method1(py, "shortest_undirected_path", (&physical_q0, &physical_q1))?
+                .extract::<Vec<i32>>(py)?;
 
             for i in 0..(path.len() - 2) {
                 let connected_wire_1 = path[i];
@@ -41,17 +55,31 @@ pub fn micro_swap_boosted(py: Python, dag: PyObject, coupling_map: PyObject, ini
             }
         }
 
-        let _ = dag_instance.call_method1("insert", (current_mapping.get_item(control).unwrap().unwrap(), current_mapping.get_item(target).unwrap().unwrap(), false));
+        let _ = dag_instance.call_method1(
+            "insert",
+            (
+                current_mapping.get_item(control).unwrap().unwrap(),
+                current_mapping.get_item(target).unwrap().unwrap(),
+                false,
+            ),
+        );
     }
 
     Ok(dag_instance.into())
 }
 
-fn swap_physical_qubits(physical_q0: i32, physical_q1: i32, current_mapping: Bound<PyDict>) -> Bound<PyDict> {
+fn swap_physical_qubits(
+    physical_q0: i32,
+    physical_q1: i32,
+    current_mapping: Bound<PyDict>,
+) -> Bound<PyDict> {
     let logical_q0 = get_logical_qubit(&current_mapping, physical_q0).unwrap();
     let logical_q1 = get_logical_qubit(&current_mapping, physical_q1).unwrap();
     let tmp = current_mapping.get_item(logical_q0).unwrap().unwrap();
-    let _ = current_mapping.set_item(logical_q0, current_mapping.get_item(logical_q1).unwrap().unwrap());
+    let _ = current_mapping.set_item(
+        logical_q0,
+        current_mapping.get_item(logical_q1).unwrap().unwrap(),
+    );
     let _ = current_mapping.set_item(logical_q1, tmp);
     current_mapping
 }
@@ -59,7 +87,7 @@ fn swap_physical_qubits(physical_q0: i32, physical_q1: i32, current_mapping: Bou
 fn get_logical_qubit(current_mapping: &Bound<PyDict>, connected_wire: i32) -> Option<i32> {
     for (key, value) in current_mapping.iter() {
         if value.extract::<i32>().unwrap() == connected_wire {
-            return Some(key.extract::<i32>().unwrap())
+            return Some(key.extract::<i32>().unwrap());
         }
     }
     None
