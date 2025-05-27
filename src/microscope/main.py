@@ -317,7 +317,18 @@ def microsabre(
     # print(coupling_map)
     # Rust implementation
     rust_ms = microboost.MicroSABRE(rust_dag, micro_mapping, coupling_map.get_edges())
-    rust_ms.run("lookahead", False, 20)
+    sabre_result = rust_ms.run("lookahead", False, 20)
+    # print(f"Result of microboosted SABRE: {out_map} {gate_order}")
+    transpiled_sabre_dag_boosted, segments_boosted = apply_sabre_result(
+        preprocessed_dag.copy_empty_like(),
+        preprocessed_dag,
+        sabre_result,
+        preprocessed_dag.qubits,
+        coupling_map,
+    )
+    transpiled_micro_sabre_circuit_boosted = dag_to_circuit(transpiled_sabre_dag_boosted)
+
+    transpiled_micro_sabre_circuit_boosted.draw("mpl", fold=-1)
 
     # ===================
     ms = MicroSabre(
