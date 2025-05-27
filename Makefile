@@ -1,5 +1,3 @@
-
-
 run: build
 	python3 src/microscope/main.py --plot True examples/adder_n10.qasm examples/adder_n4.qasm
 
