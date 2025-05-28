@@ -1,4 +1,4 @@
-use crate::graph::dag::{MicroDAG, MicroDAGNode, NodeId, NodeIndex, PhysicalQubit, VirtualQubit};
+use crate::graph::dag::MicroDAG;
 use std::{collections::{HashMap, HashSet, VecDeque}, i32};
 
 use pyo3::{pyclass, pymethods, PyResult};
@@ -61,7 +61,7 @@ impl MicroSABRE {
         &mut self,
         front_layer: HashSet<i32>,
         current_mapping: HashMap<i32, i32>,
-        mut weight: f64,
+        weight: f64,
         scale: bool,
         extended_set_size: i32
     ) -> f64 {
@@ -186,11 +186,7 @@ impl MicroSABRE {
 
     fn choose_best_swap(&mut self, heuristic: String, extended_set_size: i32) -> (i32, i32) {
         let mut scores: HashMap<(i32, i32), f64> = HashMap::new();
-        let mut swap_candidates: Vec<(i32, i32)> = Vec::new();
-        let mut critical_swap_candidates: Vec<(i32, i32)> = Vec::new();
-
-        // Compute swap candidates
-        swap_candidates = self.compute_swap_candidates();
+        let swap_candidates: Vec<(i32, i32)> =  self.compute_swap_candidates();
         
 
         for &(q0, q1) in &swap_candidates {
@@ -270,24 +266,18 @@ impl MicroSABRE {
     }
 
 
-    fn run(&mut self, heuristic: String, critical_path: bool, extended_set_size: i32) -> (HashMap<i32, Vec<(i32, i32)>>, Vec<i32>){
-        // self.dag.edges().unwrap().iter().for_each(|edge| println!("{:?}", edge));
+    fn run(&mut self, heuristic: String, _critical_path: bool, extended_set_size: i32) -> (HashMap<i32, Vec<(i32, i32)>>, Vec<i32>){
         self.dag
             .edges()
             .unwrap()
             .iter()
             .for_each(|edge| self.required_predecessors[edge.1 as usize] += 1);
-        // println!("Required predecessors: {:?}", self.required_predecessors);
 
-        let successor_map = self.get_successor_map();
+        // let successor_map = self.get_successor_map();
 
         let initial_front = self.initial_front();
 
-        println!("Front layer before advance: {:?}", self.front_layer);
         self.advance_front_layer(initial_front);
-        println!("Front layer after advance: {:?}", self.front_layer);
-
-        println!("{:?}", self.coupling_map);
 
         let mut execute_gate_list: Vec<i32> = Vec::new();
 
@@ -407,15 +397,12 @@ impl MicroSABRE {
             }
         }
 
-        println!("{:?}", successor_set);
-
         let mut successor_map: HashMap<i32, usize> = HashMap::new();
 
         for (index, _) in &self.dag.nodes {
             successor_map.insert(*index, successor_set.get(index).map_or(0, |s| s.len()));
         }
 
-        println!("{:?}", successor_map);
         successor_map
     }
 

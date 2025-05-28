@@ -74,7 +74,7 @@ def main(
     # sliding_window(segments)
 
     # call Rust module
-    microboost.hello_sabre("jakob")
+    # microboost.hello_sabre("jakob")
 
     plt.show()
 
@@ -221,9 +221,9 @@ def run(file: str, show: bool, show_dag: bool, table: bool):
     # Micro SABREmain.py
     test_executions = []
 
-    # for i in range(10, 1000, 10):
-    #    test_executions.append(("lookahead-0.5-scaling", False, i))
-    test_executions.append(("lookahead-0.5-scaling", False, 20))
+    for i in range(10, 1000, 10):
+       test_executions.append(("lookahead-0.5-scaling", False, i))
+    # test_executions.append(("lookahead-0.5-scaling", False, 20))
 
     es_size = []
     num_swaps = []
@@ -314,11 +314,9 @@ def microsabre(
     critical=False,
     extended_set_size=20,
 ):
-    # print(coupling_map)
     # Rust implementation
     rust_ms = microboost.MicroSABRE(rust_dag, micro_mapping, coupling_map.get_edges())
-    sabre_result = rust_ms.run("lookahead", False, 20)
-    # print(f"Result of microboosted SABRE: {out_map} {gate_order}")
+    sabre_result = rust_ms.run(heuristic, critical, extended_set_size)
     transpiled_sabre_dag_boosted, segments_boosted = apply_sabre_result(
         preprocessed_dag.copy_empty_like(),
         preprocessed_dag,
@@ -328,37 +326,20 @@ def microsabre(
     )
     transpiled_micro_sabre_circuit_boosted = dag_to_circuit(transpiled_sabre_dag_boosted)
 
-    transpiled_micro_sabre_circuit_boosted.draw("mpl", fold=-1)
-
-    # ===================
-    ms = MicroSabre(
-        rust_dag, micro_mapping, coupling_map, heuristic, critical, extended_set_size
-    )
-    sabre_result = ms.run()
-
-    transpiled_sabre_dag, segments = apply_sabre_result(
-        preprocessed_dag.copy_empty_like(),
-        preprocessed_dag,
-        sabre_result,
-        preprocessed_dag.qubits,
-        coupling_map,
-    )
-
-    transpiled_micro_sabre_circuit = dag_to_circuit(transpiled_sabre_dag)
     if show:
-        transpiled_micro_sabre_circuit.draw("mpl", fold=-1)
+        transpiled_micro_sabre_circuit_boosted.draw("mpl", fold=-1)
 
     cm = CheckMap(coupling_map=coupling_map)
     qiskit_pm = PassManager([cm])
-    transpiled_qc = qiskit_pm.run(transpiled_micro_sabre_circuit)
+    _ = qiskit_pm.run(transpiled_micro_sabre_circuit_boosted)
 
     if not cm.property_set.get("is_swap_mapped"):
         raise ValueError("CheckMap identified invalid mapping from DAG to coupling_map")
 
-    depth = transpiled_micro_sabre_circuit.depth()
-    num_swaps = len(transpiled_sabre_dag.op_nodes(op=SwapGate))
+    depth = transpiled_micro_sabre_circuit_boosted.depth()
+    num_swaps = len(transpiled_sabre_dag_boosted.op_nodes(op=SwapGate))
 
-    return depth, num_swaps, transpiled_sabre_dag, segments
+    return depth, num_swaps, transpiled_sabre_dag_boosted, segments_boosted
 
 
 def apply_swaps(dest_dag, swaps, layout, physical_qubits):
