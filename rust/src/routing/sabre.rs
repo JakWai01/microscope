@@ -31,7 +31,6 @@ impl MicroSABRE {
             current_mapping: initial_mapping.clone(),
             distance: compute_all_pairs_shortest_paths(&coupling_map),
             coupling_map,
-            // TODO: This was a defaultdict
             out_map: HashMap::new(),
             gate_order: Vec::new(),
             front_layer: HashSet::new(),
@@ -348,7 +347,6 @@ impl MicroSABRE {
             }
 
             // Check successors
-            // TODO: Check whether using the adjacency list is fine
             if let Some(successors) = self.adjacency_list.get(&node_index) {
                 for successor in successors {
                     if let Some(count) = self.required_predecessors.get_mut(*successor as usize) {

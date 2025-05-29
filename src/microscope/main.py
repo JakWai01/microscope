@@ -1,5 +1,4 @@
 import click
-import os
 import matplotlib.pyplot as plt
 
 from qiskit import QuantumCircuit
@@ -21,10 +20,7 @@ from qiskit.transpiler.passes import (
     CheckMap,
 )
 
-
-from routing.helper import generate_initial_mapping
 from graph.dag import DAG
-from routing.sabre import MicroSabre
 
 from qiskit._accelerate.nlayout import NLayout
 from rich.console import Console
@@ -37,16 +33,12 @@ import microboost
 @click.command()
 @click.argument("files", nargs=-1)
 @click.option("-d", "--show-dag", type=bool, help="True if DAG should be shown")
-@click.option(
-    "-q", "--qiskit-fallback", type=bool, help="Use qiskit algorithm implementation"
-)
 @click.option("-p", "--plot", type=bool, help="Plot the result")
 @click.option("-t", "--table", type=bool, help="Print table of result")
 @click.option("--show", type=bool, help="True if circuits should be shown")
 def main(
     files: tuple[str, ...],
     show_dag: bool,
-    qiskit_fallback: bool,
     show: bool,
     plot: bool,
     table: bool,
@@ -78,6 +70,14 @@ def main(
 
     plt.show()
 
+
+def generate_initial_mapping(dag):
+    regs = []
+
+    for _, reg in dag.qregs.items():
+        regs.append(reg)
+
+    return Layout.generate_trivial_layout(*regs)
 
 def preprocess(circuit, dag, coupling_map):
     preprocessing_layout = generate_initial_mapping(dag)
@@ -167,17 +167,12 @@ def sliding_window(segments):
 
 
 def run(file: str, show: bool, show_dag: bool, table: bool):
-    # print(file)
-
     input_circuit = QuantumCircuit.from_qasm_file(file)
-    # print(f"Qubits: {input_circuit.num_qubits}")
 
     if show:
         input_circuit.draw("mpl", fold=-1)
 
-    # d = math.ceil(1/5 * (math.sqrt(10*input_circuit.num_qubits + 6) + 1))
     coupling_map = CouplingMap.from_line(input_circuit.num_qubits)
-    # print(coupling_map)
     preprocessing_dag = circuit_to_dag(input_circuit)
     preprocessing_layout = generate_initial_mapping(preprocessing_dag)
 
@@ -264,7 +259,7 @@ def result_table(rows, columns):
 
 
 def plot_result(data):
-    fig, ax = plt.subplots()
+    _, ax = plt.subplots()
 
     for es, swaps, file in data:
         ax.plot(es, swaps, label=f"{file}")
@@ -373,8 +368,6 @@ def apply_sabre_result(
 
     swap_map, node_order = sabre_result
 
-    new_id_to_old_id = dict()
-
     segments = [DAG()]
     i = 0
 
@@ -412,43 +405,6 @@ def mapping_to_micro_mapping(initial_mapping):
     for k, v in initial_mapping.get_virtual_bits().items():
         micro_mapping[k._index] = v
     return micro_mapping
-
-
-def compare_heuristic_tests():
-    return [
-        ("basic", False),
-        ("basic", True),
-        ("lookahead", False),
-        ("lookahead", True),
-        ("lookahead-0.5", False),
-        ("lookahead-0.5", True),
-        ("lookahead-scaling", False),
-        ("lookahead-scaling", True),
-        ("lookahead-0.5-scaling", False),
-        ("lookahead-0.5-scaling", True),
-    ]
-
-
-def extended_set_size_exponential():
-    return [
-        ("lookahead-0.5-scaling", False, 5),
-        ("lookahead-0.5-scaling", False, 10),
-        ("lookahead-0.5-scaling", False, 20),
-        ("lookahead-0.5-scaling", False, 30),
-        ("lookahead-0.5-scaling", False, 40),
-        ("lookahead-0.5-scaling", False, 50),
-        ("lookahead-0.5-scaling", False, 60),
-        ("lookahead-0.5-scaling", False, 70),
-        ("lookahead-0.5-scaling", False, 80),
-        ("lookahead-0.5-scaling", False, 90),
-        ("lookahead-0.5-scaling", False, 100),
-        ("lookahead-0.5-scaling", False, 200),
-        ("lookahead-0.5-scaling", False, 300),
-        ("lookahead-0.5-scaling", False, 400),
-        ("lookahead-0.5-scaling", False, 500),
-        ("lookahead-0.5-scaling", False, 800),
-        ("lookahead-0.5-scaling", False, 1000),
-    ]
 
 
 if __name__ == "__main__":
