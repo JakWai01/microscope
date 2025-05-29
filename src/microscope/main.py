@@ -28,47 +28,48 @@ from rich.table import Table
 from tqdm import tqdm
 
 import microboost
-
+import os
 
 @click.command()
 @click.argument("files", nargs=-1)
-@click.option("-d", "--show-dag", type=bool, help="True if DAG should be shown")
-@click.option("-p", "--plot", type=bool, help="Plot the result")
-@click.option("-t", "--table", type=bool, help="Print table of result")
 @click.option("--show", type=bool, help="True if circuits should be shown")
 def main(
     files: tuple[str, ...],
-    show_dag: bool,
     show: bool,
-    plot: bool,
-    table: bool,
 ):
-    """Read in a .qasm file and print out a syntax tree."""
     # Ignore deprecation warnings
     warnings.filterwarnings("ignore", category=DeprecationWarning)
 
+    # hamiltonians(show)
+    # microbench(files, show)
+    slide()
+    
+    plt.show()
+
+
+def slide():
+    circuit = QuantumCircuit.from_qasm_file("examples/adder_n10.qasm")
+    _, _, segments = transpile_circuit(circuit)
+    sliding_window(segments)
+
+
+def hamiltonians(show):
+    path = "/home/jakob/Documents/hamiltonians"
+    files = os.listdir(path)
+
+    for file in files:
+        es, swaps = run(path + "/" + file, show)
+        print(f"File: {file}\nExtended Set Size: {es}\nSwaps: {swaps}")
+
+
+def microbench(files, show):
     data = []
 
-    # path = "/home/jakob/Documents/hamiltonians"
-    # files = os.listdir(path)
     for file in files:
-        # es, swaps = run(path + "/" + file, show, show_dag, table)
-        es, swaps = run(file, show, show_dag, table)
+        es, swaps = run(file, show)
         data.append((es, swaps, file))
 
-    if plot:
-        plot_result(data)
-
-    # circuit = QuantumCircuit.from_qasm_file("examples/adder_n10.qasm")
-
-    # preprocessed_dag, transpiled_dag, segments = transpile_circuit(circuit)
-
-    # sliding_window(segments)
-
-    # call Rust module
-    # microboost.hello_sabre("jakob")
-
-    plt.show()
+    plot_result(data)
 
 
 def generate_initial_mapping(dag):
@@ -78,6 +79,7 @@ def generate_initial_mapping(dag):
         regs.append(reg)
 
     return Layout.generate_trivial_layout(*regs)
+
 
 def preprocess(circuit, dag, coupling_map):
     preprocessing_layout = generate_initial_mapping(dag)
@@ -166,34 +168,13 @@ def sliding_window(segments):
     # TODO: Run MicroSABRE on the subcircuits
 
 
-def run(file: str, show: bool, show_dag: bool, table: bool):
+def run(file: str, show: bool):
     input_circuit = QuantumCircuit.from_qasm_file(file)
-
-    if show:
-        input_circuit.draw("mpl", fold=-1)
 
     coupling_map = CouplingMap.from_line(input_circuit.num_qubits)
     preprocessing_dag = circuit_to_dag(input_circuit)
-    preprocessing_layout = generate_initial_mapping(preprocessing_dag)
 
-    pm = PassManager(
-        [
-            Unroll3qOrMore(),
-            SetLayout(preprocessing_layout),
-            FullAncillaAllocation(coupling_map),
-            ApplyLayout(),
-            RemoveBarriers(),
-        ]
-    )
-
-    preprocessed_circuit = pm.run(input_circuit)
-    if show:
-        preprocessed_circuit.draw("mpl", fold=-1)
-
-    input_dag = circuit_to_dag(preprocessed_circuit)
-    if show_dag:
-        input_dag_image = dag_drawer(input_dag)
-        input_dag_image.show()
+    _, input_dag = preprocess(input_circuit, preprocessing_dag, coupling_map)
 
     initial_mapping = generate_initial_mapping(input_dag)
 
@@ -217,7 +198,7 @@ def run(file: str, show: bool, show_dag: bool, table: bool):
     test_executions = []
 
     for i in range(10, 1000, 10):
-       test_executions.append(("lookahead-0.5-scaling", False, i))
+        test_executions.append(("lookahead-0.5-scaling", False, i))
     # test_executions.append(("lookahead-0.5-scaling", False, 20))
 
     es_size = []
@@ -240,8 +221,7 @@ def run(file: str, show: bool, show_dag: bool, table: bool):
         num_swaps.append(swaps)
         columns.append(f"{heuristic} {critical} {extended_set_size}")
 
-    if table:
-        result_table(rows, columns)
+    # result_table(rows, columns)
 
     return es_size, num_swaps
 
@@ -319,7 +299,9 @@ def microsabre(
         preprocessed_dag.qubits,
         coupling_map,
     )
-    transpiled_micro_sabre_circuit_boosted = dag_to_circuit(transpiled_sabre_dag_boosted)
+    transpiled_micro_sabre_circuit_boosted = dag_to_circuit(
+        transpiled_sabre_dag_boosted
+    )
 
     if show:
         transpiled_micro_sabre_circuit_boosted.draw("mpl", fold=-1)
