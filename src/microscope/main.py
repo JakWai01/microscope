@@ -31,18 +31,28 @@ import microboost
 import os
 
 @click.command()
-@click.argument("files", nargs=-1)
+@click.argument("command", nargs=1)
+@click.argument("files", nargs=-1, type=click.Path(exists=True))
 @click.option("--show", type=bool, help="True if circuits should be shown")
 def main(
+    command: str,
     files: tuple[str, ...],
-    show: bool,
+    show: bool
 ):
     # Ignore deprecation warnings
     warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-    # hamiltonians(show)
-    # microbench(files, show)
-    slide()
+    match command:
+        case "hamiltonians":
+            hamiltonians(show)
+        case "microbench":
+            microbench(files, show)
+        case "slide":
+            slide()
+        case "baseline":
+            qiskit_baseline(files[0])
+        case _:
+            print("Invalid command. Choose one out of [hamiltonians, microbench, slide, qiskit_baseline]")
     
     plt.show()
 
@@ -167,6 +177,17 @@ def sliding_window(segments):
 
     # TODO: Run MicroSABRE on the subcircuits
 
+def qiskit_baseline(file):
+    circuit = QuantumCircuit.from_qasm_file(file)
+    coupling_map = CouplingMap.from_line(circuit.num_qubits)
+    preprocessing_dag = circuit_to_dag(circuit)
+    
+    preprocessed_circuit, _ = preprocess(circuit, preprocessing_dag, coupling_map)
+    qiskit_test_executions = ["basic", "lookahead", "decay"]
+    for heuristic in qiskit_test_executions:
+        depth, swaps = sabre(preprocessed_circuit, coupling_map, show, heuristic)
+        print(f"Qiskit:\n\tHeuristic: {heuristic}\n\tDepth: {depth}\n\tSwaps: {swaps}")
+
 
 def run(file: str, show: bool):
     input_circuit = QuantumCircuit.from_qasm_file(file)
@@ -184,17 +205,6 @@ def run(file: str, show: bool):
     rows = [["Depth"], ["Swaps"]]
     columns = [""]
 
-    # Qiskit SABRE
-    # qiskit_test_executions = ["basic", "lookahead", "decay"]
-    # qiskit_test_executions = ["lookahead"]
-    # for heuristic in qiskit_test_executions:
-    #     depth, swaps = sabre(preprocessed_circuit, coupling_map, show, heuristic)
-    #     # print(file, depth, swaps, preprocessed_circuit.num_qubits)
-    #     rows[0].append(str(depth))
-    #     rows[1].append(str(swaps))
-    #     columns.append(f"{heuristic}")
-
-    # Micro SABREmain.py
     test_executions = []
 
     for i in range(10, 1000, 10):
