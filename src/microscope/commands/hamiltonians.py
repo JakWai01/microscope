@@ -1,6 +1,7 @@
 import os
 from commands.microbench import run
 
+
 def hamiltonians(show):
     path = "/home/jakob/Documents/hamiltonians"
     files = os.listdir(path)

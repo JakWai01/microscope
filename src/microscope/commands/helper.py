@@ -15,12 +15,14 @@ from qiskit.converters import circuit_to_dag
 import matplotlib.pyplot as plt
 from qiskit.circuit.library.standard_gates import SwapGate
 
+
 def mapping_to_micro_mapping(initial_mapping):
     micro_mapping = dict()
     # important: keys are virtual qubits and values are physical qubits
     for k, v in initial_mapping.get_virtual_bits().items():
         micro_mapping[k._index] = v
     return micro_mapping
+
 
 def generate_initial_mapping(dag):
     regs = []
@@ -49,11 +51,6 @@ def preprocess(circuit, dag, coupling_map):
     preprocessed_dag = circuit_to_dag(preprocessed_circuit)
 
     return preprocessed_circuit, preprocessed_dag
-
-
-
-
-
 
 
 def result_table(rows, columns):
@@ -86,10 +83,6 @@ def plot_result(data):
     ax.grid()
 
     plt.xlim((0, 1000))
-
-
-
-
 
 
 def apply_swaps(dest_dag, swaps, layout, physical_qubits):

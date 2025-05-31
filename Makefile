@@ -10,4 +10,4 @@ format:
 lint:
 	pyflakes src/
 
-all: build run
+all: build format run

@@ -7,15 +7,12 @@ from commands.hamiltonians import hamiltonians
 from commands.microbench import microbench
 from commands.slide import slide
 
+
 @click.command()
 @click.argument("command", nargs=1)
 @click.argument("files", nargs=-1, type=click.Path(exists=True))
 @click.option("--show", type=bool, help="True if circuits should be shown")
-def main(
-    command: str,
-    files: tuple[str, ...],
-    show: bool
-):
+def main(command: str, files: tuple[str, ...], show: bool):
     # Ignore deprecation warnings
     warnings.filterwarnings("ignore", category=DeprecationWarning)
 
@@ -29,8 +26,10 @@ def main(
         case "baseline":
             qiskit_baseline(files[0])
         case _:
-            print("Invalid command. Choose one out of [hamiltonians, microbench, slide, qiskit_baseline]")
-    
+            print(
+                "Invalid command. Choose one out of [hamiltonians, microbench, slide, qiskit_baseline]"
+            )
+
     plt.show()
 
 

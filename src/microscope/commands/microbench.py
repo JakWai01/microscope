@@ -10,7 +10,13 @@ from qiskit._accelerate.nlayout import NLayout
 
 import microboost
 
-from commands.helper import plot_result, generate_initial_mapping, preprocess, apply_swaps, mapping_to_micro_mapping
+from commands.helper import (
+    plot_result,
+    generate_initial_mapping,
+    preprocess,
+    apply_swaps,
+    mapping_to_micro_mapping,
+)
 from qiskit.converters import circuit_to_dag, dag_to_circuit
 from qiskit.transpiler import CouplingMap
 from qiskit.circuit.library.standard_gates import SwapGate
@@ -52,6 +58,7 @@ def microbench(files, show):
         data.append((es, swaps, file))
 
     plot_result(data)
+
 
 def run(file: str, show: bool):
     input_circuit = QuantumCircuit.from_qasm_file(file)
@@ -96,6 +103,7 @@ def run(file: str, show: bool):
 
     return es_size, num_swaps
 
+
 def microsabre(
     preprocessed_dag,
     rust_dag,
@@ -134,6 +142,7 @@ def microsabre(
     num_swaps = len(transpiled_sabre_dag_boosted.op_nodes(op=SwapGate))
 
     return depth, num_swaps, transpiled_sabre_dag_boosted, segments_boosted
+
 
 def apply_sabre_result(
     dest_dag, source_dag, sabre_result, physical_qubits, coupling_map
@@ -183,4 +192,3 @@ def apply_sabre_result(
             check=False,
         )
     return dest_dag, segments
-

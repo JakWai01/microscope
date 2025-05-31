@@ -8,16 +8,18 @@ from qiskit.converters import circuit_to_dag
 from commands.helper import preprocess
 from qiskit.circuit.library.standard_gates import SwapGate
 
+
 def qiskit_baseline(file):
     circuit = QuantumCircuit.from_qasm_file(file)
     coupling_map = CouplingMap.from_line(circuit.num_qubits)
     preprocessing_dag = circuit_to_dag(circuit)
-    
+
     preprocessed_circuit, _ = preprocess(circuit, preprocessing_dag, coupling_map)
     qiskit_test_executions = ["basic", "lookahead", "decay"]
     for heuristic in qiskit_test_executions:
         depth, swaps = sabre(preprocessed_circuit, coupling_map, heuristic)
         print(f"Qiskit:\n\tHeuristic: {heuristic}\n\tDepth: {depth}\n\tSwaps: {swaps}")
+
 
 def sabre(preprocessed_circuit, coupling_map, heuristic):
     cm = CheckMap(coupling_map=coupling_map)

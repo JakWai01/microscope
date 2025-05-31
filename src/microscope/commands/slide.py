@@ -1,6 +1,7 @@
 from qiskit import QuantumCircuit
 from commands.microbench import transpile_circuit
 
+
 def slide():
     circuit = QuantumCircuit.from_qasm_file("examples/adder_n10.qasm")
     _, _, segments = transpile_circuit(circuit)
