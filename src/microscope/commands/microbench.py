@@ -69,6 +69,8 @@ def microbench_new(files):
 
         for i in range (10, 1000, 10):
             test_executions.append(("lookahead-0.5-scaling", False, i))
+        # test_executions.append(("lookahead-0.5-scaling", False, 20))
+        # test_executions.append(("lookahead-0.5-scaling", False, 40))
 
         es_size = []
         num_swaps = []

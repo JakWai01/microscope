@@ -14,7 +14,9 @@ pub(crate) struct MicroSABRE {
     required_predecessors: Vec<i32>,
     adjacency_list: HashMap<i32, Vec<i32>>,
     distance: Vec<Vec<i32>>,
-    initial_mapping: HashMap<i32, i32>
+    initial_mapping: HashMap<i32, i32>,
+    initial_dag: MicroDAG,
+    initial_coupling_map: Vec<Vec<i32>>
 }
 
 #[pymethods]
@@ -28,18 +30,21 @@ impl MicroSABRE {
         Ok(Self {
             required_predecessors: vec![0; dag.nodes.len()],
             adjacency_list: build_adjacency_list(&dag),
-            dag,
+            dag: dag.clone(),
             current_mapping: initial_mapping.clone(),
             distance: compute_all_pairs_shortest_paths(&coupling_map),
-            coupling_map,
+            coupling_map: coupling_map.clone(),
             out_map: HashMap::new(),
             gate_order: Vec::new(),
             front_layer: HashSet::new(),
-            initial_mapping: initial_mapping
+            initial_mapping: initial_mapping,
+            initial_dag: dag,
+            initial_coupling_map: coupling_map 
         })
     }
 
     fn clear_data_structures(&mut self) {
+        // In theory, this should always be zero in the end (so we could skip it - only if everything goes well)
         self.required_predecessors = vec![0; self.dag.nodes.len()];
         self.adjacency_list = build_adjacency_list(&self.dag);
 
@@ -50,8 +55,68 @@ impl MicroSABRE {
         self.gate_order.clear();
         self.front_layer.clear();
 
+        self.dag = self.initial_dag.clone();
+        self.coupling_map = self.initial_coupling_map.clone();
+
     }
 
+    fn run(&mut self, heuristic: String, _critical_path: bool, extended_set_size: i32) -> (HashMap<i32, Vec<(i32, i32)>>, Vec<i32>){
+        self.clear_data_structures();
+
+        self.dag
+            .edges()
+            .unwrap()
+            .iter()
+            .for_each(|edge| self.required_predecessors[edge.1 as usize] += 1);
+
+        let initial_front = self.initial_front();
+
+        self.advance_front_layer(initial_front);
+
+        let mut execute_gate_list: Vec<i32> = Vec::new();
+
+        while !self.front_layer.is_empty() {
+            let mut current_swaps: Vec<(i32, i32)> = Vec::new();
+
+            while execute_gate_list.is_empty() {
+                // This clone costs a bit performance
+                let best_swap = self.choose_best_swap(heuristic.clone(), extended_set_size);
+                
+                let physical_q0 = self.current_mapping[&(best_swap.0 as i32)];
+                let physical_q1 = self.current_mapping[&(best_swap.1 as i32)];
+
+                current_swaps.push(best_swap);
+                self.current_mapping = swap_physical_qubits(
+                    physical_q0,
+                    physical_q1,
+                    &self.current_mapping,
+                );
+
+                if let Some(node) = self.executable_node_on_qubit(physical_q0) {
+                    execute_gate_list.push(node as i32);
+                }
+
+                if let Some(node) = self.executable_node_on_qubit(physical_q1) {
+                    execute_gate_list.push(node as i32);
+                }
+            }
+
+            let node_id = self.dag.get(execute_gate_list[0] as i32).unwrap().id;
+            self.out_map
+                .entry(node_id)
+                .or_default()
+                .extend(current_swaps.clone());
+
+            for &node in &execute_gate_list {
+                self.front_layer.remove(&(node as i32));
+            }
+
+            self.advance_front_layer(execute_gate_list.clone());
+            execute_gate_list.clear();
+        }
+
+        (self.out_map.clone(), self.gate_order.clone()) 
+    }
     fn calculate_heuristic(
         &mut self,
         front_layer: HashSet<i32>,
@@ -282,63 +347,6 @@ impl MicroSABRE {
     }
 
 
-    fn run(&mut self, heuristic: String, _critical_path: bool, extended_set_size: i32) -> (HashMap<i32, Vec<(i32, i32)>>, Vec<i32>){
-        self.clear_data_structures();
-
-        self.dag
-            .edges()
-            .unwrap()
-            .iter()
-            .for_each(|edge| self.required_predecessors[edge.1 as usize] += 1);
-
-        let initial_front = self.initial_front();
-
-        self.advance_front_layer(initial_front);
-
-        let mut execute_gate_list: Vec<i32> = Vec::new();
-
-        while !self.front_layer.is_empty() {
-            let mut current_swaps: Vec<(i32, i32)> = Vec::new();
-
-            while execute_gate_list.is_empty() {
-                // This clone costs a bit performance
-                let best_swap = self.choose_best_swap(heuristic.clone(), extended_set_size);
-                
-                let physical_q0 = self.current_mapping[&(best_swap.0 as i32)];
-                let physical_q1 = self.current_mapping[&(best_swap.1 as i32)];
-
-                current_swaps.push(best_swap);
-                self.current_mapping = swap_physical_qubits(
-                    physical_q0,
-                    physical_q1,
-                    &self.current_mapping,
-                );
-
-                if let Some(node) = self.executable_node_on_qubit(physical_q0) {
-                    execute_gate_list.push(node as i32);
-                }
-
-                if let Some(node) = self.executable_node_on_qubit(physical_q1) {
-                    execute_gate_list.push(node as i32);
-                }
-            }
-
-            let node_id = self.dag.get(execute_gate_list[0] as i32).unwrap().id;
-            self.out_map
-                .entry(node_id)
-                .or_default()
-                .extend(current_swaps.clone());
-
-            for &node in &execute_gate_list {
-                self.front_layer.remove(&(node as i32));
-            }
-
-            self.advance_front_layer(execute_gate_list.clone());
-            execute_gate_list.clear();
-        }
-
-        (self.out_map.clone(), self.gate_order.clone()) 
-    }
 
     fn advance_front_layer(&mut self, nodes: Vec<i32>) {
         // Copy input into a queue

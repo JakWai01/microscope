@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use pyo3::{pyclass, pymethods, types::PyAnyMethods, Bound, PyAny, PyRef, PyResult, Python};
+use pyo3::{pyclass, pymethods, PyResult};
 
 #[derive(Clone)]
 #[pyclass(module = "microboost.graph.dag")]
@@ -59,9 +59,3 @@ impl MicroDAGNode {
         Ok(self.id)
     }
 }
-
-pub(crate) struct NodeIndex(i32);
-pub(crate) struct NodeId(i32);
-#[derive(Debug)]
-pub(crate) struct VirtualQubit(i32);
-pub(crate) struct PhysicalQubit(i32);
