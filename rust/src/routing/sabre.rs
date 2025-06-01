@@ -13,7 +13,8 @@ pub(crate) struct MicroSABRE {
     front_layer: HashSet<i32>,
     required_predecessors: Vec<i32>,
     adjacency_list: HashMap<i32, Vec<i32>>,
-    distance: Vec<Vec<i32>>
+    distance: Vec<Vec<i32>>,
+    initial_mapping: HashMap<i32, i32>
 }
 
 #[pymethods]
@@ -27,14 +28,28 @@ impl MicroSABRE {
         Ok(Self {
             required_predecessors: vec![0; dag.nodes.len()],
             adjacency_list: build_adjacency_list(&dag),
-            dag: dag,
+            dag,
             current_mapping: initial_mapping.clone(),
             distance: compute_all_pairs_shortest_paths(&coupling_map),
             coupling_map,
             out_map: HashMap::new(),
             gate_order: Vec::new(),
             front_layer: HashSet::new(),
+            initial_mapping: initial_mapping
         })
+    }
+
+    fn clear_data_structures(&mut self) {
+        self.required_predecessors = vec![0; self.dag.nodes.len()];
+        self.adjacency_list = build_adjacency_list(&self.dag);
+
+        self.current_mapping = self.initial_mapping.clone();
+        self.distance = compute_all_pairs_shortest_paths(&self.coupling_map);
+
+        self.out_map.clear();
+        self.gate_order.clear();
+        self.front_layer.clear();
+
     }
 
     fn calculate_heuristic(
@@ -128,6 +143,8 @@ impl MicroSABRE {
     }
 
      fn get_extended_set(&mut self, extended_set_size: i32) -> HashSet<i32> {
+        let mut required_predecessors = self.required_predecessors.clone();
+
         let mut to_visit: Vec<i32> = self.front_layer.iter().copied().collect();
         let mut i = 0;
 
@@ -150,9 +167,9 @@ impl MicroSABRE {
                             visited.insert(successor, true);
 
                             *decremented.entry(successor).or_insert(0) += 1;
-                            self.required_predecessors[successor as usize] -= 1;
+                            required_predecessors[successor as usize] -= 1;
 
-                            if self.required_predecessors[successor as usize] == 0 {
+                            if required_predecessors[successor as usize] == 0 {
                                 if self.dag.get(successor).unwrap().qubits.len() == 2 {
                                     extended_set.insert(successor);
                                     to_visit.push(successor);
@@ -177,7 +194,7 @@ impl MicroSABRE {
 
         // Restore required_predecessors
         for (node, amount) in decremented {
-            self.required_predecessors[node as usize] += amount as i32;
+            required_predecessors[node as usize] += amount as i32;
         }
 
         extended_set
@@ -266,13 +283,13 @@ impl MicroSABRE {
 
 
     fn run(&mut self, heuristic: String, _critical_path: bool, extended_set_size: i32) -> (HashMap<i32, Vec<(i32, i32)>>, Vec<i32>){
+        self.clear_data_structures();
+
         self.dag
             .edges()
             .unwrap()
             .iter()
             .for_each(|edge| self.required_predecessors[edge.1 as usize] += 1);
-
-        // let successor_map = self.get_successor_map();
 
         let initial_front = self.initial_front();
 

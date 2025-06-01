@@ -4,7 +4,7 @@ from qiskit import warnings
 
 from commands.baseline import qiskit_baseline
 from commands.hamiltonians import hamiltonians
-from commands.microbench import microbench
+from commands.microbench import microbench, microbench_new 
 from commands.slide import slide
 
 
@@ -20,7 +20,12 @@ def main(command: str, files: tuple[str, ...], show: bool):
         case "hamiltonians":
             hamiltonians(show)
         case "microbench":
-            microbench(files, show)
+            # microbench(files, show)
+            import time
+            t = time.process_time()
+            microbench_new(files)
+            elapsed_time = time.process_time() - t
+            print(f"Execution took: {elapsed_time} secs")
         case "slide":
             slide()
         case "baseline":

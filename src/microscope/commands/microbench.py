@@ -49,6 +49,46 @@ def transpile_circuit(circuit):
 
     return preprocessed_dag, transpiled_dag, segments
 
+def microbench_new(files):
+    data = []
+
+    for file in files:
+        input_circuit = QuantumCircuit.from_qasm_file(file)
+
+        coupling_map = CouplingMap.from_line(input_circuit.num_qubits)
+        preprocessing_dag = circuit_to_dag(input_circuit)
+
+        _, input_dag = preprocess(input_circuit, preprocessing_dag, coupling_map)
+
+        initial_mapping = generate_initial_mapping(input_dag)
+
+        rust_dag = DAG().from_qiskit_dag(input_dag).to_micro_dag()
+        micro_mapping = mapping_to_micro_mapping(initial_mapping)
+
+        test_executions = []
+
+        for i in range (10, 1000, 10):
+            test_executions.append(("lookahead-0.5-scaling", False, i))
+
+        es_size = []
+        num_swaps = []
+
+        
+        rust_ms = microboost.MicroSABRE(rust_dag, micro_mapping, coupling_map.get_edges())
+
+        for heuristic, critical, extended_set_size in tqdm(test_executions):
+            out_map, _ = rust_ms.run(heuristic, critical, extended_set_size)
+            swaps = sum(len(arr) for arr in out_map.values())
+
+            es_size.append(extended_set_size)
+            num_swaps.append(swaps)
+
+        data.append((es_size, num_swaps, file))
+    
+    plot_result(data)
+
+    
+
 
 def microbench(files, show):
     data = []
@@ -117,6 +157,7 @@ def microsabre(
     # Rust implementation
     rust_ms = microboost.MicroSABRE(rust_dag, micro_mapping, coupling_map.get_edges())
     sabre_result = rust_ms.run(heuristic, critical, extended_set_size)
+
     transpiled_sabre_dag_boosted, segments_boosted = apply_sabre_result(
         preprocessed_dag.copy_empty_like(),
         preprocessed_dag,
