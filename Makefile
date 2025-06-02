@@ -11,3 +11,9 @@ lint:
 	pyflakes src/
 
 all: build format run
+
+big: build
+	python3 src/microscope/main.py microbench ~/Documents/hamiltonians/ham_heis_graph_2D_grid_pbc_qubitnodes_Lx_5_Ly_186_h_3.qasm
+
+big-baseline: build
+	python3 src/microscope/main.py baseline ~/Documents/hamiltonians/ham_heis_graph_2D_grid_pbc_qubitnodes_Lx_5_Ly_186_h_3.qasm
