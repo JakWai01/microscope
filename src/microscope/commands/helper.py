@@ -88,10 +88,10 @@ def plot_result(data):
 def apply_swaps(dest_dag, swaps, layout, physical_qubits):
     for a, b in swaps:
         qubits = (
-            physical_qubits[layout.virtual_to_physical(a)],
-            physical_qubits[layout.virtual_to_physical(b)],
+            physical_qubits[a],
+            physical_qubits[b],
         )
         layout.swap_physical(
-            layout.virtual_to_physical(a), layout.virtual_to_physical(b)
+            a, b
         )
         dest_dag.apply_operation_back(SwapGate(), qubits, (), check=False)

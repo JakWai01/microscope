@@ -1,7 +1,9 @@
 use crate::graph::dag::MicroDAG;
 use std::{collections::{HashMap, HashSet, VecDeque}, i32};
 
-use pyo3::{pyclass, pymethods, PyResult};
+use pyo3::{exceptions::asyncio::QueueEmpty, pyclass, pymethods, PyResult};
+
+use std::time::Instant;
 
 #[pyclass(module = "microboost.routing.sabre")]
 pub(crate) struct MicroSABRE {
@@ -16,7 +18,8 @@ pub(crate) struct MicroSABRE {
     distance: Vec<Vec<i32>>,
     initial_mapping: HashMap<i32, i32>,
     initial_dag: MicroDAG,
-    initial_coupling_map: Vec<Vec<i32>>
+    initial_coupling_map: Vec<Vec<i32>>,
+    neighbour_map: HashMap<i32, Vec<i32>>,
 }
 
 #[pymethods]
@@ -39,9 +42,11 @@ impl MicroSABRE {
             front_layer: HashSet::new(),
             initial_mapping: initial_mapping,
             initial_dag: dag,
-            initial_coupling_map: coupling_map 
+            neighbour_map: build_coupling_neighbour_map(&coupling_map),
+            initial_coupling_map: coupling_map
         })
     }
+
 
     fn clear_data_structures(&mut self) {
         // In theory, this should always be zero in the end (so we could skip it - only if everything goes well)
@@ -61,6 +66,8 @@ impl MicroSABRE {
     }
 
     fn run(&mut self, heuristic: String, _critical_path: bool, extended_set_size: i32) -> (HashMap<i32, Vec<(i32, i32)>>, Vec<i32>){
+        // let start = Instant::now();
+
         self.clear_data_structures();
 
         self.dag
@@ -78,13 +85,17 @@ impl MicroSABRE {
         while !self.front_layer.is_empty() {
             let mut current_swaps: Vec<(i32, i32)> = Vec::new();
 
+            // println!("Front layer: {:?}", self.front_layer);
+
             while execute_gate_list.is_empty() {
                 // This clone costs a bit performance
                 let best_swap = self.choose_best_swap(heuristic.clone(), extended_set_size);
+                // println!("Choose best swap: {:?}", best_swap);
                 
-                let physical_q0 = self.current_mapping[&(best_swap.0 as i32)];
-                let physical_q1 = self.current_mapping[&(best_swap.1 as i32)];
-
+                let physical_q0 = best_swap.0;
+                let physical_q1 = best_swap.1;
+                
+                // println!("Current mapping: {:?}", self.current_mapping);
                 current_swaps.push(best_swap);
                 self.current_mapping = swap_physical_qubits(
                     physical_q0,
@@ -92,13 +103,19 @@ impl MicroSABRE {
                     &self.current_mapping,
                 );
 
+                // println!("Current mapping after swap: {:?}", self.current_mapping);
+
                 if let Some(node) = self.executable_node_on_qubit(physical_q0) {
+                    // println!("Executable on qubits");
                     execute_gate_list.push(node as i32);
                 }
 
                 if let Some(node) = self.executable_node_on_qubit(physical_q1) {
+                    // println!("Executable on qubits");
                     execute_gate_list.push(node as i32);
                 }
+
+                // panic!("Stopping here!");
             }
 
             let node_id = self.dag.get(execute_gate_list[0] as i32).unwrap().id;
@@ -109,11 +126,16 @@ impl MicroSABRE {
 
             for &node in &execute_gate_list {
                 self.front_layer.remove(&(node as i32));
+                // println!("Executed {}", node)
             }
 
             self.advance_front_layer(execute_gate_list.clone());
             execute_gate_list.clear();
         }
+
+        // let duration = start.elapsed();
+        // println!("<run> took: {:?}", duration);
+
 
         (self.out_map.clone(), self.gate_order.clone()) 
     }
@@ -130,7 +152,7 @@ impl MicroSABRE {
             "lookahead" => self.h_lookahead(front_layer, current_mapping, 1.0, false, extended_set_size),
             "lookahead-0.5" => self.h_lookahead(front_layer, current_mapping, 0.5, false, extended_set_size),
             "lookahead-scaling" => self.h_lookahead(front_layer, current_mapping, 1.0, false, extended_set_size),
-            "lookahead-0.5-scaling" => self.h_lookahead(front_layer, current_mapping, 1.0, true, extended_set_size),
+            "lookahead-0.5-scaling" => self.h_lookahead(front_layer, current_mapping, 0.5, true, extended_set_size),
             _ => panic!("Unknown heuristic type: {}", heuristic),
         }
     }
@@ -208,6 +230,7 @@ impl MicroSABRE {
     }
 
      fn get_extended_set(&mut self, extended_set_size: i32) -> HashSet<i32> {
+
         let mut required_predecessors = self.required_predecessors.clone();
 
         let mut to_visit: Vec<i32> = self.front_layer.iter().copied().collect();
@@ -261,60 +284,82 @@ impl MicroSABRE {
         for (node, amount) in decremented {
             required_predecessors[node as usize] += amount as i32;
         }
+        // let duration = start.elapsed();
+        // println!("<get_extended_set> took: {:?}", duration);
 
         extended_set
     }
 
     fn choose_best_swap(&mut self, heuristic: String, extended_set_size: i32) -> (i32, i32) {
         let mut scores: HashMap<(i32, i32), f64> = HashMap::new();
+
+        // let start = Instant::now();
         let swap_candidates: Vec<(i32, i32)> =  self.compute_swap_candidates();
-        
+        // println!("Swap candidates: {:?}", swap_candidates);
+        // let duration = start.elapsed();
+        // println!("<compute_swap_candidates> took: {:?}", duration);
 
         for &(q0, q1) in &swap_candidates {
-            let physical_q0 = self.current_mapping[&(q0 as i32)];
-            let physical_q1 = self.current_mapping[&(q1 as i32)];
+            // let physical_q0 = self.current_mapping[&(q0 as i32)];
+            // let physical_q1 = self.current_mapping[&(q1 as i32)];
 
             let before = self.calculate_heuristic(self.front_layer.clone(), self.current_mapping.clone(), heuristic.clone(), extended_set_size);
 
-            let temporary_mapping = swap_physical_qubits(physical_q0, physical_q1, &self.current_mapping);
+            let temporary_mapping = swap_physical_qubits(q0, q1, &self.current_mapping);
 
             let after = self.calculate_heuristic(self.front_layer.clone(), temporary_mapping, heuristic.clone(), extended_set_size);
 
             scores.insert((q0, q1), after - before);
         }
 
+        // println!("Scores: {:?}", scores);
         self.min_score(scores)
     }
 
     fn compute_swap_candidates(&self) -> Vec<(i32, i32)> {
+        // println!("Items in front layer: {:?}", self.front_layer.len());
         let mut swap_candidates: Vec<(i32, i32)> = Vec::new();
+
+        // println!("neighbour map: {:?}", self.neighbour_map);
 
         for &gate in &self.front_layer {
             let node = self.dag.get(gate).unwrap(); // Assuming node has a `qubits: Vec<usize>`
             let physical_q0 = self.current_mapping[&node.qubits[0]];
             let physical_q1 = self.current_mapping[&node.qubits[1]];
+            
+            // println!("Node {:?} mapped to physical {:?} {:?}", node, physical_q0, physical_q1);
 
-            for edge in &self.coupling_map {
-                let u = edge[0] as usize;
-                let v = edge[1] as usize;
+            // TODO: Checking for every edge in the coupling map is quite slow here
+            // for edge in &self.coupling_map {
+            //     let u = edge[0] as usize;
+            //     let v = edge[1] as usize;
 
-                let values: Vec<i32> = self.current_mapping.values().copied().collect();
-                if values.contains(&(u as i32)) && values.contains(&(v as i32)) {
-                    if u == physical_q0 as usize || u == physical_q1 as usize {
-                        // Find the logical qubits mapped to u and v
-                        let logical_q0 = self.current_mapping.iter()
-                            .find(|(_, &v_val)| v_val as usize == u)
-                            .map(|(&k, _)| k)
-                            .unwrap();
+            //     let start = Instant::now();
+            //     let values: Vec<i32> = self.current_mapping.values().copied().collect();
+            //     if values.contains(&(u as i32)) && values.contains(&(v as i32)) {
+            //         if u == physical_q0 as usize || u == physical_q1 as usize {
+            //             swap_candidates.push((u.try_into().unwrap(), v.try_into().unwrap()));
+            //         }
+            //     }
+            //     let duration = start.elapsed();
+            //     println!("Contains check took {:?}", duration); 
+            // }
 
-                        let logical_q1 = self.current_mapping.iter()
-                            .find(|(_, &v_val)| v_val as usize == v)
-                            .map(|(&k, _)| k)
-                            .unwrap();
-
-                        swap_candidates.push((logical_q0, logical_q1));
-                    }
-                }
+            for neighbour in self.neighbour_map[&physical_q0].iter() {
+                // This is definitely wrong. We are not working with node_id's here
+                // let neighbour_node = self.dag.get(*neighbour).unwrap();
+                // neighbour_node.qubits.iter().filter(|qubit| **qubit != physical_q0).for_each(|qubit| {
+                //     swap_candidates.push((physical_q0, *qubit));
+                // });
+                swap_candidates.push((physical_q0, *neighbour))
+            }
+            
+            for neighbour in self.neighbour_map[&physical_q1].iter() {
+                // let neighbour_node = self.dag.get(*neighbour).unwrap();
+                // neighbour_node.qubits.iter().filter(|qubit| **qubit != physical_q1).for_each(|qubit| {
+                //     swap_candidates.push((physical_q1, *qubit));
+                // });
+                swap_candidates.push((physical_q1, *neighbour))
             }
         }
 
@@ -494,4 +539,17 @@ fn swap_physical_qubits(
     resulting_mapping.insert(logical_q1, tmp);
 
     resulting_mapping
+}
+    
+fn build_coupling_neighbour_map(coupling_map: &Vec<Vec<i32>>) -> HashMap<i32, Vec<i32>> {
+    let mut neighbour_map = HashMap::new();
+
+    for edge in coupling_map {
+        let u = edge[0];
+        let v = edge[1];
+
+        neighbour_map.entry(u).or_insert(Vec::new()).push(v);
+    }
+
+    neighbour_map
 }

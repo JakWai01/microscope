@@ -68,14 +68,13 @@ def microbench_new(files):
         test_executions = []
 
         # for i in range (10, 1000, 10):
-        #     test_executions.append(("lookahead-0.5-scaling", False, i))
-        test_executions.append(("lookahead-0.5-scaling", False, 20))
+            # test_executions.append(("lookahead-0.5-scaling", False, i))
+        test_executions.append(("lookahead", False, 20))
         # test_executions.append(("lookahead-0.5-scaling", False, 20))
         # test_executions.append(("lookahead-0.5-scaling", False, 40))
 
         es_size = []
         num_swaps = []
-
         
         rust_ms = microboost.MicroSABRE(rust_dag, micro_mapping, coupling_map.get_edges())
 
@@ -87,7 +86,7 @@ def microbench_new(files):
             num_swaps.append(swaps)
 
         data.append((es_size, num_swaps, file))
-    
+
     plot_result(data)
 
     
@@ -121,14 +120,15 @@ def run(file: str, show: bool):
 
     test_executions = []
 
-    for i in range(10, 1000, 10):
-        test_executions.append(("lookahead-0.5-scaling", False, i))
+    # for i in range(10, 1000, 10):
+        # test_executions.append(("lookahead-0.5-scaling", False, i))
+    test_executions.append(("lookahead-0.5-scaling", False, 20))
 
     es_size = []
     num_swaps = []
 
     for heuristic, critical, extended_set_size in tqdm(test_executions):
-        depth, swaps, _, _ = microsabre(
+        depth, swaps, _transpiled_dag, _ = microsabre(
             input_dag,
             rust_dag,
             micro_mapping,
@@ -138,6 +138,9 @@ def run(file: str, show: bool):
             critical,
             extended_set_size,
         )
+
+        transpiled_circuit = dag_to_circuit(transpiled_dag)
+        transpiled_circuit.draw("mpl", fold=-1)
         rows[0].append(str(depth))
         rows[1].append(str(swaps))
         es_size.append(extended_set_size)

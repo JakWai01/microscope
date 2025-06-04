@@ -20,9 +20,9 @@ def main(command: str, files: tuple[str, ...], show: bool):
         case "hamiltonians":
             hamiltonians(show)
         case "microbench":
-            # microbench(files, show)
             import time
             t = time.process_time()
+            # microbench(files, show)
             microbench_new(files)
             elapsed_time = time.process_time() - t
             print(f"Execution took: {elapsed_time} secs")

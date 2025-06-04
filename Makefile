@@ -1,5 +1,5 @@
 run: build
-	python3 src/microscope/main.py microbench examples/adder_n4.qasm examples/adder_n10.qasm examples/adder_n28.qasm
+	python3 src/microscope/main.py microbench examples/adder_n4.qasm examples/adder_n10.qasm examples/adder_n28.qasm examples/adder_n64.qasm
 
 build:
 	maturin develop -r
@@ -17,3 +17,6 @@ big: build
 
 big-baseline: build
 	python3 src/microscope/main.py baseline ~/Documents/hamiltonians/ham_heis_graph_2D_grid_pbc_qubitnodes_Lx_5_Ly_186_h_3.qasm
+
+small: build
+	python3 src/microscope/main.py microbench examples/adder_n10.qasm
