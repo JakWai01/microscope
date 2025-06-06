@@ -7,20 +7,20 @@ use std::time::Instant;
 
 #[derive(Clone)]
 #[pyclass(module = "microboost.routing.sabre")]
-pub(crate) struct Layout {
+pub(crate) struct MicroLayout {
     virt_to_phys: Vec<i32>,
     phys_to_virt: Vec<i32>
 }
 
 #[pymethods]
-impl Layout {
+impl MicroLayout {
     #[new]
     pub fn new(
         qubit_indices: HashMap<i32, i32>,
         virtual_qubits: usize,
         physical_qubits: usize
     ) -> Self {
-        let mut res = Layout {
+        let mut res = MicroLayout {
             virt_to_phys: vec![i32::MAX; virtual_qubits],
             phys_to_virt: vec![i32::MAX; physical_qubits],
         };
@@ -62,11 +62,11 @@ pub(crate) struct MicroSABRE {
     required_predecessors: Vec<i32>,
     adjacency_list: HashMap<i32, Vec<i32>>,
     distance: Vec<Vec<i32>>,
-    initial_mapping: Layout,
+    initial_mapping: MicroLayout,
     initial_dag: MicroDAG,
     initial_coupling_map: Vec<Vec<i32>>,
     neighbour_map: HashMap<i32, Vec<i32>>,
-    layout: Layout
+    layout: MicroLayout
 }
 
 #[pymethods]
@@ -74,7 +74,7 @@ impl MicroSABRE {
     #[new]
     pub fn new(
         dag: MicroDAG,
-        initial_layout: Layout,
+        initial_layout: MicroLayout,
         coupling_map: Vec<Vec<i32>>,
     ) -> PyResult<Self> {
         Ok(Self {
@@ -171,7 +171,7 @@ impl MicroSABRE {
     fn calculate_heuristic(
         &mut self,
         front_layer: HashSet<i32>,
-        layout: &Layout,
+        layout: &MicroLayout,
         heuristic: String,
         extended_set_size: i32
     ) -> f64 {
@@ -190,7 +190,7 @@ impl MicroSABRE {
     fn h_lookahead(
         &mut self,
         front_layer: HashSet<i32>,
-        layout: &Layout,
+        layout: &MicroLayout,
         weight: f64,
         scale: bool,
         extended_set_size: i32
@@ -223,7 +223,7 @@ impl MicroSABRE {
     fn h_basic(
         &self,
         front_layer: HashSet<i32>,
-        layout: &Layout,
+        layout: &MicroLayout,
         weight: f64,
         scale: bool,
     ) -> f64 {

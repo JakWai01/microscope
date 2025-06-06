@@ -60,10 +60,17 @@ def microbench_new(files):
 
         _, input_dag = preprocess(input_circuit, preprocessing_dag, coupling_map)
 
-        initial_mapping = generate_initial_mapping(input_dag)
+        canonical_register = input_dag.qregs["q"]
+        current_layout = Layout.generate_trivial_layout(canonical_register)
+        qubit_indices = {bit: idx for idx, bit in enumerate(canonical_register)}
+        layout_mapping = {
+            qubit_indices[k]: v for k, v in current_layout.get_virtual_bits().items() 
+        }
+        initial_layout = microboost.MicroLayout(layout_mapping, len(input_dag.qubits), coupling_map.size())
+
 
         rust_dag = DAG().from_qiskit_dag(input_dag).to_micro_dag()
-        micro_mapping = mapping_to_micro_mapping(initial_mapping)
+        # micro_mapping = mapping_to_micro_mapping(initial_mapping)
 
         test_executions = []
 
@@ -76,7 +83,7 @@ def microbench_new(files):
         es_size = []
         num_swaps = []
         
-        rust_ms = microboost.MicroSABRE(rust_dag, micro_mapping, coupling_map.get_edges())
+        rust_ms = microboost.MicroSABRE(rust_dag, initial_layout, coupling_map.get_edges())
 
         for heuristic, critical, extended_set_size in tqdm(test_executions):
             out_map, _ = rust_ms.run(heuristic, critical, extended_set_size)
@@ -110,10 +117,16 @@ def run(file: str, show: bool):
 
     _, input_dag = preprocess(input_circuit, preprocessing_dag, coupling_map)
 
-    initial_mapping = generate_initial_mapping(input_dag)
+    canonical_register = input_dag.qregs["q"]
+    current_layout = Layout.generate_trivial_layout(canonical_register)
+    qubit_indices = {bit: idx for idx, bit in enumerate(canonical_register)}
+    layout_mapping = {
+        qubit_indices[k]: v for k, v in current_layout.get_virtual_bits().items() 
+    }
+    initial_layout = microboost.MicroLayout(layout_mapping, len(input_dag.qubits), coupling_map.size())
 
     rust_dag = DAG().from_qiskit_dag(input_dag).to_micro_dag()
-    micro_mapping = mapping_to_micro_mapping(initial_mapping)
+    # micro_mapping = mapping_to_micro_mapping(initial_layout)
 
     rows = [["Depth"], ["Swaps"]]
     columns = [""]
@@ -128,10 +141,10 @@ def run(file: str, show: bool):
     num_swaps = []
 
     for heuristic, critical, extended_set_size in tqdm(test_executions):
-        depth, swaps, _transpiled_dag, _ = microsabre(
+        depth, swaps, transpiled_dag, _ = microsabre(
             input_dag,
             rust_dag,
-            micro_mapping,
+            initial_layout,
             coupling_map,
             show,
             heuristic,
