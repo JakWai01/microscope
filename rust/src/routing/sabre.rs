@@ -5,10 +5,56 @@ use pyo3::{pyclass, pymethods, PyResult};
 
 use std::time::Instant;
 
+#[derive(Clone)]
+#[pyclass(module = "microboost.routing.sabre")]
+pub(crate) struct Layout {
+    virt_to_phys: Vec<i32>,
+    phys_to_virt: Vec<i32>
+}
+
+#[pymethods]
+impl Layout {
+    #[new]
+    pub fn new(
+        qubit_indices: HashMap<i32, i32>,
+        virtual_qubits: usize,
+        physical_qubits: usize
+    ) -> Self {
+        let mut res = Layout {
+            virt_to_phys: vec![i32::MAX; virtual_qubits],
+            phys_to_virt: vec![i32::MAX; physical_qubits],
+        };
+        for (virt, phys) in qubit_indices {
+            res.virt_to_phys[virt as usize] = phys;
+            res.phys_to_virt[phys as usize] = virt;
+        }
+        res
+    }
+
+    pub fn virtual_to_physical(&self, virt: i32) -> i32 {
+        self.virt_to_phys[virt as usize]
+    }
+
+    pub fn physical_to_virtual(&self, phys: i32) -> i32 {
+        self.phys_to_virt[phys as usize]
+    }
+
+    pub fn swap_virtual(&mut self, bit_a: i32, bit_b: i32) {
+        self.virt_to_phys.swap(bit_a as usize, bit_b as usize);
+        self.phys_to_virt[self.virt_to_phys[bit_a as usize] as usize] = bit_a;
+        self.phys_to_virt[self.virt_to_phys[bit_b as usize] as usize] = bit_b;
+    }
+
+    pub fn swap_physical(&mut self, bit_a: i32, bit_b: i32) {
+        self.phys_to_virt.swap(bit_a as usize, bit_b as usize);
+        self.virt_to_phys[self.phys_to_virt[bit_a as usize] as usize] = bit_a;
+        self.virt_to_phys[self.phys_to_virt[bit_b as usize] as usize] = bit_b;
+    }
+}
+
 #[pyclass(module = "microboost.routing.sabre")]
 pub(crate) struct MicroSABRE {
     dag: MicroDAG,
-    current_mapping: HashMap<i32, i32>,
     coupling_map: Vec<Vec<i32>>,
     out_map: HashMap<i32, Vec<(i32, i32)>>,
     gate_order: Vec<i32>,
@@ -16,10 +62,11 @@ pub(crate) struct MicroSABRE {
     required_predecessors: Vec<i32>,
     adjacency_list: HashMap<i32, Vec<i32>>,
     distance: Vec<Vec<i32>>,
-    initial_mapping: HashMap<i32, i32>,
+    initial_mapping: Layout,
     initial_dag: MicroDAG,
     initial_coupling_map: Vec<Vec<i32>>,
     neighbour_map: HashMap<i32, Vec<i32>>,
+    layout: Layout
 }
 
 #[pymethods]
@@ -27,23 +74,26 @@ impl MicroSABRE {
     #[new]
     pub fn new(
         dag: MicroDAG,
-        initial_mapping: HashMap<i32, i32>,
+        initial_layout: Layout,
         coupling_map: Vec<Vec<i32>>,
     ) -> PyResult<Self> {
         Ok(Self {
             required_predecessors: vec![0; dag.nodes.len()],
             adjacency_list: build_adjacency_list(&dag),
             dag: dag.clone(),
-            current_mapping: initial_mapping.clone(),
+            layout: initial_layout.clone(),
             distance: compute_all_pairs_shortest_paths(&coupling_map),
             coupling_map: coupling_map.clone(),
             out_map: HashMap::new(),
             gate_order: Vec::new(),
             front_layer: HashSet::new(),
-            initial_mapping: initial_mapping,
+            initial_mapping: initial_layout.clone(),
             initial_dag: dag,
             neighbour_map: build_coupling_neighbour_map(&coupling_map),
-            initial_coupling_map: coupling_map
+            initial_coupling_map: coupling_map,
+            // Dunno if this should be initialized empty
+            // Create a bijective mapping instead of just having the current mapping and then
+            // this one. Create a Layout wrapper also with virt_to_physi and physi_to_virt
         })
     }
 
@@ -53,7 +103,7 @@ impl MicroSABRE {
         self.required_predecessors = vec![0; self.dag.nodes.len()];
         self.adjacency_list = build_adjacency_list(&self.dag);
 
-        self.current_mapping = self.initial_mapping.clone();
+        self.layout = self.initial_mapping.clone();
         self.distance = compute_all_pairs_shortest_paths(&self.coupling_map);
 
         self.out_map.clear();
@@ -91,11 +141,7 @@ impl MicroSABRE {
                 let physical_q1 = best_swap.1;
                 
                 current_swaps.push(best_swap);
-                self.current_mapping = swap_physical_qubits(
-                    physical_q0,
-                    physical_q1,
-                    &self.current_mapping,
-                );
+                self.layout.swap_physical(physical_q0, physical_q1);
 
                 if let Some(node) = self.executable_node_on_qubit(physical_q0) {
                     execute_gate_list.push(node as i32);
@@ -125,17 +171,17 @@ impl MicroSABRE {
     fn calculate_heuristic(
         &mut self,
         front_layer: HashSet<i32>,
-        current_mapping: HashMap<i32, i32>,
+        layout: &Layout,
         heuristic: String,
         extended_set_size: i32
     ) -> f64 {
         match heuristic.as_str() {
-            "basic" => self.h_basic(front_layer, current_mapping, 1.0, false),
-            "basic-scale" => self.h_basic(front_layer, current_mapping, 1.0, true),
-            "lookahead" => self.h_lookahead(front_layer, current_mapping, 1.0, false, extended_set_size),
-            "lookahead-0.5" => self.h_lookahead(front_layer, current_mapping, 0.5, false, extended_set_size),
-            "lookahead-scaling" => self.h_lookahead(front_layer, current_mapping, 1.0, false, extended_set_size),
-            "lookahead-0.5-scaling" => self.h_lookahead(front_layer, current_mapping, 1.0, true, extended_set_size),
+            "basic" => self.h_basic(front_layer, layout, 1.0, false),
+            "basic-scale" => self.h_basic(front_layer, layout, 1.0, true),
+            "lookahead" => self.h_lookahead(front_layer, layout, 1.0, false, extended_set_size),
+            "lookahead-0.5" => self.h_lookahead(front_layer, layout, 0.5, false, extended_set_size),
+            "lookahead-scaling" => self.h_lookahead(front_layer, layout,1.0, false, extended_set_size),
+            "lookahead-0.5-scaling" => self.h_lookahead(front_layer, layout, 1.0, true, extended_set_size),
             _ => panic!("Unknown heuristic type: {}", heuristic),
         }
     }
@@ -144,7 +190,7 @@ impl MicroSABRE {
     fn h_lookahead(
         &mut self,
         front_layer: HashSet<i32>,
-        current_mapping: HashMap<i32, i32>,
+        layout: &Layout,
         weight: f64,
         scale: bool,
         extended_set_size: i32
@@ -153,10 +199,10 @@ impl MicroSABRE {
             return 0.0;
         }
 
-        let h_basic_result = self.h_basic(front_layer.clone(), current_mapping.clone(), 1.0, scale);
+        let h_basic_result = self.h_basic(front_layer.clone(), layout, 1.0, scale);
         let extended_set = self.get_extended_set(extended_set_size); // Returns HashSet<usize>
 
-        let h_basic_result_extended = self.h_basic(extended_set.clone(), current_mapping, 1.0, scale);
+        let h_basic_result_extended = self.h_basic(extended_set.clone(), layout, 1.0, scale);
 
         let adjusted_weight = if scale {
             if extended_set.is_empty() {
@@ -177,7 +223,7 @@ impl MicroSABRE {
     fn h_basic(
         &self,
         front_layer: HashSet<i32>,
-        current_mapping: HashMap<i32, i32>,
+        layout: &Layout,
         weight: f64,
         scale: bool,
     ) -> f64 {
@@ -192,8 +238,8 @@ impl MicroSABRE {
 
             let q0 = node.qubits[0];
             let q1 = node.qubits[1];
-            let physical_q0 = current_mapping[&q0];
-            let physical_q1 = current_mapping[&q1];
+            let physical_q0 = layout.virtual_to_physical(q0);
+            let physical_q1 = layout.virtual_to_physical(q1);
 
             let actual_weight = if scale {
                 if front_layer.is_empty() {
@@ -276,11 +322,13 @@ impl MicroSABRE {
         let swap_candidates: Vec<(i32, i32)> =  self.compute_swap_candidates();
 
         for &(q0, q1) in &swap_candidates {
-            let before = self.calculate_heuristic(self.front_layer.clone(), self.current_mapping.clone(), heuristic.clone(), extended_set_size);
+            let before = self.calculate_heuristic(self.front_layer.clone(), &self.layout.clone(), heuristic.clone(), extended_set_size);
 
-            let temporary_mapping = swap_physical_qubits(q0, q1, &self.current_mapping);
+            let mut temporary_mapping = self.layout.clone();
+            temporary_mapping.swap_physical(q0, q1);
+            // let temporary_mapping = swap_physical_qubits(q0, q1, temporary_mapping);
 
-            let after = self.calculate_heuristic(self.front_layer.clone(), temporary_mapping, heuristic.clone(), extended_set_size);
+            let after = self.calculate_heuristic(self.front_layer.clone(), &temporary_mapping, heuristic.clone(), extended_set_size);
 
             scores.insert((q0, q1), after - before);
         }
@@ -293,8 +341,8 @@ impl MicroSABRE {
 
         for &gate in &self.front_layer {
             let node = self.dag.get(gate).unwrap(); // Assuming node has a `qubits: Vec<usize>`
-            let physical_q0 = self.current_mapping[&node.qubits[0]];
-            let physical_q1 = self.current_mapping[&node.qubits[1]];
+            let physical_q0 = self.layout.virtual_to_physical(node.qubits[0]);
+            let physical_q1 = self.layout.virtual_to_physical(node.qubits[1]);
             
             for neighbour in self.neighbour_map[&physical_q0].iter() {
                 swap_candidates.push((physical_q0, *neighbour))
@@ -321,8 +369,8 @@ impl MicroSABRE {
                 continue;
             }
 
-            let physical_q0 = self.current_mapping[&node.qubits[0]];
-            let physical_q1 = self.current_mapping[&node.qubits[1]];
+            let physical_q0 = self.layout.virtual_to_physical(node.qubits[0]);
+            let physical_q1 = self.layout.virtual_to_physical(node.qubits[1]);
 
             if physical_q0 == physical_qubit || physical_q1 == physical_qubit {
                 if self.distance[physical_q0 as usize][physical_q1 as usize] == 1 {
@@ -343,8 +391,8 @@ impl MicroSABRE {
             let node = self.dag.get(node_index).unwrap(); // Assuming this returns a reference to Node
 
             if node.qubits.len() == 2 {
-                let physical_q0 = self.current_mapping[&node.qubits[0]];
-                let physical_q1 = self.current_mapping[&node.qubits[1]];
+                let physical_q0 = self.layout.virtual_to_physical(node.qubits[0]);
+                let physical_q1 = self.layout.virtual_to_physical(node.qubits[1]);
 
                 // Check whether the node can be executed on the current mapping
                 if self.distance[physical_q0 as usize][physical_q1 as usize] != 1 {
@@ -457,32 +505,32 @@ fn compute_all_pairs_shortest_paths(coupling_map: &Vec<Vec<i32>>) -> Vec<Vec<i32
     dist
 }
 
-// TODO: Try to improve this next
-fn swap_physical_qubits(
-    physical_q0: i32,
-    physical_q1: i32,
-    current_mapping: &HashMap<i32, i32>,
-) -> HashMap<i32, i32> {
-    let mut resulting_mapping = current_mapping.clone();
+// TODO: Try to improve this next - we need a physical to virtual mapping
+// fn swap_physical_qubits(
+//     physical_q0: i32,
+//     physical_q1: i32,
+//     current_mapping: &HashMap<i32, i32>,
+// ) -> HashMap<i32, i32> {
+//     let mut resulting_mapping = current_mapping.clone();
 
-    // Find logical qubits corresponding to the physical ones
-    let logical_q0 = current_mapping
-        .iter()
-        .find_map(|(&key, &value)| if value == physical_q0 { Some(key) } else { None })
-        .expect("physical_q0 not found in current_mapping");
+//     // Find logical qubits corresponding to the physical ones
+//     let logical_q0 = current_mapping
+//         .iter()
+//         .find_map(|(&key, &value)| if value == physical_q0 { Some(key) } else { None })
+//         .expect("physical_q0 not found in current_mapping");
 
-    let logical_q1 = current_mapping
-        .iter()
-        .find_map(|(&key, &value)| if value == physical_q1 { Some(key) } else { None })
-        .expect("physical_q1 not found in current_mapping");
+//     let logical_q1 = current_mapping
+//         .iter()
+//         .find_map(|(&key, &value)| if value == physical_q1 { Some(key) } else { None })
+//         .expect("physical_q1 not found in current_mapping");
 
-    // Swap their mapped values
-    let tmp = resulting_mapping[&logical_q0];
-    resulting_mapping.insert(logical_q0, resulting_mapping[&logical_q1]);
-    resulting_mapping.insert(logical_q1, tmp);
+//     // Swap their mapped values
+//     let tmp = resulting_mapping[&logical_q0];
+//     resulting_mapping.insert(logical_q0, resulting_mapping[&logical_q1]);
+//     resulting_mapping.insert(logical_q1, tmp);
 
-    resulting_mapping
-}
+//     resulting_mapping
+// }
     
 fn build_coupling_neighbour_map(coupling_map: &Vec<Vec<i32>>) -> HashMap<i32, Vec<i32>> {
     let mut neighbour_map = HashMap::new();
