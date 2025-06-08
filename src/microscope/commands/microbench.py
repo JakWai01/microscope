@@ -70,15 +70,11 @@ def microbench_new(files):
 
 
         rust_dag = DAG().from_qiskit_dag(input_dag).to_micro_dag()
-        # micro_mapping = mapping_to_micro_mapping(initial_mapping)
 
         test_executions = []
 
         for i in range (10, 1000, 10):
-            test_executions.append(("lookahead-0.5-scaling", False, i))
-        # test_executions.append(("lookahead-scaling", False, 20))
-        # test_executions.append(("lookahead-0.5-scaling", False, 20))
-        # test_executions.append(("lookahead-0.5-scaling", False, 40))
+            test_executions.append(("lookahead-0.5-scaling", False, 20))
 
         es_size = []
         num_swaps = []
@@ -88,7 +84,6 @@ def microbench_new(files):
         for heuristic, critical, extended_set_size in tqdm(test_executions):
             out_map, _ = rust_ms.run(heuristic, critical, extended_set_size)
             swaps = sum(len(arr) for arr in out_map.values())
-            # print(f"Swaps: {swaps}")
             es_size.append(extended_set_size)
             num_swaps.append(swaps)
 
@@ -126,7 +121,6 @@ def run(file: str, show: bool):
     initial_layout = microboost.MicroLayout(layout_mapping, len(input_dag.qubits), coupling_map.size())
 
     rust_dag = DAG().from_qiskit_dag(input_dag).to_micro_dag()
-    # micro_mapping = mapping_to_micro_mapping(initial_layout)
 
     rows = [["Depth"], ["Swaps"]]
     columns = [""]

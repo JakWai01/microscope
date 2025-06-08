@@ -7,6 +7,7 @@ from commands.hamiltonians import hamiltonians
 from commands.microbench import microbench, microbench_new 
 from commands.slide import slide
 
+import time
 
 @click.command()
 @click.argument("command", nargs=1)
@@ -20,7 +21,6 @@ def main(command: str, files: tuple[str, ...], show: bool):
         case "hamiltonians":
             hamiltonians(show)
         case "microbench":
-            import time
             t = time.process_time()
             # microbench(files, show)
             microbench_new(files)
@@ -29,7 +29,10 @@ def main(command: str, files: tuple[str, ...], show: bool):
         case "slide":
             slide()
         case "baseline":
-            qiskit_baseline(files[0])
+            t = time.process_time()
+            qiskit_baseline(files)
+            elapsed_time = time.process_time() - t
+            print(f"Execution took: {elapsed_time} secs")
         case _:
             print(
                 "Invalid command. Choose one out of [hamiltonians, microbench, slide, qiskit_baseline]"

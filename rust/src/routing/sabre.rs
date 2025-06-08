@@ -3,8 +3,6 @@ use std::{collections::{HashMap, HashSet, VecDeque}, i32};
 
 use pyo3::{pyclass, pymethods, PyResult};
 
-use std::time::Instant;
-
 #[derive(Clone)]
 #[pyclass(module = "microboost.routing.sabre")]
 pub(crate) struct MicroLayout {
@@ -91,9 +89,6 @@ impl MicroSABRE {
             initial_dag: dag,
             neighbour_map: build_coupling_neighbour_map(&coupling_map),
             initial_coupling_map: coupling_map,
-            // Dunno if this should be initialized empty
-            // Create a bijective mapping instead of just having the current mapping and then
-            // this one. Create a Layout wrapper also with virt_to_physi and physi_to_virt
         })
     }
 
@@ -134,7 +129,6 @@ impl MicroSABRE {
             let mut current_swaps: Vec<(i32, i32)> = Vec::new();
 
             while execute_gate_list.is_empty() {
-                // This clone costs a bit performance
                 let best_swap = self.choose_best_swap(heuristic.clone(), extended_set_size);
                 
                 let physical_q0 = best_swap.0;
@@ -326,7 +320,6 @@ impl MicroSABRE {
 
             let mut temporary_mapping = self.layout.clone();
             temporary_mapping.swap_physical(q0, q1);
-            // let temporary_mapping = swap_physical_qubits(q0, q1, temporary_mapping);
 
             let after = self.calculate_heuristic(self.front_layer.clone(), &temporary_mapping, heuristic.clone(), extended_set_size);
 
@@ -474,7 +467,6 @@ fn build_adjacency_list(dag: &MicroDAG) -> HashMap<i32, Vec<i32>> {
     adj
 }
 
-
 fn compute_all_pairs_shortest_paths(coupling_map: &Vec<Vec<i32>>) -> Vec<Vec<i32>> {
     let n = coupling_map.iter().flatten().copied().max().unwrap_or(0) as usize + 1;
     let mut dist = vec![vec![i32::MAX / 2; n]; n]; // Avoid overflow
@@ -504,33 +496,6 @@ fn compute_all_pairs_shortest_paths(coupling_map: &Vec<Vec<i32>>) -> Vec<Vec<i32
 
     dist
 }
-
-// TODO: Try to improve this next - we need a physical to virtual mapping
-// fn swap_physical_qubits(
-//     physical_q0: i32,
-//     physical_q1: i32,
-//     current_mapping: &HashMap<i32, i32>,
-// ) -> HashMap<i32, i32> {
-//     let mut resulting_mapping = current_mapping.clone();
-
-//     // Find logical qubits corresponding to the physical ones
-//     let logical_q0 = current_mapping
-//         .iter()
-//         .find_map(|(&key, &value)| if value == physical_q0 { Some(key) } else { None })
-//         .expect("physical_q0 not found in current_mapping");
-
-//     let logical_q1 = current_mapping
-//         .iter()
-//         .find_map(|(&key, &value)| if value == physical_q1 { Some(key) } else { None })
-//         .expect("physical_q1 not found in current_mapping");
-
-//     // Swap their mapped values
-//     let tmp = resulting_mapping[&logical_q0];
-//     resulting_mapping.insert(logical_q0, resulting_mapping[&logical_q1]);
-//     resulting_mapping.insert(logical_q1, tmp);
-
-//     resulting_mapping
-// }
     
 fn build_coupling_neighbour_map(coupling_map: &Vec<Vec<i32>>) -> HashMap<i32, Vec<i32>> {
     let mut neighbour_map = HashMap::new();

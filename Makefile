@@ -1,5 +1,5 @@
 run: build
-	python3 src/microscope/main.py microbench examples/adder_n4.qasm examples/adder_n10.qasm examples/adder_n28.qasm examples/adder_n64.qasm
+	python3 src/microscope/main.py baseline examples/adder_n4.qasm examples/adder_n10.qasm examples/adder_n28.qasm examples/adder_n64.qasm
 
 build:
 	maturin develop -r
