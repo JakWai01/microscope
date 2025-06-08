@@ -3,10 +3,12 @@ use std::{collections::{HashMap, HashSet, VecDeque}, i32, time::Instant};
 
 use pyo3::{pyclass, pymethods, PyResult};
 
+use indexmap::IndexMap;
+
 #[derive(Clone)]
 #[pyclass(module = "microboost.routing.sabre")]
 pub(crate) struct MicroFront {
-    nodes: HashMap<i32, [i32; 2]>,
+    nodes: IndexMap<i32, [i32; 2]>,
     qubits: Vec<Option<(i32, i32)>>,
 }
 
@@ -14,7 +16,7 @@ impl MicroFront {
     pub fn new(num_qubits: i32) -> Self {
         Self {
             // with_capacity_and_hasher
-            nodes: HashMap::with_capacity(
+            nodes: IndexMap::with_capacity(
                 num_qubits as usize / 2
             ),
             qubits: vec![None; num_qubits as usize]
@@ -41,10 +43,38 @@ impl MicroFront {
         // Swap-remove is more efficient than a full shift-remove.
         let [a, b] = self
             .nodes
-            .remove(index)
+            .swap_remove(index)
             .expect("Tried removing index that does not exist.");
         self.qubits[a as usize] = None;
         self.qubits[b as usize] = None;
+    }
+
+    pub fn is_active(&self, qubit: i32) -> bool {
+        self.qubits[qubit as usize].is_some()
+    }
+
+        /// Apply a physical swap to the current layout data structure.
+    pub fn apply_swap(&mut self, swap: [i32; 2]) {
+        let [a, b] = swap;
+        match (self.qubits[a as usize], self.qubits[b as usize]) {
+            (Some((index1, _)), Some((index2, _))) if index1 == index2 => {
+                let entry = self.nodes.get_mut(&index1).unwrap();
+                *entry = [entry[1], entry[0]];
+                return;
+            }
+            _ => {}
+        }
+        if let Some((index, c)) = self.qubits[a as usize] {
+            self.qubits[c as usize] = Some((index, b));
+            let entry = self.nodes.get_mut(&index).unwrap();
+            *entry = if *entry == [a, c] { [b, c] } else { [c, b] };
+        }
+        if let Some((index, c)) = self.qubits[b as usize] {
+            self.qubits[c as usize] = Some((index, a));
+            let entry = self.nodes.get_mut(&index).unwrap();
+            *entry = if *entry == [b, c] { [a, c] } else { [c, a] };
+        }
+        self.qubits.swap(a as usize, b as usize);
     }
 
 }
@@ -142,6 +172,12 @@ impl MicroSABRE {
     }
 
 
+    // Maybe it would make sense to also maintain an extended set and apply swaps there
+    fn apply_swap(&mut self, swap: (i32, i32)) {
+        self.front_layer.apply_swap([swap.0, swap.1]);
+        self.layout.swap_physical(swap.0, swap.1);
+    }
+
     fn clear_data_structures(&mut self) {
         // In theory, this should always be zero in the end (so we could skip it - only if everything goes well)
         self.required_predecessors = vec![0; self.dag.nodes.len()];
@@ -191,9 +227,12 @@ impl MicroSABRE {
             let mut current_swaps: Vec<(i32, i32)> = Vec::new();
 
             while execute_gate_list.is_empty() {
+                // if current_swaps.len() > 100 {
+                //     panic!("Ladies and gentleman, we are looping!")
+                // }
                 // let now = Instant::now();
                 let best_swap = self.choose_best_swap(heuristic.clone(), extended_set_size);
-                println!("Best swap: {:?}", best_swap);
+                // println!("Best swap: {:?}", best_swap);
                 // let elapsed = now.elapsed();
                 // println!("<choose_best_swap> took {:?}", elapsed);
                 
@@ -201,7 +240,8 @@ impl MicroSABRE {
                 let physical_q1 = best_swap.1;
                 
                 current_swaps.push(best_swap);
-                self.layout.swap_physical(physical_q0, physical_q1);
+                // self.layout.swap_physical(physical_q0, physical_q1);
+                self.apply_swap((physical_q0, physical_q1));
 
                 // let now = Instant::now();
                 if let Some(node) = self.executable_node_on_qubit(physical_q0) {
@@ -326,7 +366,8 @@ impl MicroSABRE {
         // TODO: This could be simplified if iterating over active qubits right?
         for gate in front_layer.nodes.keys() {
             let node = self.dag.get(*gate).unwrap();
-
+            
+            // This shouldn't be possible, right?
             if node.qubits.len() == 1 {
                 continue;
             }
@@ -439,33 +480,53 @@ impl MicroSABRE {
     }
 
     fn compute_swap_candidates(&self) -> Vec<(i32, i32)> {
-        let mut swap_candidates: Vec<(i32, i32)> = Vec::new();
+        // let mut swap_candidates: Vec<(i32, i32)> = Vec::new();
+        let mut swap_candidates_new: Vec<(i32, i32)> = Vec::new();
+
+        // They should literally be the same
+        // let mut phys: Vec<i32> = Vec::new();
+        let mut phys_new: Vec<i32> = Vec::new();
 
         // println!("Items in front_layer: {:?}", self.front_layer.len());
-        // TODO: Use only active qubits here
-        for &gate in self.front_layer.nodes.keys() {
-            let node = self.dag.get(gate).unwrap();
-            let physical_q0 = self.layout.virtual_to_physical(node.qubits[0]);
-            let physical_q1 = self.layout.virtual_to_physical(node.qubits[1]);
-            
-            for neighbour in self.neighbour_map[&physical_q0].iter() {
-                swap_candidates.push((physical_q0, *neighbour))
-            }
-            
-            for neighbour in self.neighbour_map[&physical_q1].iter() {
-                swap_candidates.push((physical_q1, *neighbour))
-            }
-        }
-
-        
-        // for phys in self.front_layer.nodes.values().flatten() {
-        //     for neighbour in self.neighbour_map[phys].iter() {
-        //         swap_candidates.push((*phys, *neighbour))
+        // // TODO: Use only active qubits here
+        // for &gate in self.front_layer.nodes.keys() {
+        //     let node = self.dag.get(gate).unwrap();
+        //     let physical_q0 = self.layout.virtual_to_physical(node.qubits[0]);
+        //     phys.push(physical_q0);
+        //     let physical_q1 = self.layout.virtual_to_physical(node.qubits[1]);
+        //     phys.push(physical_q1);
+         
+        //     for neighbour in self.neighbour_map[&physical_q0].iter() {
+        //         swap_candidates.push((physical_q0, *neighbour))
+        //     }
+         
+        //     for neighbour in self.neighbour_map[&physical_q1].iter() {
+        //         swap_candidates.push((physical_q1, *neighbour))
         //     }
         // }
 
-        println!("Swap candidates: {:?}", swap_candidates);
-        swap_candidates
+
+        // I think the code is the same and the bug lies in the underlying data structure 
+        for &phys in self.front_layer.nodes.values().flatten() {
+            phys_new.push(phys);
+            for neighbour in self.neighbour_map[&phys].iter() {
+                // if neighbour > phys || !self.front_layer.is_active(neighbour) {
+                    swap_candidates_new.push((phys, *neighbour))
+                // }
+            }
+        }
+
+        // println!("Phys: {:?}", phys);
+        // println!("Phys_new: {:?}", phys_new);
+
+        // println!("Length swap candidates: {:?}", swap_candidates.len());
+        // println!("Length swap candidates new: {:?}", swap_candidates_new.len());
+        // let difference: Vec<_> = swap_candidates.clone().into_iter().filter(|item| !swap_candidates_new.contains(item)).collect();
+        // let difference_new: Vec<_> = swap_candidates_new.clone().into_iter().filter(|item| !swap_candidates.contains(item)).collect();
+        // println!("Diff {:?}", difference);
+        // println!("Diff2 {:?}", difference_new);
+
+        swap_candidates_new
     }
 
 

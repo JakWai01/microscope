@@ -9,6 +9,7 @@ name = "microboost"
 crate-type = ["cdylib"]
 
 [dependencies]
+indexmap = "2.9.0"
 pyo3 = "0.24.0"
 
 [profile.release]
