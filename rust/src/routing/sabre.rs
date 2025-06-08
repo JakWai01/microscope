@@ -1,5 +1,5 @@
 use crate::graph::dag::MicroDAG;
-use std::{collections::{HashMap, HashSet, VecDeque}, i32};
+use std::{collections::{HashMap, HashSet, VecDeque}, i32, time::Instant};
 
 use pyo3::{pyclass, pymethods, PyResult};
 
@@ -56,7 +56,7 @@ pub(crate) struct MicroSABRE {
     coupling_map: Vec<Vec<i32>>,
     out_map: HashMap<i32, Vec<(i32, i32)>>,
     gate_order: Vec<i32>,
-    front_layer: HashSet<i32>,
+    front_layer: HashMap<i32, [i32; 2]>,
     required_predecessors: Vec<i32>,
     adjacency_list: HashMap<i32, Vec<i32>>,
     distance: Vec<Vec<i32>>,
@@ -84,7 +84,7 @@ impl MicroSABRE {
             coupling_map: coupling_map.clone(),
             out_map: HashMap::new(),
             gate_order: Vec::new(),
-            front_layer: HashSet::new(),
+            front_layer: HashMap::new(),
             initial_mapping: initial_layout.clone(),
             initial_dag: dag,
             neighbour_map: build_coupling_neighbour_map(&coupling_map),
@@ -111,17 +111,30 @@ impl MicroSABRE {
     }
 
     fn run(&mut self, heuristic: String, _critical_path: bool, extended_set_size: i32) -> (HashMap<i32, Vec<(i32, i32)>>, Vec<i32>){
+        // let now = Instant::now();
         self.clear_data_structures();
-
+        // let elapsed = now.elapsed();
+        // println!("<clear_data_structures> took {:?}", elapsed);
+        
+        
+        // let now = Instant::now();
         self.dag
             .edges()
             .unwrap()
             .iter()
             .for_each(|edge| self.required_predecessors[edge.1 as usize] += 1);
+        // let elapsed = now.elapsed();
+        // println!("<required_predecessors> took {:?}", elapsed);
 
+        // let now = Instant::now();
         let initial_front = self.initial_front();
+        // let elapsed = now.elapsed();
+        // println!("<initial_front> took {:?}", elapsed);
 
+        // let now = Instant::now();
         self.advance_front_layer(initial_front);
+        // let elapsed = now.elapsed();
+        // println!("<advance_front_layer> took {:?}", elapsed);
 
         let mut execute_gate_list: Vec<i32> = Vec::new();
 
@@ -129,7 +142,10 @@ impl MicroSABRE {
             let mut current_swaps: Vec<(i32, i32)> = Vec::new();
 
             while execute_gate_list.is_empty() {
+                // let now = Instant::now();
                 let best_swap = self.choose_best_swap(heuristic.clone(), extended_set_size);
+                // let elapsed = now.elapsed();
+                // println!("<choose_best_swap> took {:?}", elapsed);
                 
                 let physical_q0 = best_swap.0;
                 let physical_q1 = best_swap.1;
@@ -137,6 +153,7 @@ impl MicroSABRE {
                 current_swaps.push(best_swap);
                 self.layout.swap_physical(physical_q0, physical_q1);
 
+                // let now = Instant::now();
                 if let Some(node) = self.executable_node_on_qubit(physical_q0) {
                     execute_gate_list.push(node as i32);
                 }
@@ -144,6 +161,8 @@ impl MicroSABRE {
                 if let Some(node) = self.executable_node_on_qubit(physical_q1) {
                     execute_gate_list.push(node as i32);
                 }
+                // let elapsed = now.elapsed();
+                // println!("<executable_node_on_qubit> took {:?}", elapsed);
             }
 
             let node_id = self.dag.get(execute_gate_list[0] as i32).unwrap().id;
@@ -156,15 +175,20 @@ impl MicroSABRE {
                 self.front_layer.remove(&(node as i32));
             }
 
+            // let now = Instant::now();
             self.advance_front_layer(execute_gate_list.clone());
             execute_gate_list.clear();
+            // let elapsed = now.elapsed();
+            // println!("<advance_front_layer> took {:?}", elapsed);
+            
+            // panic!("Stopping here");
         }
 
         (self.out_map.clone(), self.gate_order.clone()) 
     }
     fn calculate_heuristic(
         &mut self,
-        front_layer: HashSet<i32>,
+        front_layer: HashMap<i32, [i32; 2]>,
         layout: &MicroLayout,
         heuristic: String,
         extended_set_size: i32
@@ -183,21 +207,38 @@ impl MicroSABRE {
     // A lot of cloning in here
     fn h_lookahead(
         &mut self,
-        front_layer: HashSet<i32>,
+        front_layer: HashMap<i32, [i32; 2]>,
         layout: &MicroLayout,
         weight: f64,
         scale: bool,
         extended_set_size: i32
     ) -> f64 {
+        // let now_f = Instant::now();
+
+        // let now = Instant::now();
         if front_layer.is_empty() {
             return 0.0;
         }
+        // let elapsed = now.elapsed();
+        // println!("<is_empty> took {:?}", elapsed);
 
+
+        // let now = Instant::now();
         let h_basic_result = self.h_basic(front_layer.clone(), layout, 1.0, scale);
+        // let elapsed = now.elapsed();
+        // println!("<h_basic> took {:?}", elapsed);
+        
+        // let now = Instant::now();
         let extended_set = self.get_extended_set(extended_set_size); // Returns HashSet<usize>
+        // let elapsed = now.elapsed();
+        // println!("<get_extended_set> took {:?}", elapsed);
 
+        // let now = Instant::now();
         let h_basic_result_extended = self.h_basic(extended_set.clone(), layout, 1.0, scale);
+        // let elapsed = now.elapsed();
+        // println!("<h_basic> took {:?}", elapsed);
 
+        // let now = Instant::now();
         let adjusted_weight = if scale {
             if extended_set.is_empty() {
                 0.0
@@ -207,24 +248,33 @@ impl MicroSABRE {
         } else {
             weight
         };
+        // let elapsed = now.elapsed();
+        // println!("<adjusted_weight> took {:?}", elapsed);
 
+
+        // let now = Instant::now();
         let front_len = front_layer.len() as f64;
         let extended_len = extended_set.len().max(1) as f64; // Avoid division by zero
+        // let elapsed = now.elapsed();
+        // println!("<len> took {:?}", elapsed);
 
+        // let elapsed = now_f.elapsed();
+        // println!("<h_lookahead> took {:?}", elapsed);
         (1.0 / front_len) * h_basic_result + adjusted_weight * (1.0 / extended_len) * h_basic_result_extended
     }
 
     fn h_basic(
         &self,
-        front_layer: HashSet<i32>,
+        front_layer: HashMap<i32, [i32; 2]>,
         layout: &MicroLayout,
         weight: f64,
         scale: bool,
     ) -> f64 {
         let mut h_sum = 0.0;
 
-        for gate in &front_layer {
-            let node = self.dag.get(*gate).unwrap(); // Assumes node has a `.qubits: Vec<usize>`
+        // TODO: This could be simplified if iterating over active qubits right?
+        for gate in front_layer.keys() {
+            let node = self.dag.get(*gate).unwrap();
 
             if node.qubits.len() == 1 {
                 continue;
@@ -252,14 +302,14 @@ impl MicroSABRE {
         h_sum
     }
 
-     fn get_extended_set(&mut self, extended_set_size: i32) -> HashSet<i32> {
+     fn get_extended_set(&mut self, extended_set_size: i32) -> HashMap<i32, [i32; 2]> {
 
         let mut required_predecessors = self.required_predecessors.clone();
 
-        let mut to_visit: Vec<i32> = self.front_layer.iter().copied().collect();
+        let mut to_visit: Vec<i32> = self.front_layer.keys().copied().collect();
         let mut i = 0;
 
-        let mut extended_set: HashSet<i32> = HashSet::new();
+        let mut extended_set: HashMap<i32, [i32; 2]> = HashMap::new();
         let mut visit_now: Vec<i32> = Vec::new();
 
         let mut decremented: HashMap<i32, i32> = HashMap::new();
@@ -274,6 +324,7 @@ impl MicroSABRE {
 
                 if let Some(successors) = self.adjacency_list.get(&(node_id as i32)) {
                     for &successor in successors {
+                        let succ = self.dag.get(successor).unwrap();
                         if *visited.get(&successor).unwrap_or(&false) == false {
                             visited.insert(successor, true);
 
@@ -281,8 +332,10 @@ impl MicroSABRE {
                             required_predecessors[successor as usize] -= 1;
 
                             if required_predecessors[successor as usize] == 0 {
-                                if self.dag.get(successor).unwrap().qubits.len() == 2 {
-                                    extended_set.insert(successor);
+                                if succ.qubits.len() == 2 {
+                                    let physical_q0 = self.layout.virtual_to_physical(succ.qubits[0]);
+                                    let physical_q1 = self.layout.virtual_to_physical(succ.qubits[1]);
+                                    extended_set.insert(successor, [physical_q0, physical_q1]);
                                     to_visit.push(successor);
                                     continue;
                                 }
@@ -291,7 +344,9 @@ impl MicroSABRE {
 
                             // Also adding the first layer of unroutable gates seems to improve results
                             if self.dag.get(successor).unwrap().qubits.len() == 2 {
-                                extended_set.insert(successor);
+                                let physical_q0 = self.layout.virtual_to_physical(succ.qubits[0]);
+                                let physical_q1 = self.layout.virtual_to_physical(succ.qubits[1]);
+                                extended_set.insert(successor, [physical_q0, physical_q1]);
                             }
                         }
                     }
@@ -315,6 +370,7 @@ impl MicroSABRE {
 
         let swap_candidates: Vec<(i32, i32)> =  self.compute_swap_candidates();
 
+        // let now = Instant::now();
         for &(q0, q1) in &swap_candidates {
             let before = self.calculate_heuristic(self.front_layer.clone(), &self.layout.clone(), heuristic.clone(), extended_set_size);
 
@@ -325,6 +381,8 @@ impl MicroSABRE {
 
             scores.insert((q0, q1), after - before);
         }
+        // let elapsed = now.elapsed();
+        // println!("<scoring> took {:?}", elapsed);
 
         self.min_score(scores)
     }
@@ -332,14 +390,16 @@ impl MicroSABRE {
     fn compute_swap_candidates(&self) -> Vec<(i32, i32)> {
         let mut swap_candidates: Vec<(i32, i32)> = Vec::new();
 
-        for &gate in &self.front_layer {
-            let node = self.dag.get(gate).unwrap(); // Assuming node has a `qubits: Vec<usize>`
+        // println!("Items in front_layer: {:?}", self.front_layer.len());
+        // TODO: Use only active qubits here
+        for &gate in self.front_layer.keys() {
+            let node = self.dag.get(gate).unwrap();
             let physical_q0 = self.layout.virtual_to_physical(node.qubits[0]);
             let physical_q1 = self.layout.virtual_to_physical(node.qubits[1]);
             
-            for neighbour in self.neighbour_map[&physical_q0].iter() {
-                swap_candidates.push((physical_q0, *neighbour))
-            }
+            // for neighbour in self.neighbour_map[&physical_q0].iter() {
+            //     swap_candidates.push((physical_q0, *neighbour))
+            // }
             
             for neighbour in self.neighbour_map[&physical_q1].iter() {
                 swap_candidates.push((physical_q1, *neighbour))
@@ -356,8 +416,11 @@ impl MicroSABRE {
     }
 
     fn executable_node_on_qubit(&self, physical_qubit: i32) -> Option<i32> {
-        for &node_id in &self.front_layer {
+        // TODO: We could only use active ones here as well
+        for &node_id in self.front_layer.keys() {
             let node = self.dag.get(node_id).unwrap();
+
+            // This can't happen in the front_layer right?
             if node.qubits.len() < 2 {
                 continue;
             }
@@ -389,7 +452,7 @@ impl MicroSABRE {
 
                 // Check whether the node can be executed on the current mapping
                 if self.distance[physical_q0 as usize][physical_q1 as usize] != 1 {
-                    self.front_layer.insert(node_index);
+                    self.front_layer.insert(node_index, [physical_q0, physical_q1]);
                     continue;
                 }
             }
@@ -426,37 +489,6 @@ impl MicroSABRE {
             .cloned()
             .collect()
     }
-    
-    fn get_successor_map(&self) -> HashMap<i32, usize> {
-        // Node index or node id?
-        let mut successor_set: HashMap<i32, HashSet<i32>> = HashMap::new();
-
-        for u in (0..self.dag.nodes.len()).rev() {
-            successor_set.entry(u as i32).or_insert(HashSet::new());
-
-            if let Some(neighbors) = self.adjacency_list.get(&(u as i32)) {
-                for &v in neighbors {
-                    // Add direct successor
-                    successor_set.get_mut(&(u as i32)).unwrap().insert(v);
-
-                    if let Some(successors) = successor_set.get(&v) {
-                            // Clone before the mutable borrow
-                        let v_successors_cloned: HashSet<_> = successors.iter().cloned().collect();
-                        successor_set.get_mut(&(u as i32)).unwrap().extend(v_successors_cloned);
-                    }
-                }
-            }
-        }
-
-        let mut successor_map: HashMap<i32, usize> = HashMap::new();
-
-        for (index, _) in &self.dag.nodes {
-            successor_map.insert(*index, successor_set.get(index).map_or(0, |s| s.len()));
-        }
-
-        successor_map
-    }
-
 }
 
 fn build_adjacency_list(dag: &MicroDAG) -> HashMap<i32, Vec<i32>> {

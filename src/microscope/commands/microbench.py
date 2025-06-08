@@ -50,7 +50,7 @@ def transpile_circuit(circuit):
     return preprocessed_dag, transpiled_dag, segments
 
 def microbench_new(files):
-    data = []
+    # data = []
 
     for file in files:
         input_circuit = QuantumCircuit.from_qasm_file(file)
@@ -74,22 +74,22 @@ def microbench_new(files):
         test_executions = []
 
         for i in range (10, 1000, 10):
-            test_executions.append(("lookahead-0.5-scaling", False, 20))
+            test_executions.append(("lookahead", False, 20))
 
-        es_size = []
-        num_swaps = []
+        # es_size = []
+        # num_swaps = []
         
         rust_ms = microboost.MicroSABRE(rust_dag, initial_layout, coupling_map.get_edges())
 
         for heuristic, critical, extended_set_size in tqdm(test_executions):
             out_map, _ = rust_ms.run(heuristic, critical, extended_set_size)
-            swaps = sum(len(arr) for arr in out_map.values())
-            es_size.append(extended_set_size)
-            num_swaps.append(swaps)
+            # swaps = sum(len(arr) for arr in out_map.values())
+            # es_size.append(extended_set_size)
+            # num_swaps.append(swaps)
 
-        data.append((es_size, num_swaps, file))
+        # data.append((es_size, num_swaps, file))
 
-    plot_result(data)
+    # plot_result(data)
 
     
 
