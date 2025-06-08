@@ -5,6 +5,52 @@ use pyo3::{pyclass, pymethods, PyResult};
 
 #[derive(Clone)]
 #[pyclass(module = "microboost.routing.sabre")]
+pub(crate) struct MicroFront {
+    nodes: HashMap<i32, [i32; 2]>,
+    qubits: Vec<Option<(i32, i32)>>,
+}
+
+impl MicroFront {
+    pub fn new(num_qubits: i32) -> Self {
+        Self {
+            // with_capacity_and_hasher
+            nodes: HashMap::with_capacity(
+                num_qubits as usize / 2
+            ),
+            qubits: vec![None; num_qubits as usize]
+        }
+    }
+
+    pub fn is_empty(self) -> bool {
+        self.nodes.is_empty()
+    }
+
+    pub fn len(&self) -> usize {
+        self.nodes.len()
+    }
+
+    pub fn insert(&mut self, index: i32, qubits: [i32; 2]) {
+        let [a, b] = qubits;
+        self.qubits[a as usize] = Some((index, b));
+        self.qubits[b as usize] = Some((index, a));
+        self.nodes.insert(index, qubits);
+    }
+
+    pub fn remove(&mut self, index: &i32) {
+        // The actual order in the indexmap doesn't matter as long as it's reproducible.
+        // Swap-remove is more efficient than a full shift-remove.
+        let [a, b] = self
+            .nodes
+            .remove(index)
+            .expect("Tried removing index that does not exist.");
+        self.qubits[a as usize] = None;
+        self.qubits[b as usize] = None;
+    }
+
+}
+
+#[derive(Clone)]
+#[pyclass(module = "microboost.routing.sabre")]
 pub(crate) struct MicroLayout {
     virt_to_phys: Vec<i32>,
     phys_to_virt: Vec<i32>
@@ -56,7 +102,7 @@ pub(crate) struct MicroSABRE {
     coupling_map: Vec<Vec<i32>>,
     out_map: HashMap<i32, Vec<(i32, i32)>>,
     gate_order: Vec<i32>,
-    front_layer: HashMap<i32, [i32; 2]>,
+    front_layer: MicroFront,
     required_predecessors: Vec<i32>,
     adjacency_list: HashMap<i32, Vec<i32>>,
     distance: Vec<Vec<i32>>,
@@ -64,7 +110,8 @@ pub(crate) struct MicroSABRE {
     initial_dag: MicroDAG,
     initial_coupling_map: Vec<Vec<i32>>,
     neighbour_map: HashMap<i32, Vec<i32>>,
-    layout: MicroLayout
+    layout: MicroLayout,
+    num_qubits: i32
 }
 
 #[pymethods]
@@ -74,6 +121,7 @@ impl MicroSABRE {
         dag: MicroDAG,
         initial_layout: MicroLayout,
         coupling_map: Vec<Vec<i32>>,
+        num_qubits: i32,
     ) -> PyResult<Self> {
         Ok(Self {
             required_predecessors: vec![0; dag.nodes.len()],
@@ -84,11 +132,12 @@ impl MicroSABRE {
             coupling_map: coupling_map.clone(),
             out_map: HashMap::new(),
             gate_order: Vec::new(),
-            front_layer: HashMap::new(),
+            front_layer: MicroFront::new(num_qubits),
             initial_mapping: initial_layout.clone(),
             initial_dag: dag,
             neighbour_map: build_coupling_neighbour_map(&coupling_map),
             initial_coupling_map: coupling_map,
+            num_qubits
         })
     }
 
@@ -103,7 +152,7 @@ impl MicroSABRE {
 
         self.out_map.clear();
         self.gate_order.clear();
-        self.front_layer.clear();
+        self.front_layer = MicroFront::new(self.num_qubits);
 
         self.dag = self.initial_dag.clone();
         self.coupling_map = self.initial_coupling_map.clone();
@@ -138,12 +187,13 @@ impl MicroSABRE {
 
         let mut execute_gate_list: Vec<i32> = Vec::new();
 
-        while !self.front_layer.is_empty() {
+        while !self.front_layer.clone().is_empty() {
             let mut current_swaps: Vec<(i32, i32)> = Vec::new();
 
             while execute_gate_list.is_empty() {
                 // let now = Instant::now();
                 let best_swap = self.choose_best_swap(heuristic.clone(), extended_set_size);
+                println!("Best swap: {:?}", best_swap);
                 // let elapsed = now.elapsed();
                 // println!("<choose_best_swap> took {:?}", elapsed);
                 
@@ -188,7 +238,7 @@ impl MicroSABRE {
     }
     fn calculate_heuristic(
         &mut self,
-        front_layer: HashMap<i32, [i32; 2]>,
+        front_layer: MicroFront,
         layout: &MicroLayout,
         heuristic: String,
         extended_set_size: i32
@@ -207,7 +257,7 @@ impl MicroSABRE {
     // A lot of cloning in here
     fn h_lookahead(
         &mut self,
-        front_layer: HashMap<i32, [i32; 2]>,
+        front_layer: MicroFront,
         layout: &MicroLayout,
         weight: f64,
         scale: bool,
@@ -216,7 +266,7 @@ impl MicroSABRE {
         // let now_f = Instant::now();
 
         // let now = Instant::now();
-        if front_layer.is_empty() {
+        if front_layer.clone().is_empty() {
             return 0.0;
         }
         // let elapsed = now.elapsed();
@@ -240,7 +290,8 @@ impl MicroSABRE {
 
         // let now = Instant::now();
         let adjusted_weight = if scale {
-            if extended_set.is_empty() {
+            // TODO: I really don't think this cloning is necessary
+            if extended_set.clone().is_empty() {
                 0.0
             } else {
                 weight / extended_set.len() as f64
@@ -265,7 +316,7 @@ impl MicroSABRE {
 
     fn h_basic(
         &self,
-        front_layer: HashMap<i32, [i32; 2]>,
+        front_layer: MicroFront,
         layout: &MicroLayout,
         weight: f64,
         scale: bool,
@@ -273,7 +324,7 @@ impl MicroSABRE {
         let mut h_sum = 0.0;
 
         // TODO: This could be simplified if iterating over active qubits right?
-        for gate in front_layer.keys() {
+        for gate in front_layer.nodes.keys() {
             let node = self.dag.get(*gate).unwrap();
 
             if node.qubits.len() == 1 {
@@ -286,7 +337,7 @@ impl MicroSABRE {
             let physical_q1 = layout.virtual_to_physical(q1);
 
             let actual_weight = if scale {
-                if front_layer.is_empty() {
+                if front_layer.nodes.is_empty() {
                     0.0
                 } else {
                     weight / front_layer.len() as f64
@@ -302,14 +353,14 @@ impl MicroSABRE {
         h_sum
     }
 
-     fn get_extended_set(&mut self, extended_set_size: i32) -> HashMap<i32, [i32; 2]> {
+     fn get_extended_set(&mut self, extended_set_size: i32) -> MicroFront {
 
         let mut required_predecessors = self.required_predecessors.clone();
 
-        let mut to_visit: Vec<i32> = self.front_layer.keys().copied().collect();
+        let mut to_visit: Vec<i32> = self.front_layer.nodes.keys().copied().collect();
         let mut i = 0;
 
-        let mut extended_set: HashMap<i32, [i32; 2]> = HashMap::new();
+        let mut extended_set: MicroFront = MicroFront::new(self.num_qubits);
         let mut visit_now: Vec<i32> = Vec::new();
 
         let mut decremented: HashMap<i32, i32> = HashMap::new();
@@ -392,20 +443,28 @@ impl MicroSABRE {
 
         // println!("Items in front_layer: {:?}", self.front_layer.len());
         // TODO: Use only active qubits here
-        for &gate in self.front_layer.keys() {
+        for &gate in self.front_layer.nodes.keys() {
             let node = self.dag.get(gate).unwrap();
             let physical_q0 = self.layout.virtual_to_physical(node.qubits[0]);
             let physical_q1 = self.layout.virtual_to_physical(node.qubits[1]);
             
-            // for neighbour in self.neighbour_map[&physical_q0].iter() {
-            //     swap_candidates.push((physical_q0, *neighbour))
-            // }
+            for neighbour in self.neighbour_map[&physical_q0].iter() {
+                swap_candidates.push((physical_q0, *neighbour))
+            }
             
             for neighbour in self.neighbour_map[&physical_q1].iter() {
                 swap_candidates.push((physical_q1, *neighbour))
             }
         }
 
+        
+        // for phys in self.front_layer.nodes.values().flatten() {
+        //     for neighbour in self.neighbour_map[phys].iter() {
+        //         swap_candidates.push((*phys, *neighbour))
+        //     }
+        // }
+
+        println!("Swap candidates: {:?}", swap_candidates);
         swap_candidates
     }
 
@@ -417,7 +476,7 @@ impl MicroSABRE {
 
     fn executable_node_on_qubit(&self, physical_qubit: i32) -> Option<i32> {
         // TODO: We could only use active ones here as well
-        for &node_id in self.front_layer.keys() {
+        for &node_id in self.front_layer.nodes.keys() {
             let node = self.dag.get(node_id).unwrap();
 
             // This can't happen in the front_layer right?

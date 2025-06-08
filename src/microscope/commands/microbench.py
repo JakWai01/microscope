@@ -43,6 +43,7 @@ def transpile_circuit(circuit):
         coupling_map,
         False,
         "lookahead",
+        preprocessed_circuit.num_qubits,
         False,
         20,
     )
@@ -79,7 +80,7 @@ def microbench_new(files):
         # es_size = []
         # num_swaps = []
         
-        rust_ms = microboost.MicroSABRE(rust_dag, initial_layout, coupling_map.get_edges())
+        rust_ms = microboost.MicroSABRE(rust_dag, initial_layout, coupling_map.get_edges(), input_circuit.num_qubits)
 
         for heuristic, critical, extended_set_size in tqdm(test_executions):
             out_map, _ = rust_ms.run(heuristic, critical, extended_set_size)
@@ -142,6 +143,7 @@ def run(file: str, show: bool):
             coupling_map,
             show,
             heuristic,
+            input_circuit.num_qubits,
             critical,
             extended_set_size,
         )
@@ -164,11 +166,12 @@ def microsabre(
     coupling_map,
     show,
     heuristic,
+    num_qubits,
     critical=False,
     extended_set_size=20,
 ):
     # Rust implementation
-    rust_ms = microboost.MicroSABRE(rust_dag, micro_mapping, coupling_map.get_edges())
+    rust_ms = microboost.MicroSABRE(rust_dag, micro_mapping, coupling_map.get_edges(), num_qubits)
     sabre_result = rust_ms.run(heuristic, critical, extended_set_size)
 
     transpiled_sabre_dag_boosted, segments_boosted = apply_sabre_result(

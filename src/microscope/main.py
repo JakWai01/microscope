@@ -22,8 +22,8 @@ def main(command: str, files: tuple[str, ...], show: bool):
             hamiltonians(show)
         case "microbench":
             t = time.process_time()
-            # microbench(files, show)
-            microbench_new(files)
+            microbench(files, show)
+            # microbench_new(files)
             elapsed_time = time.process_time() - t
             print(f"Execution took: {elapsed_time} secs")
         case "slide":
