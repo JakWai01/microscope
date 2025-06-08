@@ -1,5 +1,5 @@
 use crate::graph::dag::MicroDAG;
-use std::{collections::{HashMap, HashSet, VecDeque}, i32, time::Instant};
+use std::{collections::{HashMap, HashSet, VecDeque}, i32};
 
 use pyo3::{pyclass, pymethods, PyResult};
 
@@ -53,7 +53,7 @@ impl MicroFront {
         self.qubits[qubit as usize].is_some()
     }
 
-        /// Apply a physical swap to the current layout data structure.
+    /// Apply a physical swap to the current layout data structure.
     pub fn apply_swap(&mut self, swap: [i32; 2]) {
         let [a, b] = swap;
         match (self.qubits[a as usize], self.qubits[b as usize]) {
@@ -196,30 +196,14 @@ impl MicroSABRE {
     }
 
     fn run(&mut self, heuristic: String, _critical_path: bool, extended_set_size: i32) -> (HashMap<i32, Vec<(i32, i32)>>, Vec<i32>){
-        // let now = Instant::now();
         self.clear_data_structures();
-        // let elapsed = now.elapsed();
-        // println!("<clear_data_structures> took {:?}", elapsed);
-        
-        
-        // let now = Instant::now();
         self.dag
             .edges()
             .unwrap()
             .iter()
             .for_each(|edge| self.required_predecessors[edge.1 as usize] += 1);
-        // let elapsed = now.elapsed();
-        // println!("<required_predecessors> took {:?}", elapsed);
-
-        // let now = Instant::now();
         let initial_front = self.initial_front();
-        // let elapsed = now.elapsed();
-        // println!("<initial_front> took {:?}", elapsed);
-
-        // let now = Instant::now();
         self.advance_front_layer(initial_front);
-        // let elapsed = now.elapsed();
-        // println!("<advance_front_layer> took {:?}", elapsed);
 
         let mut execute_gate_list: Vec<i32> = Vec::new();
 
@@ -227,23 +211,14 @@ impl MicroSABRE {
             let mut current_swaps: Vec<(i32, i32)> = Vec::new();
 
             while execute_gate_list.is_empty() {
-                // if current_swaps.len() > 100 {
-                //     panic!("Ladies and gentleman, we are looping!")
-                // }
-                // let now = Instant::now();
                 let best_swap = self.choose_best_swap(heuristic.clone(), extended_set_size);
-                // println!("Best swap: {:?}", best_swap);
-                // let elapsed = now.elapsed();
-                // println!("<choose_best_swap> took {:?}", elapsed);
                 
                 let physical_q0 = best_swap.0;
                 let physical_q1 = best_swap.1;
                 
                 current_swaps.push(best_swap);
-                // self.layout.swap_physical(physical_q0, physical_q1);
                 self.apply_swap((physical_q0, physical_q1));
 
-                // let now = Instant::now();
                 if let Some(node) = self.executable_node_on_qubit(physical_q0) {
                     execute_gate_list.push(node as i32);
                 }
@@ -251,8 +226,6 @@ impl MicroSABRE {
                 if let Some(node) = self.executable_node_on_qubit(physical_q1) {
                     execute_gate_list.push(node as i32);
                 }
-                // let elapsed = now.elapsed();
-                // println!("<executable_node_on_qubit> took {:?}", elapsed);
             }
 
             let node_id = self.dag.get(execute_gate_list[0] as i32).unwrap().id;
@@ -264,14 +237,8 @@ impl MicroSABRE {
             for &node in &execute_gate_list {
                 self.front_layer.remove(&(node as i32));
             }
-
-            // let now = Instant::now();
             self.advance_front_layer(execute_gate_list.clone());
             execute_gate_list.clear();
-            // let elapsed = now.elapsed();
-            // println!("<advance_front_layer> took {:?}", elapsed);
-            
-            // panic!("Stopping here");
         }
 
         (self.out_map.clone(), self.gate_order.clone()) 
@@ -303,32 +270,13 @@ impl MicroSABRE {
         scale: bool,
         extended_set_size: i32
     ) -> f64 {
-        // let now_f = Instant::now();
-
-        // let now = Instant::now();
         if front_layer.clone().is_empty() {
             return 0.0;
         }
-        // let elapsed = now.elapsed();
-        // println!("<is_empty> took {:?}", elapsed);
-
-
-        // let now = Instant::now();
         let h_basic_result = self.h_basic(front_layer.clone(), layout, 1.0, scale);
-        // let elapsed = now.elapsed();
-        // println!("<h_basic> took {:?}", elapsed);
-        
-        // let now = Instant::now();
         let extended_set = self.get_extended_set(extended_set_size); // Returns HashSet<usize>
-        // let elapsed = now.elapsed();
-        // println!("<get_extended_set> took {:?}", elapsed);
-
-        // let now = Instant::now();
         let h_basic_result_extended = self.h_basic(extended_set.clone(), layout, 1.0, scale);
-        // let elapsed = now.elapsed();
-        // println!("<h_basic> took {:?}", elapsed);
 
-        // let now = Instant::now();
         let adjusted_weight = if scale {
             // TODO: I really don't think this cloning is necessary
             if extended_set.clone().is_empty() {
@@ -339,18 +287,8 @@ impl MicroSABRE {
         } else {
             weight
         };
-        // let elapsed = now.elapsed();
-        // println!("<adjusted_weight> took {:?}", elapsed);
-
-
-        // let now = Instant::now();
         let front_len = front_layer.len() as f64;
         let extended_len = extended_set.len().max(1) as f64; // Avoid division by zero
-        // let elapsed = now.elapsed();
-        // println!("<len> took {:?}", elapsed);
-
-        // let elapsed = now_f.elapsed();
-        // println!("<h_lookahead> took {:?}", elapsed);
         (1.0 / front_len) * h_basic_result + adjusted_weight * (1.0 / extended_len) * h_basic_result_extended
     }
 
@@ -462,7 +400,6 @@ impl MicroSABRE {
 
         let swap_candidates: Vec<(i32, i32)> =  self.compute_swap_candidates();
 
-        // let now = Instant::now();
         for &(q0, q1) in &swap_candidates {
             let before = self.calculate_heuristic(self.front_layer.clone(), &self.layout.clone(), heuristic.clone(), extended_set_size);
 
@@ -473,60 +410,20 @@ impl MicroSABRE {
 
             scores.insert((q0, q1), after - before);
         }
-        // let elapsed = now.elapsed();
-        // println!("<scoring> took {:?}", elapsed);
-
         self.min_score(scores)
     }
 
     fn compute_swap_candidates(&self) -> Vec<(i32, i32)> {
-        // let mut swap_candidates: Vec<(i32, i32)> = Vec::new();
-        let mut swap_candidates_new: Vec<(i32, i32)> = Vec::new();
-
-        // They should literally be the same
-        // let mut phys: Vec<i32> = Vec::new();
-        let mut phys_new: Vec<i32> = Vec::new();
-
-        // println!("Items in front_layer: {:?}", self.front_layer.len());
-        // // TODO: Use only active qubits here
-        // for &gate in self.front_layer.nodes.keys() {
-        //     let node = self.dag.get(gate).unwrap();
-        //     let physical_q0 = self.layout.virtual_to_physical(node.qubits[0]);
-        //     phys.push(physical_q0);
-        //     let physical_q1 = self.layout.virtual_to_physical(node.qubits[1]);
-        //     phys.push(physical_q1);
-         
-        //     for neighbour in self.neighbour_map[&physical_q0].iter() {
-        //         swap_candidates.push((physical_q0, *neighbour))
-        //     }
-         
-        //     for neighbour in self.neighbour_map[&physical_q1].iter() {
-        //         swap_candidates.push((physical_q1, *neighbour))
-        //     }
-        // }
-
-
-        // I think the code is the same and the bug lies in the underlying data structure 
+        let mut swap_candidates: Vec<(i32, i32)> = Vec::new();
+        
         for &phys in self.front_layer.nodes.values().flatten() {
-            phys_new.push(phys);
             for neighbour in self.neighbour_map[&phys].iter() {
-                // if neighbour > phys || !self.front_layer.is_active(neighbour) {
-                    swap_candidates_new.push((phys, *neighbour))
-                // }
+                if neighbour > &phys || !self.front_layer.is_active(*neighbour) {
+                    swap_candidates.push((phys, *neighbour))
+                }
             }
         }
-
-        // println!("Phys: {:?}", phys);
-        // println!("Phys_new: {:?}", phys_new);
-
-        // println!("Length swap candidates: {:?}", swap_candidates.len());
-        // println!("Length swap candidates new: {:?}", swap_candidates_new.len());
-        // let difference: Vec<_> = swap_candidates.clone().into_iter().filter(|item| !swap_candidates_new.contains(item)).collect();
-        // let difference_new: Vec<_> = swap_candidates_new.clone().into_iter().filter(|item| !swap_candidates.contains(item)).collect();
-        // println!("Diff {:?}", difference);
-        // println!("Diff2 {:?}", difference_new);
-
-        swap_candidates_new
+        swap_candidates
     }
 
 
@@ -564,7 +461,7 @@ impl MicroSABRE {
         let mut node_queue: VecDeque<i32> = VecDeque::from(nodes);
 
         while let Some(node_index) = node_queue.pop_front() {
-            let node = self.dag.get(node_index).unwrap(); // Assuming this returns a reference to Node
+            let node = self.dag.get(node_index).unwrap();
 
             if node.qubits.len() == 2 {
                 let physical_q0 = self.layout.virtual_to_physical(node.qubits[0]);
