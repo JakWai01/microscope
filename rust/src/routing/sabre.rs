@@ -214,8 +214,8 @@ impl MicroSABRE {
 
                 if let Some(successors) = self.adjacency_list.get(&(node_id as i32)) {
                     for &successor in successors {
-                        let succ = self.dag.get(successor).unwrap();
                         if *visited.get(&successor).unwrap_or(&false) == false {
+                            let succ = self.dag.get(successor).unwrap();
                             visited.insert(successor, true);
 
                             *decremented.entry(successor).or_insert(0) += 1;
@@ -235,7 +235,7 @@ impl MicroSABRE {
                             }
 
                             // Also adding the first layer of unroutable gates seems to improve results
-                            if self.dag.get(successor).unwrap().qubits.len() == 2 {
+                            if succ.qubits.len() == 2 {
                                 let physical_q0 = self.layout.virtual_to_physical(succ.qubits[0]);
                                 let physical_q1 = self.layout.virtual_to_physical(succ.qubits[1]);
                                 extended_set.insert(successor, [physical_q0, physical_q1]);
