@@ -4,10 +4,11 @@ from qiskit import warnings
 
 from commands.baseline import qiskit_baseline
 from commands.hamiltonians import hamiltonians
-from commands.microbench import microbench, microbench_new 
+from commands.microbench import microbench, microbench_new
 from commands.slide import slide
 
 import time
+
 
 @click.command()
 @click.argument("command", nargs=1)

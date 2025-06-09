@@ -10,12 +10,13 @@ from qiskit.circuit.library.standard_gates import SwapGate
 
 from tqdm import tqdm
 
+
 def qiskit_baseline(files):
     for file in files:
         circuit = QuantumCircuit.from_qasm_file(file)
         coupling_map = CouplingMap.from_line(circuit.num_qubits)
         preprocessing_dag = circuit_to_dag(circuit)
-        
+
         test_executions = []
 
         for i in range(10, 1000, 10):

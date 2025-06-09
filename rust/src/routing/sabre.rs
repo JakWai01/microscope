@@ -1,130 +1,12 @@
 use crate::graph::dag::MicroDAG;
-use std::{collections::{HashMap, HashSet, VecDeque}, i32};
+use crate::routing::front::MicroFront;
+use crate::routing::layout::MicroLayout;
+use std::{
+    collections::{HashMap, HashSet, VecDeque},
+    i32,
+};
 
 use pyo3::{pyclass, pymethods, PyResult};
-
-use indexmap::IndexMap;
-
-#[derive(Clone)]
-#[pyclass(module = "microboost.routing.sabre")]
-pub(crate) struct MicroFront {
-    nodes: IndexMap<i32, [i32; 2]>,
-    qubits: Vec<Option<(i32, i32)>>,
-}
-
-impl MicroFront {
-    pub fn new(num_qubits: i32) -> Self {
-        Self {
-            // with_capacity_and_hasher
-            nodes: IndexMap::with_capacity(
-                num_qubits as usize / 2
-            ),
-            qubits: vec![None; num_qubits as usize]
-        }
-    }
-
-    pub fn is_empty(self) -> bool {
-        self.nodes.is_empty()
-    }
-
-    pub fn len(&self) -> usize {
-        self.nodes.len()
-    }
-
-    pub fn insert(&mut self, index: i32, qubits: [i32; 2]) {
-        let [a, b] = qubits;
-        self.qubits[a as usize] = Some((index, b));
-        self.qubits[b as usize] = Some((index, a));
-        self.nodes.insert(index, qubits);
-    }
-
-    pub fn remove(&mut self, index: &i32) {
-        // The actual order in the indexmap doesn't matter as long as it's reproducible.
-        // Swap-remove is more efficient than a full shift-remove.
-        let [a, b] = self
-            .nodes
-            .swap_remove(index)
-            .expect("Tried removing index that does not exist.");
-        self.qubits[a as usize] = None;
-        self.qubits[b as usize] = None;
-    }
-
-    pub fn is_active(&self, qubit: i32) -> bool {
-        self.qubits[qubit as usize].is_some()
-    }
-
-    /// Apply a physical swap to the current layout data structure.
-    pub fn apply_swap(&mut self, swap: [i32; 2]) {
-        let [a, b] = swap;
-        match (self.qubits[a as usize], self.qubits[b as usize]) {
-            (Some((index1, _)), Some((index2, _))) if index1 == index2 => {
-                let entry = self.nodes.get_mut(&index1).unwrap();
-                *entry = [entry[1], entry[0]];
-                return;
-            }
-            _ => {}
-        }
-        if let Some((index, c)) = self.qubits[a as usize] {
-            self.qubits[c as usize] = Some((index, b));
-            let entry = self.nodes.get_mut(&index).unwrap();
-            *entry = if *entry == [a, c] { [b, c] } else { [c, b] };
-        }
-        if let Some((index, c)) = self.qubits[b as usize] {
-            self.qubits[c as usize] = Some((index, a));
-            let entry = self.nodes.get_mut(&index).unwrap();
-            *entry = if *entry == [b, c] { [a, c] } else { [c, a] };
-        }
-        self.qubits.swap(a as usize, b as usize);
-    }
-
-}
-
-#[derive(Clone)]
-#[pyclass(module = "microboost.routing.sabre")]
-pub(crate) struct MicroLayout {
-    virt_to_phys: Vec<i32>,
-    phys_to_virt: Vec<i32>
-}
-
-#[pymethods]
-impl MicroLayout {
-    #[new]
-    pub fn new(
-        qubit_indices: HashMap<i32, i32>,
-        virtual_qubits: usize,
-        physical_qubits: usize
-    ) -> Self {
-        let mut res = MicroLayout {
-            virt_to_phys: vec![i32::MAX; virtual_qubits],
-            phys_to_virt: vec![i32::MAX; physical_qubits],
-        };
-        for (virt, phys) in qubit_indices {
-            res.virt_to_phys[virt as usize] = phys;
-            res.phys_to_virt[phys as usize] = virt;
-        }
-        res
-    }
-
-    pub fn virtual_to_physical(&self, virt: i32) -> i32 {
-        self.virt_to_phys[virt as usize]
-    }
-
-    pub fn physical_to_virtual(&self, phys: i32) -> i32 {
-        self.phys_to_virt[phys as usize]
-    }
-
-    pub fn swap_virtual(&mut self, bit_a: i32, bit_b: i32) {
-        self.virt_to_phys.swap(bit_a as usize, bit_b as usize);
-        self.phys_to_virt[self.virt_to_phys[bit_a as usize] as usize] = bit_a;
-        self.phys_to_virt[self.virt_to_phys[bit_b as usize] as usize] = bit_b;
-    }
-
-    pub fn swap_physical(&mut self, bit_a: i32, bit_b: i32) {
-        self.phys_to_virt.swap(bit_a as usize, bit_b as usize);
-        self.virt_to_phys[self.phys_to_virt[bit_a as usize] as usize] = bit_a;
-        self.virt_to_phys[self.phys_to_virt[bit_b as usize] as usize] = bit_b;
-    }
-}
 
 #[pyclass(module = "microboost.routing.sabre")]
 pub(crate) struct MicroSABRE {
@@ -141,7 +23,7 @@ pub(crate) struct MicroSABRE {
     initial_coupling_map: Vec<Vec<i32>>,
     neighbour_map: HashMap<i32, Vec<i32>>,
     layout: MicroLayout,
-    num_qubits: i32
+    num_qubits: i32,
 }
 
 #[pymethods]
@@ -167,10 +49,9 @@ impl MicroSABRE {
             initial_dag: dag,
             neighbour_map: build_coupling_neighbour_map(&coupling_map),
             initial_coupling_map: coupling_map,
-            num_qubits
+            num_qubits,
         })
     }
-
 
     // Maybe it would make sense to also maintain an extended set and apply swaps there
     fn apply_swap(&mut self, swap: (i32, i32)) {
@@ -192,10 +73,14 @@ impl MicroSABRE {
 
         self.dag = self.initial_dag.clone();
         self.coupling_map = self.initial_coupling_map.clone();
-
     }
 
-    fn run(&mut self, heuristic: String, _critical_path: bool, extended_set_size: i32) -> (HashMap<i32, Vec<(i32, i32)>>, Vec<i32>){
+    fn run(
+        &mut self,
+        heuristic: String,
+        _critical_path: bool,
+        extended_set_size: i32,
+    ) -> (HashMap<i32, Vec<(i32, i32)>>, Vec<i32>) {
         self.clear_data_structures();
         self.dag
             .edges()
@@ -212,10 +97,10 @@ impl MicroSABRE {
 
             while execute_gate_list.is_empty() {
                 let best_swap = self.choose_best_swap(heuristic.clone(), extended_set_size);
-                
+
                 let physical_q0 = best_swap.0;
                 let physical_q1 = best_swap.1;
-                
+
                 current_swaps.push(best_swap);
                 self.apply_swap((physical_q0, physical_q1));
 
@@ -241,22 +126,26 @@ impl MicroSABRE {
             execute_gate_list.clear();
         }
 
-        (self.out_map.clone(), self.gate_order.clone()) 
+        (self.out_map.clone(), self.gate_order.clone())
     }
     fn calculate_heuristic(
         &mut self,
         front_layer: MicroFront,
         layout: &MicroLayout,
         heuristic: String,
-        extended_set_size: i32
+        extended_set_size: i32,
     ) -> f64 {
         match heuristic.as_str() {
             "basic" => self.h_basic(front_layer, layout, 1.0, false),
             "basic-scale" => self.h_basic(front_layer, layout, 1.0, true),
             "lookahead" => self.h_lookahead(front_layer, layout, 1.0, false, extended_set_size),
             "lookahead-0.5" => self.h_lookahead(front_layer, layout, 0.5, false, extended_set_size),
-            "lookahead-scaling" => self.h_lookahead(front_layer, layout,1.0, false, extended_set_size),
-            "lookahead-0.5-scaling" => self.h_lookahead(front_layer, layout, 1.0, true, extended_set_size),
+            "lookahead-scaling" => {
+                self.h_lookahead(front_layer, layout, 1.0, false, extended_set_size)
+            }
+            "lookahead-0.5-scaling" => {
+                self.h_lookahead(front_layer, layout, 1.0, true, extended_set_size)
+            }
             _ => panic!("Unknown heuristic type: {}", heuristic),
         }
     }
@@ -268,7 +157,7 @@ impl MicroSABRE {
         layout: &MicroLayout,
         weight: f64,
         scale: bool,
-        extended_set_size: i32
+        extended_set_size: i32,
     ) -> f64 {
         if front_layer.clone().is_empty() {
             return 0.0;
@@ -289,7 +178,8 @@ impl MicroSABRE {
         };
         let front_len = front_layer.len() as f64;
         let extended_len = extended_set.len().max(1) as f64; // Avoid division by zero
-        (1.0 / front_len) * h_basic_result + adjusted_weight * (1.0 / extended_len) * h_basic_result_extended
+        (1.0 / front_len) * h_basic_result
+            + adjusted_weight * (1.0 / extended_len) * h_basic_result_extended
     }
 
     fn h_basic(
@@ -304,7 +194,7 @@ impl MicroSABRE {
         // TODO: This could be simplified if iterating over active qubits right?
         for gate in front_layer.nodes.keys() {
             let node = self.dag.get(*gate).unwrap();
-            
+
             // This shouldn't be possible, right?
             if node.qubits.len() == 1 {
                 continue;
@@ -332,8 +222,7 @@ impl MicroSABRE {
         h_sum
     }
 
-     fn get_extended_set(&mut self, extended_set_size: i32) -> MicroFront {
-
+    fn get_extended_set(&mut self, extended_set_size: i32) -> MicroFront {
         let mut required_predecessors = self.required_predecessors.clone();
 
         let mut to_visit: Vec<i32> = self.front_layer.nodes.keys().copied().collect();
@@ -363,8 +252,10 @@ impl MicroSABRE {
 
                             if required_predecessors[successor as usize] == 0 {
                                 if succ.qubits.len() == 2 {
-                                    let physical_q0 = self.layout.virtual_to_physical(succ.qubits[0]);
-                                    let physical_q1 = self.layout.virtual_to_physical(succ.qubits[1]);
+                                    let physical_q0 =
+                                        self.layout.virtual_to_physical(succ.qubits[0]);
+                                    let physical_q1 =
+                                        self.layout.virtual_to_physical(succ.qubits[1]);
                                     extended_set.insert(successor, [physical_q0, physical_q1]);
                                     to_visit.push(successor);
                                     continue;
@@ -398,15 +289,25 @@ impl MicroSABRE {
     fn choose_best_swap(&mut self, heuristic: String, extended_set_size: i32) -> (i32, i32) {
         let mut scores: HashMap<(i32, i32), f64> = HashMap::new();
 
-        let swap_candidates: Vec<(i32, i32)> =  self.compute_swap_candidates();
+        let swap_candidates: Vec<(i32, i32)> = self.compute_swap_candidates();
 
         for &(q0, q1) in &swap_candidates {
-            let before = self.calculate_heuristic(self.front_layer.clone(), &self.layout.clone(), heuristic.clone(), extended_set_size);
+            let before = self.calculate_heuristic(
+                self.front_layer.clone(),
+                &self.layout.clone(),
+                heuristic.clone(),
+                extended_set_size,
+            );
 
             let mut temporary_mapping = self.layout.clone();
             temporary_mapping.swap_physical(q0, q1);
 
-            let after = self.calculate_heuristic(self.front_layer.clone(), &temporary_mapping, heuristic.clone(), extended_set_size);
+            let after = self.calculate_heuristic(
+                self.front_layer.clone(),
+                &temporary_mapping,
+                heuristic.clone(),
+                extended_set_size,
+            );
 
             scores.insert((q0, q1), after - before);
         }
@@ -415,7 +316,7 @@ impl MicroSABRE {
 
     fn compute_swap_candidates(&self) -> Vec<(i32, i32)> {
         let mut swap_candidates: Vec<(i32, i32)> = Vec::new();
-        
+
         for &phys in self.front_layer.nodes.values().flatten() {
             for neighbour in self.neighbour_map[&phys].iter() {
                 if neighbour > &phys || !self.front_layer.is_active(*neighbour) {
@@ -426,10 +327,13 @@ impl MicroSABRE {
         swap_candidates
     }
 
-
     // Assuming this returns the swap with the lowest score
     fn min_score(&self, scores: HashMap<(i32, i32), f64>) -> (i32, i32) {
-        *scores.iter().min_by(|a, b| a.1.partial_cmp(b.1).unwrap()).unwrap().0
+        *scores
+            .iter()
+            .min_by(|a, b| a.1.partial_cmp(b.1).unwrap())
+            .unwrap()
+            .0
     }
 
     fn executable_node_on_qubit(&self, physical_qubit: i32) -> Option<i32> {
@@ -454,8 +358,6 @@ impl MicroSABRE {
         None
     }
 
-
-
     fn advance_front_layer(&mut self, nodes: Vec<i32>) {
         // Copy input into a queue
         let mut node_queue: VecDeque<i32> = VecDeque::from(nodes);
@@ -469,7 +371,8 @@ impl MicroSABRE {
 
                 // Check whether the node can be executed on the current mapping
                 if self.distance[physical_q0 as usize][physical_q1 as usize] != 1 {
-                    self.front_layer.insert(node_index, [physical_q0, physical_q1]);
+                    self.front_layer
+                        .insert(node_index, [physical_q0, physical_q1]);
                     continue;
                 }
             }
@@ -545,7 +448,7 @@ fn compute_all_pairs_shortest_paths(coupling_map: &Vec<Vec<i32>>) -> Vec<Vec<i32
 
     dist
 }
-    
+
 fn build_coupling_neighbour_map(coupling_map: &Vec<Vec<i32>>) -> HashMap<i32, Vec<i32>> {
     let mut neighbour_map = HashMap::new();
 

@@ -50,6 +50,7 @@ def transpile_circuit(circuit):
 
     return preprocessed_dag, transpiled_dag, segments
 
+
 def microbench_new(files):
     # data = []
 
@@ -65,22 +66,25 @@ def microbench_new(files):
         current_layout = Layout.generate_trivial_layout(canonical_register)
         qubit_indices = {bit: idx for idx, bit in enumerate(canonical_register)}
         layout_mapping = {
-            qubit_indices[k]: v for k, v in current_layout.get_virtual_bits().items() 
+            qubit_indices[k]: v for k, v in current_layout.get_virtual_bits().items()
         }
-        initial_layout = microboost.MicroLayout(layout_mapping, len(input_dag.qubits), coupling_map.size())
-
+        initial_layout = microboost.MicroLayout(
+            layout_mapping, len(input_dag.qubits), coupling_map.size()
+        )
 
         rust_dag = DAG().from_qiskit_dag(input_dag).to_micro_dag()
 
         test_executions = []
 
-        for i in range (10, 1000, 10):
+        for i in range(10, 1000, 10):
             test_executions.append(("lookahead", False, 20))
 
         # es_size = []
         # num_swaps = []
-        
-        rust_ms = microboost.MicroSABRE(rust_dag, initial_layout, coupling_map.get_edges(), input_circuit.num_qubits)
+
+        rust_ms = microboost.MicroSABRE(
+            rust_dag, initial_layout, coupling_map.get_edges(), input_circuit.num_qubits
+        )
 
         for heuristic, critical, extended_set_size in tqdm(test_executions):
             out_map, _ = rust_ms.run(heuristic, critical, extended_set_size)
@@ -91,8 +95,6 @@ def microbench_new(files):
         # data.append((es_size, num_swaps, file))
 
     # plot_result(data)
-
-    
 
 
 def microbench(files, show):
@@ -117,9 +119,11 @@ def run(file: str, show: bool):
     current_layout = Layout.generate_trivial_layout(canonical_register)
     qubit_indices = {bit: idx for idx, bit in enumerate(canonical_register)}
     layout_mapping = {
-        qubit_indices[k]: v for k, v in current_layout.get_virtual_bits().items() 
+        qubit_indices[k]: v for k, v in current_layout.get_virtual_bits().items()
     }
-    initial_layout = microboost.MicroLayout(layout_mapping, len(input_dag.qubits), coupling_map.size())
+    initial_layout = microboost.MicroLayout(
+        layout_mapping, len(input_dag.qubits), coupling_map.size()
+    )
 
     rust_dag = DAG().from_qiskit_dag(input_dag).to_micro_dag()
 
@@ -129,7 +133,7 @@ def run(file: str, show: bool):
     test_executions = []
 
     # for i in range(10, 1000, 10):
-        # test_executions.append(("lookahead-0.5-scaling", False, i))
+    # test_executions.append(("lookahead-0.5-scaling", False, i))
     test_executions.append(("lookahead-0.5-scaling", False, 20))
 
     es_size = []
@@ -171,7 +175,9 @@ def microsabre(
     extended_set_size=20,
 ):
     # Rust implementation
-    rust_ms = microboost.MicroSABRE(rust_dag, micro_mapping, coupling_map.get_edges(), num_qubits)
+    rust_ms = microboost.MicroSABRE(
+        rust_dag, micro_mapping, coupling_map.get_edges(), num_qubits
+    )
     sabre_result = rust_ms.run(heuristic, critical, extended_set_size)
 
     transpiled_sabre_dag_boosted, segments_boosted = apply_sabre_result(

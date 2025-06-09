@@ -91,7 +91,5 @@ def apply_swaps(dest_dag, swaps, layout, physical_qubits):
             physical_qubits[a],
             physical_qubits[b],
         )
-        layout.swap_physical(
-            a, b
-        )
+        layout.swap_physical(a, b)
         dest_dag.apply_operation_back(SwapGate(), qubits, (), check=False)
