@@ -9,8 +9,12 @@ name = "microboost"
 crate-type = ["cdylib"]
 
 [dependencies]
+flame = "0.2.2"
+flamegraph = "0.6.8"
 indexmap = "2.9.0"
 pyo3 = "0.24.0"
 
 [profile.release]
-debug = true
+debug = true        # Debug symbols for our profiler
+lto = true          # Link-time optimization
+codege-units = 1    # Slower compilation but faster code

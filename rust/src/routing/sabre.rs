@@ -117,7 +117,7 @@ impl MicroSABRE {
             self.out_map
                 .entry(node_id)
                 .or_default()
-                .extend(current_swaps.clone());
+                .extend(current_swaps);
 
             for &node in &execute_gate_list {
                 self.front_layer.remove(&(node as i32));
@@ -125,26 +125,25 @@ impl MicroSABRE {
             self.advance_front_layer(execute_gate_list.clone());
             execute_gate_list.clear();
         }
-
         (self.out_map.clone(), self.gate_order.clone())
     }
     fn calculate_heuristic(
         &mut self,
         front_layer: MicroFront,
-        layout: &MicroLayout,
+        // layout: &MicroLayout,
         heuristic: String,
         extended_set_size: i32,
     ) -> f64 {
         match heuristic.as_str() {
-            "basic" => self.h_basic(front_layer, layout, 1.0, false),
-            "basic-scale" => self.h_basic(front_layer, layout, 1.0, true),
-            "lookahead" => self.h_lookahead(front_layer, layout, 1.0, false, extended_set_size),
-            "lookahead-0.5" => self.h_lookahead(front_layer, layout, 0.5, false, extended_set_size),
+            "basic" => self.h_basic(front_layer, 1.0),
+            "basic-scale" => self.h_basic(front_layer, 1.0),
+            "lookahead" => self.h_lookahead(front_layer, 1.0, false, extended_set_size),
+            "lookahead-0.5" => self.h_lookahead(front_layer, 0.5, false, extended_set_size),
             "lookahead-scaling" => {
-                self.h_lookahead(front_layer, layout, 1.0, false, extended_set_size)
+                self.h_lookahead(front_layer, 1.0, false, extended_set_size)
             }
             "lookahead-0.5-scaling" => {
-                self.h_lookahead(front_layer, layout, 1.0, true, extended_set_size)
+                self.h_lookahead(front_layer, 1.0, true, extended_set_size)
             }
             _ => panic!("Unknown heuristic type: {}", heuristic),
         }
@@ -154,7 +153,6 @@ impl MicroSABRE {
     fn h_lookahead(
         &mut self,
         front_layer: MicroFront,
-        layout: &MicroLayout,
         weight: f64,
         scale: bool,
         extended_set_size: i32,
@@ -162,9 +160,9 @@ impl MicroSABRE {
         if front_layer.clone().is_empty() {
             return 0.0;
         }
-        let h_basic_result = self.h_basic(front_layer.clone(), layout, 1.0, scale);
+        let h_basic_result = self.h_basic(front_layer.clone(), 1.0);
         let extended_set = self.get_extended_set(extended_set_size); // Returns HashSet<usize>
-        let h_basic_result_extended = self.h_basic(extended_set.clone(), layout, 1.0, scale);
+        let h_basic_result_extended = self.h_basic(extended_set.clone(), 1.0);
 
         let adjusted_weight = if scale {
             // TODO: I really don't think this cloning is necessary
@@ -185,45 +183,18 @@ impl MicroSABRE {
     fn h_basic(
         &self,
         front_layer: MicroFront,
-        layout: &MicroLayout,
         weight: f64,
-        scale: bool,
     ) -> f64 {
         let mut h_sum = 0.0;
-
-        // TODO: This could be simplified if iterating over active qubits right?
-        for gate in front_layer.nodes.keys() {
-            let node = self.dag.get(*gate).unwrap();
-
-            // This shouldn't be possible, right?
-            if node.qubits.len() == 1 {
-                continue;
-            }
-
-            let q0 = node.qubits[0];
-            let q1 = node.qubits[1];
-            let physical_q0 = layout.virtual_to_physical(q0);
-            let physical_q1 = layout.virtual_to_physical(q1);
-
-            let actual_weight = if scale {
-                if front_layer.nodes.is_empty() {
-                    0.0
-                } else {
-                    weight / front_layer.len() as f64
-                }
-            } else {
-                weight
-            };
-
-            let distance = self.distance[physical_q0 as usize][physical_q1 as usize];
-            h_sum += actual_weight * distance as f64;
+        for [a, b] in front_layer.nodes.values() {
+            let distance = self.distance[*a as usize][*b as usize];
+            h_sum += weight * distance as f64;
         }
-
         h_sum
     }
 
     fn get_extended_set(&mut self, extended_set_size: i32) -> MicroFront {
-        let mut required_predecessors = self.required_predecessors.clone();
+        // let mut required_predecessors = self.required_predecessors.clone();
 
         let mut to_visit: Vec<i32> = self.front_layer.nodes.keys().copied().collect();
         let mut i = 0;
@@ -248,9 +219,9 @@ impl MicroSABRE {
                             visited.insert(successor, true);
 
                             *decremented.entry(successor).or_insert(0) += 1;
-                            required_predecessors[successor as usize] -= 1;
+                            self.required_predecessors[successor as usize] -= 1;
 
-                            if required_predecessors[successor as usize] == 0 {
+                            if self.required_predecessors[successor as usize] == 0 {
                                 if succ.qubits.len() == 2 {
                                     let physical_q0 =
                                         self.layout.virtual_to_physical(succ.qubits[0]);
@@ -281,7 +252,7 @@ impl MicroSABRE {
 
         // Restore required_predecessors
         for (node, amount) in decremented {
-            required_predecessors[node as usize] += amount as i32;
+            self.required_predecessors[node as usize] += amount as i32;
         }
         extended_set
     }
@@ -294,20 +265,23 @@ impl MicroSABRE {
         for &(q0, q1) in &swap_candidates {
             let before = self.calculate_heuristic(
                 self.front_layer.clone(),
-                &self.layout.clone(),
                 heuristic.clone(),
                 extended_set_size,
             );
 
-            let mut temporary_mapping = self.layout.clone();
-            temporary_mapping.swap_physical(q0, q1);
+            // let mut temporary_mapping = self.layout.clone();
+            // temporary_mapping.swap_physical(q0, q1);
+            self.apply_swap((q0, q1));
 
             let after = self.calculate_heuristic(
                 self.front_layer.clone(),
-                &temporary_mapping,
+                // &temporary_mapping,
                 heuristic.clone(),
                 extended_set_size,
             );
+
+            // Swap back
+            self.apply_swap((q1, q0));
 
             scores.insert((q0, q1), after - before);
         }

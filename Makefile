@@ -2,7 +2,7 @@ run: build
 	python3 src/microscope/main.py microbench examples/adder_n64.qasm
 
 build:
-	maturin develop -r
+	maturin develop --release
 
 format:
 	black . && pushd rust > /dev/null && cargo fmt --all && popd > /dev/null
@@ -20,3 +20,6 @@ big-baseline: build
 
 small: build
 	python3 src/microscope/main.py microbench examples/adder_n10.qasm
+
+profile: build
+	perf record -g --call-graph=dwarf -- python3 src/microscope/main.py microbench examples/adder_n64.qasm && flamegraph --perfdata perf.data

@@ -22,11 +22,11 @@ def main(command: str, files: tuple[str, ...], show: bool):
         case "hamiltonians":
             hamiltonians(show)
         case "microbench":
-            t = time.process_time()
+            t0 = time.perf_counter() 
             # microbench(files, show)
             microbench_new(files)
-            elapsed_time = time.process_time() - t
-            print(f"Execution took: {elapsed_time} secs")
+            t1 = time.perf_counter()
+            print(f"Took {t1 - t0:.2f}s")
         case "slide":
             slide()
         case "baseline":

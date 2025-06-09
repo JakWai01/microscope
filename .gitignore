@@ -27,3 +27,6 @@ Cargo.lock
 __pycache__/
 
 *.so
+
+*perf.*
+flamegraph.svg

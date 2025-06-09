@@ -70,4 +70,8 @@ impl MicroFront {
         }
         self.qubits.swap(a as usize, b as usize);
     }
+
+    pub fn qubits(&self) -> &[Option<(i32, i32)>] {
+        &self.qubits
+    }
 }
