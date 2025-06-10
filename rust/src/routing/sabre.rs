@@ -68,7 +68,7 @@ impl MicroSABRE {
         self.adjacency_list = build_adjacency_list(&self.dag);
 
         self.layout = self.initial_mapping.clone();
-        self.distance = compute_all_pairs_shortest_paths(&self.coupling_map);
+        // self.distance = compute_all_pairs_shortest_paths(&self.coupling_map);
 
         self.out_map.clear();
         self.gate_order.clear();
@@ -80,7 +80,7 @@ impl MicroSABRE {
 
     fn run(
         &mut self,
-        heuristic: String,
+        heuristic: &str,
         _critical_path: bool,
         extended_set_size: i32,
     ) -> (FxHashMap<i32, Vec<(i32, i32)>>, Vec<i32>) {
@@ -91,7 +91,7 @@ impl MicroSABRE {
             .iter()
             .for_each(|edge| self.required_predecessors[edge.1 as usize] += 1);
         let initial_front = self.initial_front();
-        self.advance_front_layer(initial_front);
+        self.advance_front_layer(&initial_front);
 
         let mut execute_gate_list: Vec<i32> = Vec::new();
 
@@ -99,7 +99,7 @@ impl MicroSABRE {
             let mut current_swaps: Vec<(i32, i32)> = Vec::new();
 
             while execute_gate_list.is_empty() {
-                let best_swap = self.choose_best_swap(heuristic.clone(), extended_set_size);
+                let best_swap = self.choose_best_swap(heuristic, extended_set_size);
 
                 let physical_q0 = best_swap.0;
                 let physical_q1 = best_swap.1;
@@ -125,19 +125,19 @@ impl MicroSABRE {
             for &node in &execute_gate_list {
                 self.front_layer.remove(&(node as i32));
             }
-            self.advance_front_layer(execute_gate_list.clone());
+            self.advance_front_layer(&execute_gate_list);
             execute_gate_list.clear();
         }
-        (self.out_map.clone(), self.gate_order.clone())
+        (std::mem::take(&mut self.out_map), std::mem::take(&mut self.gate_order))
     }
     fn calculate_heuristic(
         &mut self,
-        front_layer: MicroFront,
+        front_layer: Option<MicroFront>,
         // layout: &MicroLayout,
-        heuristic: String,
+        heuristic: &str,
         extended_set_size: i32,
     ) -> f64 {
-        match heuristic.as_str() {
+        match heuristic {
             "basic" => self.h_basic(front_layer, 1.0),
             "basic-scale" => self.h_basic(front_layer, 1.0),
             "lookahead" => self.h_lookahead(front_layer, 1.0, false, extended_set_size),
@@ -155,19 +155,26 @@ impl MicroSABRE {
     // A lot of cloning in here
     fn h_lookahead(
         &mut self,
-        front_layer: MicroFront,
+        front_layer: Option<MicroFront>,
         weight: f64,
         scale: bool,
         extended_set_size: i32,
     ) -> f64 {
-        let front_len = front_layer.len() as f64;
-        if front_layer.is_empty() {
+        let nodes = front_layer
+            .as_ref()
+            .unwrap_or(&self.front_layer)
+            .nodes
+            .values();
+
+        let front_len = nodes.len() as f64;
+        if front_len == 0.0 {
             return 0.0;
         }
-        let h_basic_result = self.h_basic(front_layer, 1.0);
+        
+        let h_basic_result = self.h_basic(None, 1.0);
         let extended_set = self.get_extended_set(extended_set_size); // Returns HashSet<usize>
         let extended_len = extended_set.len();
-        let h_basic_result_extended = self.h_basic(extended_set, 1.0);
+        let h_basic_result_extended = self.h_basic(Some(extended_set), 1.0);
 
         let extended_len = extended_len.max(1) as f64; // Avoid division by zero
 
@@ -176,15 +183,19 @@ impl MicroSABRE {
 
     fn h_basic(
         &self,
-        front_layer: MicroFront,
+        front_layer: Option<MicroFront>,
         weight: f64,
     ) -> f64 {
-        let mut h_sum = 0.0;
-        for [a, b] in front_layer.nodes.values() {
+        let nodes = front_layer
+            .as_ref()
+            .unwrap_or(&self.front_layer)
+            .nodes
+            .values();
+
+        nodes.fold(0.0, |h_sum, [a, b]| {
             let distance = self.distance[*a as usize][*b as usize];
-            h_sum += weight * distance as f64;
-        }
-        h_sum
+            h_sum + weight * distance as f64
+        })
     }
 
     fn get_extended_set(&mut self, extended_set_size: i32) -> MicroFront {
@@ -252,15 +263,15 @@ impl MicroSABRE {
         extended_set
     }
 
-    fn choose_best_swap(&mut self, heuristic: String, extended_set_size: i32) -> (i32, i32) {
+    fn choose_best_swap(&mut self, heuristic: &str, extended_set_size: i32) -> (i32, i32) {
         let mut scores: FxHashMap<(i32, i32), f64> = FxHashMap::default();
 
         let swap_candidates: Vec<(i32, i32)> = self.compute_swap_candidates();
 
         for &(q0, q1) in &swap_candidates {
             let before = self.calculate_heuristic(
-                self.front_layer.clone(),
-                heuristic.clone(),
+                None,
+                heuristic,
                 extended_set_size,
             );
 
@@ -269,9 +280,9 @@ impl MicroSABRE {
             self.apply_swap((q0, q1));
 
             let after = self.calculate_heuristic(
-                self.front_layer.clone(),
+                None,
                 // &temporary_mapping,
-                heuristic.clone(),
+                heuristic,
                 extended_set_size,
             );
 
@@ -327,9 +338,26 @@ impl MicroSABRE {
         None
     }
 
-    fn advance_front_layer(&mut self, nodes: Vec<i32>) {
+
+    fn initial_front(&self) -> Vec<i32> {
+        let mut nodes_with_predecessors: HashSet<i32> = HashSet::new();
+        let all_nodes: HashSet<i32> = (0..self.dag.nodes.len() as i32).collect();
+
+        for &(_, target) in &self.dag.edges {
+            nodes_with_predecessors.insert(target);
+        }
+
+        all_nodes
+            .difference(&nodes_with_predecessors)
+            .cloned()
+            .collect()
+    }
+}
+
+impl MicroSABRE {
+    fn advance_front_layer(&mut self, nodes: &Vec<i32>) {
         // Copy input into a queue
-        let mut node_queue: VecDeque<i32> = VecDeque::from(nodes);
+        let mut node_queue: VecDeque<i32> = VecDeque::from(nodes.clone());
 
         while let Some(node_index) = node_queue.pop_front() {
             let node = self.dag.get(node_index).unwrap();
@@ -363,20 +391,6 @@ impl MicroSABRE {
                 }
             }
         }
-    }
-
-    fn initial_front(&self) -> Vec<i32> {
-        let mut nodes_with_predecessors: HashSet<i32> = HashSet::new();
-        let all_nodes: HashSet<i32> = (0..self.dag.nodes.len() as i32).collect();
-
-        for &(_, target) in &self.dag.edges {
-            nodes_with_predecessors.insert(target);
-        }
-
-        all_nodes
-            .difference(&nodes_with_predecessors)
-            .cloned()
-            .collect()
     }
 }
 
