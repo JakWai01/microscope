@@ -17,7 +17,7 @@ impl MicroFront {
         }
     }
 
-    pub fn is_empty(self) -> bool {
+    pub fn is_empty(&self) -> bool {
         self.nodes.is_empty()
     }
 

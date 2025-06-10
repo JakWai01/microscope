@@ -2,26 +2,29 @@ use crate::graph::dag::MicroDAG;
 use crate::routing::front::MicroFront;
 use crate::routing::layout::MicroLayout;
 use std::{
-    collections::{HashMap, HashSet, VecDeque},
+    collections::{HashSet, VecDeque},
     i32,
 };
 
 use pyo3::{pyclass, pymethods, PyResult};
 
+use indexmap::IndexMap;
+use rustc_hash::FxHashMap;
+
 #[pyclass(module = "microboost.routing.sabre")]
 pub(crate) struct MicroSABRE {
     dag: MicroDAG,
     coupling_map: Vec<Vec<i32>>,
-    out_map: HashMap<i32, Vec<(i32, i32)>>,
+    out_map: FxHashMap<i32, Vec<(i32, i32)>>,
     gate_order: Vec<i32>,
     front_layer: MicroFront,
     required_predecessors: Vec<i32>,
-    adjacency_list: HashMap<i32, Vec<i32>>,
+    adjacency_list: FxHashMap<i32, Vec<i32>>,
     distance: Vec<Vec<i32>>,
     initial_mapping: MicroLayout,
     initial_dag: MicroDAG,
     initial_coupling_map: Vec<Vec<i32>>,
-    neighbour_map: HashMap<i32, Vec<i32>>,
+    neighbour_map: FxHashMap<i32, Vec<i32>>,
     layout: MicroLayout,
     num_qubits: i32,
 }
@@ -42,7 +45,7 @@ impl MicroSABRE {
             layout: initial_layout.clone(),
             distance: compute_all_pairs_shortest_paths(&coupling_map),
             coupling_map: coupling_map.clone(),
-            out_map: HashMap::new(),
+            out_map: FxHashMap::default(),
             gate_order: Vec::new(),
             front_layer: MicroFront::new(num_qubits),
             initial_mapping: initial_layout.clone(),
@@ -80,7 +83,7 @@ impl MicroSABRE {
         heuristic: String,
         _critical_path: bool,
         extended_set_size: i32,
-    ) -> (HashMap<i32, Vec<(i32, i32)>>, Vec<i32>) {
+    ) -> (FxHashMap<i32, Vec<(i32, i32)>>, Vec<i32>) {
         self.clear_data_structures();
         self.dag
             .edges()
@@ -92,7 +95,7 @@ impl MicroSABRE {
 
         let mut execute_gate_list: Vec<i32> = Vec::new();
 
-        while !self.front_layer.clone().is_empty() {
+        while !self.front_layer.is_empty() {
             let mut current_swaps: Vec<(i32, i32)> = Vec::new();
 
             while execute_gate_list.is_empty() {
@@ -157,27 +160,18 @@ impl MicroSABRE {
         scale: bool,
         extended_set_size: i32,
     ) -> f64 {
-        if front_layer.clone().is_empty() {
+        let front_len = front_layer.len() as f64;
+        if front_layer.is_empty() {
             return 0.0;
         }
-        let h_basic_result = self.h_basic(front_layer.clone(), 1.0);
+        let h_basic_result = self.h_basic(front_layer, 1.0);
         let extended_set = self.get_extended_set(extended_set_size); // Returns HashSet<usize>
-        let h_basic_result_extended = self.h_basic(extended_set.clone(), 1.0);
+        let extended_len = extended_set.len();
+        let h_basic_result_extended = self.h_basic(extended_set, 1.0);
 
-        let adjusted_weight = if scale {
-            // TODO: I really don't think this cloning is necessary
-            if extended_set.clone().is_empty() {
-                0.0
-            } else {
-                weight / extended_set.len() as f64
-            }
-        } else {
-            weight
-        };
-        let front_len = front_layer.len() as f64;
-        let extended_len = extended_set.len().max(1) as f64; // Avoid division by zero
-        (1.0 / front_len) * h_basic_result
-            + adjusted_weight * (1.0 / extended_len) * h_basic_result_extended
+        let extended_len = extended_len.max(1) as f64; // Avoid division by zero
+
+        (1.0 / front_len) * h_basic_result + weight * (1.0 / extended_len) * h_basic_result_extended
     }
 
     fn h_basic(
@@ -202,7 +196,7 @@ impl MicroSABRE {
         let mut extended_set: MicroFront = MicroFront::new(self.num_qubits);
         let mut visit_now: Vec<i32> = Vec::new();
 
-        let mut decremented: HashMap<i32, i32> = HashMap::new();
+        let mut decremented: FxHashMap<i32, i32> = FxHashMap::default();
 
         let mut visited = vec![false; self.dag.nodes.len()];
 
@@ -259,7 +253,7 @@ impl MicroSABRE {
     }
 
     fn choose_best_swap(&mut self, heuristic: String, extended_set_size: i32) -> (i32, i32) {
-        let mut scores: HashMap<(i32, i32), f64> = HashMap::new();
+        let mut scores: FxHashMap<(i32, i32), f64> = FxHashMap::default();
 
         let swap_candidates: Vec<(i32, i32)> = self.compute_swap_candidates();
 
@@ -303,7 +297,7 @@ impl MicroSABRE {
     }
 
     // Assuming this returns the swap with the lowest score
-    fn min_score(&self, scores: HashMap<(i32, i32), f64>) -> (i32, i32) {
+    fn min_score(&self, scores: FxHashMap<(i32, i32), f64>) -> (i32, i32) {
         *scores
             .iter()
             .min_by(|a, b| a.1.partial_cmp(b.1).unwrap())
@@ -386,8 +380,8 @@ impl MicroSABRE {
     }
 }
 
-fn build_adjacency_list(dag: &MicroDAG) -> HashMap<i32, Vec<i32>> {
-    let mut adj = HashMap::new();
+fn build_adjacency_list(dag: &MicroDAG) -> FxHashMap<i32, Vec<i32>> {
+    let mut adj = FxHashMap::default();
     for (u, v) in &dag.edges {
         adj.entry(*u).or_insert(Vec::new()).push(*v);
     }
@@ -424,8 +418,8 @@ fn compute_all_pairs_shortest_paths(coupling_map: &Vec<Vec<i32>>) -> Vec<Vec<i32
     dist
 }
 
-fn build_coupling_neighbour_map(coupling_map: &Vec<Vec<i32>>) -> HashMap<i32, Vec<i32>> {
-    let mut neighbour_map = HashMap::new();
+fn build_coupling_neighbour_map(coupling_map: &Vec<Vec<i32>>) -> FxHashMap<i32, Vec<i32>> {
+    let mut neighbour_map = FxHashMap::default();
 
     for edge in coupling_map {
         let u = edge[0];
