@@ -23,8 +23,8 @@ def main(command: str, files: tuple[str, ...], show: bool):
             hamiltonians(show)
         case "microbench":
             t0 = time.perf_counter() 
-            # microbench(files, show)
-            microbench_new(files)
+            microbench(files, show)
+            # microbench_new(files)
             t1 = time.perf_counter()
             print(f"Took {t1 - t0:.2f}s")
         case "slide":

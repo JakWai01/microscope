@@ -203,7 +203,8 @@ impl MicroSABRE {
         let mut visit_now: Vec<i32> = Vec::new();
 
         let mut decremented: HashMap<i32, i32> = HashMap::new();
-        let mut visited: HashMap<i32, bool> = HashMap::new();
+
+        let mut visited = vec![false; self.dag.nodes.len()];
 
         while i < to_visit.len() && extended_set.len() < extended_set_size as usize {
             visit_now.push(to_visit[i]);
@@ -214,9 +215,9 @@ impl MicroSABRE {
 
                 if let Some(successors) = self.adjacency_list.get(&(node_id as i32)) {
                     for &successor in successors {
-                        if *visited.get(&successor).unwrap_or(&false) == false {
+                        if !visited[successor as usize] {
                             let succ = self.dag.get(successor).unwrap();
-                            visited.insert(successor, true);
+                            visited[successor as usize] = true;
 
                             *decremented.entry(successor).or_insert(0) += 1;
                             self.required_predecessors[successor as usize] -= 1;
