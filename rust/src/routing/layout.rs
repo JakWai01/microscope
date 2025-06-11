@@ -4,7 +4,7 @@ use pyo3::{pyclass, pymethods};
 
 #[derive(Clone)]
 #[pyclass(module = "microboost.routing.sabre")]
-pub(crate) struct MicroLayout {
+pub struct MicroLayout {
     virt_to_phys: Vec<i32>,
     phys_to_virt: Vec<i32>,
 }

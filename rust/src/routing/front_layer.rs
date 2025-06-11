@@ -3,7 +3,7 @@ use pyo3::pyclass;
 
 #[derive(Clone)]
 #[pyclass(module = "microboost.routing.sabre")]
-pub(crate) struct MicroFront {
+pub struct MicroFront {
     pub nodes: IndexMap<i32, [i32; 2]>,
     pub qubits: Vec<Option<(i32, i32)>>,
 }

@@ -1,20 +1,18 @@
 use crate::routing::front_layer::MicroFront;
 use crate::routing::layout::MicroLayout;
-use crate::routing::utils::{build_coupling_neighbour_map, compute_all_pairs_shortest_paths};
+use crate::routing::utils::{build_coupling_neighbour_map, compute_all_pairs_shortest_paths, min_score};
 use crate::{graph::dag::MicroDAG, routing::utils::build_adjacency_list};
 use std::{
     collections::{HashSet, VecDeque},
     i32,
 };
 
-use rand::{rng, seq::IndexedRandom};
-
 use pyo3::{pyclass, pymethods, PyResult};
 
 use rustc_hash::FxHashMap;
 
 #[pyclass(module = "microboost.routing.sabre")]
-pub(crate) struct MicroSABRE {
+pub struct MicroSABRE {
     dag: MicroDAG,
     coupling_map: Vec<Vec<i32>>,
     out_map: FxHashMap<i32, Vec<(i32, i32)>>,
@@ -269,7 +267,7 @@ impl MicroSABRE {
 
             scores.insert((q0, q1), after - before);
         }
-        self.min_score(scores)
+        min_score(scores)
     }
 
     fn compute_swap_candidates(&self) -> Vec<(i32, i32)> {
@@ -283,30 +281,6 @@ impl MicroSABRE {
             }
         }
         swap_candidates
-    }
-
-    fn min_score(&self, scores: FxHashMap<(i32, i32), f64>) -> (i32, i32) {
-        let mut best_swaps = Vec::new();
-
-        let mut iter = scores.iter();
-        let (mut min_swap, mut min_score) =
-            iter.next().map(|(&swap, &score)| (swap, score)).unwrap();
-
-        best_swaps.push(min_swap);
-
-        for (&swap, &score) in iter {
-            if score < min_score {
-                min_score = score;
-                min_swap = swap;
-                best_swaps.clear();
-                best_swaps.push(swap);
-            } else if score == min_score {
-                best_swaps.push(swap);
-            }
-        }
-
-        let mut rng = rng();
-        *best_swaps.choose(&mut rng).unwrap()
     }
 
     fn executable_node_on_qubit(&self, physical_qubit: i32) -> Option<i32> {

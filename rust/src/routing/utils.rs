@@ -1,3 +1,4 @@
+use rand::{rng, seq::IndexedRandom};
 use rustc_hash::FxHashMap;
 
 use crate::MicroDAG;
@@ -50,4 +51,28 @@ pub fn build_coupling_neighbour_map(coupling_map: &Vec<Vec<i32>>) -> FxHashMap<i
     }
 
     neighbour_map
+}
+
+pub fn min_score(scores: FxHashMap<(i32, i32), f64>) -> (i32, i32) {
+    let mut best_swaps = Vec::new();
+
+    let mut iter = scores.iter();
+    let (mut min_swap, mut min_score) =
+        iter.next().map(|(&swap, &score)| (swap, score)).unwrap();
+
+    best_swaps.push(min_swap);
+
+    for (&swap, &score) in iter {
+        if score < min_score {
+            min_score = score;
+            min_swap = swap;
+            best_swaps.clear();
+            best_swaps.push(swap);
+        } else if score == min_score {
+            best_swaps.push(swap);
+        }
+    }
+
+    let mut rng = rng();
+    *best_swaps.choose(&mut rng).unwrap()
 }

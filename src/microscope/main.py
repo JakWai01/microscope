@@ -8,16 +8,24 @@ from commands.microbench import microbench, microbench_new
 from commands.slide import slide
 
 import time
-
+import yaml
 
 @click.command()
 @click.argument("command", nargs=1)
-@click.argument("files", nargs=-1, type=click.Path(exists=True))
 @click.option("--show", type=bool, help="True if circuits should be shown")
-def main(command: str, files: tuple[str, ...], show: bool):
+def main(command: str, show: bool):
     # Ignore deprecation warnings
     warnings.filterwarnings("ignore", category=DeprecationWarning)
 
+    # Parse yaml benchmark config file 
+    files = []
+    with open("config.yaml", "r") as file:
+        config = yaml.safe_load(file)
+        if "files" in config:
+            files = config["files"]
+        else:
+            print("No files specified in config.yaml. Please add 'files' key with a list of file paths.")
+    
     match command:
         case "hamiltonians":
             hamiltonians(show)

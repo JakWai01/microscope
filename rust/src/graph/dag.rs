@@ -4,7 +4,7 @@ use pyo3::{pyclass, pymethods, PyResult};
 
 #[derive(Clone)]
 #[pyclass(module = "microboost.graph.dag")]
-pub(crate) struct MicroDAG {
+pub struct MicroDAG {
     pub nodes: HashMap<i32, MicroDAGNode>,
     pub edges: Vec<(i32, i32)>,
 }
@@ -37,7 +37,7 @@ impl MicroDAG {
 
 #[derive(Debug, Clone)]
 #[pyclass]
-pub(crate) struct MicroDAGNode {
+pub struct MicroDAGNode {
     pub id: i32,
     pub qubits: Vec<i32>,
 }
