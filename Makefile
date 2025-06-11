@@ -22,4 +22,4 @@ small: build
 	python3 src/microscope/main.py microbench examples/adder_n10.qasm
 
 profile: build
-	perf record -g --call-graph=dwarf -- python3 src/microscope/main.py microbench examples/adder_n64.qasm && flamegraph --perfdata perf.data
+	perf record -g --call-graph=dwarf -- python3 src/microscope/main.py microbench ~/Documents/hamiltonians/ham_heis_graph_2D_grid_pbc_qubitnodes_Lx_5_Ly_186_h_3.qasm && flamegraph --perfdata perf.data

@@ -29,4 +29,4 @@ __pycache__/
 *.so
 
 *perf.*
-flamegraph.svg
+flame*.svg

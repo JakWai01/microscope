@@ -310,15 +310,6 @@ impl MicroSABRE {
         swap_candidates
     }
 
-    // Assuming this returns the swap with the lowest score
-    // fn min_score(&self, scores: FxHashMap<(i32, i32), f64>) -> (i32, i32) {
-    //     *scores
-    //         .iter()
-    //         .min_by(|a, b| a.1.partial_cmp(b.1).unwrap())
-    //         .unwrap()
-    //         .0
-    // }
-
     fn min_score(&self, scores: FxHashMap<(i32, i32), f64>) -> (i32, i32) {
         let mut best_swaps = Vec::new();
 
