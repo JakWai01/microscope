@@ -11,7 +11,6 @@ pub(crate) struct MicroFront {
 impl MicroFront {
     pub fn new(num_qubits: i32) -> Self {
         Self {
-            // with_capacity_and_hasher
             nodes: IndexMap::with_capacity(num_qubits as usize / 2),
             qubits: vec![None; num_qubits as usize],
         }
@@ -33,8 +32,6 @@ impl MicroFront {
     }
 
     pub fn remove(&mut self, index: &i32) {
-        // The actual order in the indexmap doesn't matter as long as it's reproducible.
-        // Swap-remove is more efficient than a full shift-remove.
         let [a, b] = self
             .nodes
             .swap_remove(index)
@@ -47,7 +44,6 @@ impl MicroFront {
         self.qubits[qubit as usize].is_some()
     }
 
-    /// Apply a physical swap to the current layout data structure.
     pub fn apply_swap(&mut self, swap: [i32; 2]) {
         let [a, b] = swap;
         match (self.qubits[a as usize], self.qubits[b as usize]) {
@@ -69,9 +65,5 @@ impl MicroFront {
             *entry = if *entry == [b, c] { [a, c] } else { [c, a] };
         }
         self.qubits.swap(a as usize, b as usize);
-    }
-
-    pub fn qubits(&self) -> &[Option<(i32, i32)>] {
-        &self.qubits
     }
 }

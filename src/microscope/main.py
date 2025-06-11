@@ -22,7 +22,7 @@ def main(command: str, files: tuple[str, ...], show: bool):
         case "hamiltonians":
             hamiltonians(show)
         case "microbench":
-            t0 = time.perf_counter() 
+            t0 = time.perf_counter()
             # microbench(files, show)
             microbench_new(files)
             t1 = time.perf_counter()

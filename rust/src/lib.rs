@@ -5,12 +5,11 @@ pub mod graph;
 pub mod routing;
 
 use crate::graph::dag::{MicroDAG, MicroDAGNode};
-use crate::routing::{layout::MicroLayout, micro_swap::micro_swap_boosted, sabre::MicroSABRE};
+use crate::routing::{layout::MicroLayout, sabre::MicroSABRE};
 
 /// A Python module implemented in Rust.
 #[pymodule]
 fn microboost(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(micro_swap_boosted, m)?)?;
     m.add_function(wrap_pyfunction!(hello_sabre, m)?)?;
     m.add_class::<MicroDAG>()?;
     m.add_class::<MicroDAGNode>()?;
