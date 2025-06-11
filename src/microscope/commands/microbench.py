@@ -88,7 +88,8 @@ def microbench_new(files):
 
         for heuristic, critical, extended_set_size in tqdm(test_executions):
             out_map, _ = rust_ms.run(heuristic, critical, extended_set_size)
-            # swaps = sum(len(arr) for arr in out_map.values())
+            swaps = sum(len(arr) for arr in out_map.values())
+            print(swaps)
             # es_size.append(extended_set_size)
             # num_swaps.append(swaps)
 

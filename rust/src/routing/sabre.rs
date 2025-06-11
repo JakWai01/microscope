@@ -6,6 +6,9 @@ use std::{
     i32,
 };
 
+use rand::{rng, seq::{IndexedRandom, SliceRandom}};
+use rand::thread_rng;
+
 use pyo3::{pyclass, pymethods, PyResult};
 
 use indexmap::IndexMap;
@@ -308,12 +311,36 @@ impl MicroSABRE {
     }
 
     // Assuming this returns the swap with the lowest score
+    // fn min_score(&self, scores: FxHashMap<(i32, i32), f64>) -> (i32, i32) {
+    //     *scores
+    //         .iter()
+    //         .min_by(|a, b| a.1.partial_cmp(b.1).unwrap())
+    //         .unwrap()
+    //         .0
+    // }
+
     fn min_score(&self, scores: FxHashMap<(i32, i32), f64>) -> (i32, i32) {
-        *scores
-            .iter()
-            .min_by(|a, b| a.1.partial_cmp(b.1).unwrap())
-            .unwrap()
-            .0
+        let mut best_swaps = Vec::new();
+
+        let mut iter = scores.iter();
+        let (mut min_swap, mut min_score) = iter.next().map(|(&swap, &score)| (swap, score)).unwrap();
+
+        best_swaps.push(min_swap);
+
+        for (&swap, &score) in iter {
+            if score < min_score {
+                min_score = score;
+                min_swap = swap;
+                best_swaps.clear();
+                best_swaps.push(swap);
+            } else if score == min_score {
+                best_swaps.push(swap);
+            }
+        }
+
+        // Optional: use a fixed seed instead of thread_rng() if deterministic output is desired
+        let mut rng = rng();
+        *best_swaps.choose(&mut rng).unwrap()
     }
 
     fn executable_node_on_qubit(&self, physical_qubit: i32) -> Option<i32> {
