@@ -68,8 +68,8 @@ def result_table(rows, columns):
 def plot_result(data):
     _, ax = plt.subplots()
 
-    for es, swaps, file in data:
-        ax.plot(es, swaps, label=f"{file}")
+    for es, swaps, heuristic in data:
+        ax.plot(es, swaps, label=f"{heuristic}")
 
     ax.legend()
 
@@ -78,11 +78,11 @@ def plot_result(data):
         ylabel="Swaps",
         title="Extended-Set Size Scaling",
         xlim=(0, 8),
-        xticks=range(0, 1001, 100),
+        xticks=range(0, 101, 10),
     )
     ax.grid()
 
-    plt.xlim((0, 1000))
+    plt.xlim((0, 100))
 
 
 def apply_swaps(dest_dag, swaps, layout, physical_qubits):

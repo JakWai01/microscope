@@ -1,8 +1,7 @@
-files:
-  - examples/adder_n4.qasm
-  - examples/adder_n10.qasm
-  - examples/adder_n28.qasm
-  - examples/adder_n64.qasm
-  # - ~/Documents/hamiltonians/ham_heis_graph_2D_grid_pbc_qubitnodes_Lx_5_Ly_186_h_3.qasm
-heuristics:
-  - "lookahead-0.5-scaling"
+single:
+  path: examples/adder_n64.qasm
+  trials: 10 
+  heuristics:
+    - "lookahead"
+    - "lookahead-0.5-scaling"
+

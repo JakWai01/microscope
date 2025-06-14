@@ -17,6 +17,7 @@ from commands.helper import (
     preprocess,
     apply_swaps,
     mapping_to_micro_mapping,
+    result_table
 )
 from qiskit.converters import circuit_to_dag, dag_to_circuit
 from qiskit.transpiler import CouplingMap
@@ -52,19 +53,24 @@ def transpile_circuit(circuit):
     return preprocessed_dag, transpiled_dag, segments
 
 def microbench(config, show):
-    files = config["files"]
-    heuristics = config["heuristics"]
+    path = config["single"]["path"]
+    heuristics = config["single"]["heuristics"]
+    num_executions = config["single"]["trials"]
 
     data = []
-
-    for file in files:
-        es, swaps = run(file, heuristics, show)
-        data.append((es, swaps, file))
-
+    accumulated_rows = []
+    columns = ["File", "Heuristic", "Extended Set Size", "Swaps", "Depth"]
+    
+    for heuristic in tqdm(heuristics):
+        (es, swaps), rows = run(path, heuristic, num_executions, show)
+        data.append((es, swaps, heuristic))
+        accumulated_rows.extend(rows)
+    
+    result_table(accumulated_rows, columns)
     plot_result(data)
 
 
-def run(file: str, heuristics: List[str], show: bool):
+def run(file: str, heuristic: str, num_executions: int, show: bool):
     input_circuit = QuantumCircuit.from_qasm_file(file)
 
     coupling_map = CouplingMap.from_line(input_circuit.num_qubits)
@@ -84,40 +90,47 @@ def run(file: str, heuristics: List[str], show: bool):
 
     rust_dag = DAG().from_qiskit_dag(input_dag).to_micro_dag()
 
-    rows = [["Depth"], ["Swaps"]]
-    columns = [""]
+    rows = []
 
     test_executions = []
     
-    for heuristic in heuristics:
-        for i in range(10, 1000, 10):
-            test_executions.append((heuristic, False, 20))
+    for i in range(10, 101, 10):
+        test_executions.append((heuristic, False, i))
 
     es_size = []
     num_swaps = []
 
-    for heuristic, critical, extended_set_size in tqdm(test_executions):
-        depth, swaps, transpiled_dag, _ = microsabre(
-            input_dag,
-            rust_dag,
-            initial_layout,
-            coupling_map,
-            show,
-            heuristic,
-            input_circuit.num_qubits,
-            critical,
-            extended_set_size,
-        )
+    for heuristic, critical, extended_set_size in test_executions:
+        accumulated_depth = 0
+        accumulated_swaps = 0
 
-        # transpiled_circuit = dag_to_circuit(transpiled_dag)
-        # transpiled_circuit.draw("mpl", fold=-1)
-        rows[0].append(str(depth))
-        rows[1].append(str(swaps))
+        for _ in range(0, num_executions):
+            depth, swaps, transpiled_dag, _ = microsabre(
+                input_dag,
+                rust_dag,
+                initial_layout,
+                coupling_map,
+                show,
+                heuristic,
+                input_circuit.num_qubits,
+                critical,
+                extended_set_size,
+            )
+
+            accumulated_depth += depth
+            accumulated_swaps += swaps
+    
+        avg_depth = accumulated_depth / num_executions 
+        avg_swaps = accumulated_swaps / num_executions 
+    
+        # Set values in table
+        rows.append([file, heuristic, str(extended_set_size), str(avg_swaps), str(avg_depth)])
+        
+        # Add values for plot
         es_size.append(extended_set_size)
-        num_swaps.append(swaps)
-        columns.append(f"{heuristic} {critical} {extended_set_size}")
+        num_swaps.append(avg_swaps)
 
-    return es_size, num_swaps
+    return (es_size, num_swaps), rows
 
 
 def microsabre(
