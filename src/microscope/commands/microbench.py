@@ -7,6 +7,7 @@ from qiskit.transpiler.passes import (
 from graph.dag import DAG
 from tqdm import tqdm
 from qiskit._accelerate.nlayout import NLayout
+from typing import List
 
 import microboost
 
@@ -29,7 +30,7 @@ def transpile_circuit(circuit):
     dag = circuit_to_dag(circuit)
 
     preprocessed_circuit, preprocessed_dag = preprocess(circuit, dag, coupling_map)
-    preprocessed_circuit.draw("mpl", fold=-1)
+    # preprocessed_circuit.draw("mpl", fold=-1)
 
     initial_mapping = generate_initial_mapping(preprocessed_dag)
 
@@ -50,65 +51,20 @@ def transpile_circuit(circuit):
 
     return preprocessed_dag, transpiled_dag, segments
 
+def microbench(config, show):
+    files = config["files"]
+    heuristics = config["heuristics"]
 
-def microbench_new(files):
-    # data = []
-
-    for file in files:
-        input_circuit = QuantumCircuit.from_qasm_file(file)
-
-        coupling_map = CouplingMap.from_line(input_circuit.num_qubits)
-        preprocessing_dag = circuit_to_dag(input_circuit)
-
-        _, input_dag = preprocess(input_circuit, preprocessing_dag, coupling_map)
-
-        canonical_register = input_dag.qregs["q"]
-        current_layout = Layout.generate_trivial_layout(canonical_register)
-        qubit_indices = {bit: idx for idx, bit in enumerate(canonical_register)}
-        layout_mapping = {
-            qubit_indices[k]: v for k, v in current_layout.get_virtual_bits().items()
-        }
-        initial_layout = microboost.MicroLayout(
-            layout_mapping, len(input_dag.qubits), coupling_map.size()
-        )
-
-        rust_dag = DAG().from_qiskit_dag(input_dag).to_micro_dag()
-
-        test_executions = []
-
-        for i in range(10, 1000, 10):
-            test_executions.append(("lookahead", False, 20))
-
-        # es_size = []
-        # num_swaps = []
-
-        rust_ms = microboost.MicroSABRE(
-            rust_dag, initial_layout, coupling_map.get_edges(), input_circuit.num_qubits
-        )
-
-        for heuristic, critical, extended_set_size in tqdm(test_executions):
-            out_map, _ = rust_ms.run(heuristic, critical, extended_set_size)
-            # swaps = sum(len(arr) for arr in out_map.values())
-            # print(swaps)
-            # es_size.append(extended_set_size)
-            # num_swaps.append(swaps)
-
-        # data.append((es_size, num_swaps, file))
-
-    # plot_result(data)
-
-
-def microbench(files, show):
     data = []
 
     for file in files:
-        es, swaps = run(file, show)
+        es, swaps = run(file, heuristics, show)
         data.append((es, swaps, file))
 
     plot_result(data)
 
 
-def run(file: str, show: bool):
+def run(file: str, heuristics: List[str], show: bool):
     input_circuit = QuantumCircuit.from_qasm_file(file)
 
     coupling_map = CouplingMap.from_line(input_circuit.num_qubits)
@@ -132,10 +88,10 @@ def run(file: str, show: bool):
     columns = [""]
 
     test_executions = []
-
-    # for i in range(10, 1000, 10):
-    # test_executions.append(("lookahead-0.5-scaling", False, i))
-    test_executions.append(("lookahead-0.5-scaling", False, 20))
+    
+    for heuristic in heuristics:
+        for i in range(10, 1000, 10):
+            test_executions.append((heuristic, False, 20))
 
     es_size = []
     num_swaps = []
@@ -153,8 +109,8 @@ def run(file: str, show: bool):
             extended_set_size,
         )
 
-        transpiled_circuit = dag_to_circuit(transpiled_dag)
-        transpiled_circuit.draw("mpl", fold=-1)
+        # transpiled_circuit = dag_to_circuit(transpiled_dag)
+        # transpiled_circuit.draw("mpl", fold=-1)
         rows[0].append(str(depth))
         rows[1].append(str(swaps))
         es_size.append(extended_set_size)
@@ -175,12 +131,12 @@ def microsabre(
     critical=False,
     extended_set_size=20,
 ):
-    # Rust implementation
     rust_ms = microboost.MicroSABRE(
         rust_dag, micro_mapping, coupling_map.get_edges(), num_qubits
     )
-    sabre_result = rust_ms.run(heuristic, critical, extended_set_size)
 
+    sabre_result = rust_ms.run(heuristic, critical, extended_set_size)
+    
     transpiled_sabre_dag_boosted, segments_boosted = apply_sabre_result(
         preprocessed_dag.copy_empty_like(),
         preprocessed_dag,
@@ -188,6 +144,7 @@ def microsabre(
         preprocessed_dag.qubits,
         coupling_map,
     )
+
     transpiled_micro_sabre_circuit_boosted = dag_to_circuit(
         transpiled_sabre_dag_boosted
     )
