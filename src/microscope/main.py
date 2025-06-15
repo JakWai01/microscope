@@ -4,11 +4,12 @@ from qiskit import warnings
 
 from commands.baseline import qiskit_baseline
 from commands.hamiltonians import hamiltonians
-from commands.microbench import microbench
+from commands.microbench import single, bench
 from commands.slide import slide
 
 import time
 import yaml
+
 
 @click.command()
 @click.argument("command", nargs=1)
@@ -24,8 +25,10 @@ def main(command: str, show: bool):
     match command:
         case "hamiltonians":
             hamiltonians(show)
-        case "microbench":
-            microbench(config, show)
+        case "single":
+            single(config, show)
+        case "bench":
+            bench(config, show)
         case "slide":
             slide()
         case "baseline":
@@ -39,11 +42,13 @@ def main(command: str, show: bool):
     print(f"Took {t1 - t0:.2f}s")
     plt.show()
 
+
 def parse_config():
-    # Parse yaml benchmark config file 
+    # Parse yaml benchmark config file
     files = []
     with open("config.yaml", "r") as file:
         return yaml.safe_load(file)
+
 
 if __name__ == "__main__":
     main()

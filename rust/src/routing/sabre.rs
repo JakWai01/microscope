@@ -1,6 +1,8 @@
 use crate::routing::front_layer::MicroFront;
 use crate::routing::layout::MicroLayout;
-use crate::routing::utils::{build_coupling_neighbour_map, compute_all_pairs_shortest_paths, min_score};
+use crate::routing::utils::{
+    build_coupling_neighbour_map, compute_all_pairs_shortest_paths, min_score,
+};
 use crate::{graph::dag::MicroDAG, routing::utils::build_adjacency_list};
 use std::{
     collections::{HashSet, VecDeque},

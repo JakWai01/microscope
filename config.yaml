@@ -4,4 +4,14 @@ single:
   heuristics:
     - "lookahead"
     - "lookahead-0.5-scaling"
+  extended-set: "dynamic"
 
+multi:
+  files:
+    - examples/adder_n4.qasm
+    - examples/adder_n10.qasm
+    - examples/adder_n28.qasm
+    - examples/adder_n64.qasm
+  trials: 1
+  heuristic: "lookahead-0.5-scaling"
+  extended-set: "constant"
