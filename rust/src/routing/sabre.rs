@@ -109,22 +109,22 @@ impl MicroSABRE {
                 self.apply_swap((physical_q0, physical_q1));
 
                 if let Some(node) = self.executable_node_on_qubit(physical_q0) {
-                    execute_gate_list.push(node as i32);
+                    execute_gate_list.push(node);
                 }
 
                 if let Some(node) = self.executable_node_on_qubit(physical_q1) {
-                    execute_gate_list.push(node as i32);
+                    execute_gate_list.push(node);
                 }
             }
 
-            let node_id = self.dag.get(execute_gate_list[0] as i32).unwrap().id;
+            let node_id = self.dag.get(execute_gate_list[0]).unwrap().id;
             self.out_map
                 .entry(node_id)
                 .or_default()
                 .extend(current_swaps);
 
             for &node in &execute_gate_list {
-                self.front_layer.remove(&(node as i32));
+                self.front_layer.remove(&node);
             }
             self.advance_front_layer(&execute_gate_list);
             execute_gate_list.clear();
@@ -198,9 +198,11 @@ impl MicroSABRE {
         let mut extended_set: MicroFront = MicroFront::new(self.num_qubits);
         let mut visit_now: Vec<i32> = Vec::new();
 
-        let mut decremented: FxHashMap<i32, i32> = FxHashMap::default();
+        let dag_size = self.dag.nodes.len();
 
-        let mut visited = vec![false; self.dag.nodes.len()];
+        let mut decremented = vec![0; dag_size];
+
+        let mut visited = vec![false; dag_size];
 
         while i < to_visit.len() && extended_set.len() < extended_set_size as usize {
             visit_now.push(to_visit[i]);
@@ -209,13 +211,14 @@ impl MicroSABRE {
             while j < visit_now.len() {
                 let node_id = visit_now[j];
 
-                if let Some(successors) = self.adjacency_list.get(&(node_id as i32)) {
+                if let Some(successors) = self.adjacency_list.get(&node_id) {
                     for &successor in successors {
                         if !visited[successor as usize] {
                             let succ = self.dag.get(successor).unwrap();
                             visited[successor as usize] = true;
 
-                            *decremented.entry(successor).or_insert(0) += 1;
+                            // *decremented.entry(successor).or_insert(0) += 1;
+                            decremented[successor as usize] += 1;
                             self.required_predecessors[successor as usize] -= 1;
 
                             if self.required_predecessors[successor as usize] == 0 {
@@ -247,8 +250,8 @@ impl MicroSABRE {
             i += 1;
         }
 
-        for (node, amount) in decremented {
-            self.required_predecessors[node as usize] += amount as i32;
+        for (index, amount) in decremented.iter().enumerate() {
+            self.required_predecessors[index] += amount;
         }
         extended_set
     }
