@@ -57,14 +57,13 @@ pub fn min_score(scores: FxHashMap<(i32, i32), f64>) -> (i32, i32) {
     let mut best_swaps = Vec::new();
 
     let mut iter = scores.iter();
-    let (mut min_swap, mut min_score) = iter.next().map(|(&swap, &score)| (swap, score)).unwrap();
+    let (min_swap, mut min_score) = iter.next().map(|(&swap, &score)| (swap, score)).unwrap();
 
     best_swaps.push(min_swap);
 
     for (&swap, &score) in iter {
         if score < min_score {
             min_score = score;
-            min_swap = swap;
             best_swaps.clear();
             best_swaps.push(swap);
         } else if score == min_score {

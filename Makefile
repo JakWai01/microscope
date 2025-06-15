@@ -14,7 +14,7 @@ base: build
 	python3 src/microscope/main.py baseline
 
 profile: build
-	perf record -g --call-graph=dwarf -- python3 src/microscope/main.py multi && flamegraph --perfdata perf.data
+	perf record -g --call-graph=dwarf -- python3 src/microscope/main.py bench && flamegraph --perfdata perf.data
 
 docs:
 	pushd rust && cargo doc --document-private-items --open && popd

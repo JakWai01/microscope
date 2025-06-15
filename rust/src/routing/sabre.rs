@@ -4,10 +4,7 @@ use crate::routing::utils::{
     build_coupling_neighbour_map, compute_all_pairs_shortest_paths, min_score,
 };
 use crate::{graph::dag::MicroDAG, routing::utils::build_adjacency_list};
-use std::{
-    collections::{HashSet, VecDeque},
-    i32,
-};
+use std::collections::{HashSet, VecDeque};
 
 use pyo3::{pyclass, pymethods, PyResult};
 
@@ -100,6 +97,9 @@ impl MicroSABRE {
             let mut current_swaps: Vec<(i32, i32)> = Vec::new();
 
             while execute_gate_list.is_empty() {
+                if current_swaps.len() > 1000 {
+                    panic!("We are stuck!")
+                }
                 let best_swap = self.choose_best_swap(heuristic, extended_set_size);
 
                 let physical_q0 = best_swap.0;
@@ -217,7 +217,6 @@ impl MicroSABRE {
                             let succ = self.dag.get(successor).unwrap();
                             visited[successor as usize] = true;
 
-                            // *decremented.entry(successor).or_insert(0) += 1;
                             decremented[successor as usize] += 1;
                             self.required_predecessors[successor as usize] -= 1;
 
@@ -235,6 +234,7 @@ impl MicroSABRE {
                             }
 
                             // Also adding the first layer of unroutable gates seems to improve results
+                            // Interesting observation: It gets stuck without it
                             if succ.qubits.len() == 2 {
                                 let physical_q0 = self.layout.virtual_to_physical(succ.qubits[0]);
                                 let physical_q1 = self.layout.virtual_to_physical(succ.qubits[1]);
