@@ -74,3 +74,16 @@ pub fn min_score(scores: FxHashMap<(i32, i32), f64>) -> (i32, i32) {
     let mut rng = rng();
     *best_swaps.choose(&mut rng).unwrap()
 }
+
+// pub fn min_score(scores: FxHashMap<(i32, i32), f64>) -> (i32, i32) {
+//     scores
+//         .into_iter()
+//         .min_by(|a, b| {
+//             a.1
+//                 .partial_cmp(&b.1)
+//                 .unwrap_or(std::cmp::Ordering::Equal)
+//                 .then_with(|| a.0.cmp(&b.0)) // Optional: tie-break using swap tuple
+//         })
+//         .map(|(swap, _)| swap)
+//         .unwrap()
+// }

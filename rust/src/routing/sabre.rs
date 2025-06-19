@@ -26,7 +26,8 @@ pub struct MicroSABRE {
     neighbour_map: FxHashMap<i32, Vec<i32>>,
     layout: MicroLayout,
     num_qubits: i32,
-    extended_set_max: usize
+    extended_set_max: usize,
+    successor_map: Vec<usize>
 }
 
 #[pymethods]
@@ -49,11 +50,12 @@ impl MicroSABRE {
             gate_order: Vec::new(),
             front_layer: MicroFront::new(num_qubits),
             initial_mapping: initial_layout.clone(),
+            successor_map: get_successor_map(&dag),
             initial_dag: dag,
             neighbour_map: build_coupling_neighbour_map(&coupling_map),
             initial_coupling_map: coupling_map,
             num_qubits,
-            extended_set_max: 0
+            extended_set_max: 0,
         })
     }
 
@@ -132,7 +134,7 @@ impl MicroSABRE {
             execute_gate_list.clear();
         }
 
-        println!("extended-set maximum: {:?}", self.extended_set_max);
+        // println!("extended-set maximum: {:?}", self.extended_set_max);
 
         (
             std::mem::take(&mut self.out_map),
@@ -177,11 +179,24 @@ impl MicroSABRE {
         if self.extended_set_max < extended_len {
             self.extended_set_max = extended_len;
         }
-        let h_basic_result_extended = self.h_basic(Some(extended_set), 1.0);
+        let h_basic_result_extended = self.h_extended_set(extended_set, 1.0);
 
         let extended_len = extended_len.max(1) as f64;
 
         (1.0 / front_len) * h_basic_result + weight * (1.0 / extended_len) * h_basic_result_extended
+    }
+
+    fn h_extended_set(&self, extended_set: MicroFront, weight: f64) -> f64 {
+        extended_set.nodes.iter().fold(0.0, |h_sum, (node_id, [a, b])| {
+            let distance = self.distance[*a as usize][*b as usize];
+            let num_successors = self.successor_map[*node_id as usize];
+            // Increase penalty by scaling the exponent (e.g., multiply by 2.0)
+            let penalty_factor = 1.0 / (1.0 + (num_successors as f64).ln());
+            // let penalty_factor = (-((num_successors + 1) as f64)).exp();
+            // println!("num successors: {:?}, penalty factor: {:?}", num_successors, penalty_factor);
+            // let penalty_factor = 1.0;
+            h_sum + weight * distance as f64 * penalty_factor
+        })
     }
 
     fn h_basic(&self, front_layer: Option<MicroFront>, weight: f64) -> f64 {
@@ -197,44 +212,6 @@ impl MicroSABRE {
         })
     }
     
-    fn get_extended_set_dfs(&mut self, extended_set_size: i32) -> MicroFront {
-        let mut to_visit: VecDeque<i32> = self.front_layer.nodes.keys().copied().collect();
-        
-        let mut extended_set: MicroFront = MicroFront::new(self.num_qubits);
-        let dag_size = self.dag.nodes.len();
-        let mut decremented = vec![0; dag_size];
-
-        while let Some(id) = to_visit.pop_front() {
-            if extended_set.len() < (extended_set_size as usize) {
-                return extended_set
-            }
-
-            if let Some(successors) = self.adjacency_list.get(&id) {
-                for successor in successors {
-                    let successor_node = self.dag.get(*successor).unwrap();
-                    decremented[*successor as usize] += 1;
-                    self.required_predecessors[*successor as usize] -= 1;
-
-                    if self.required_predecessors[*successor as usize] == 0 {
-                        if successor_node.qubits.len() == 2 {
-                            let q0 = self.layout.virtual_to_physical(successor_node.qubits[0]);
-                            let q1 = self.layout.virtual_to_physical(successor_node.qubits[1]);
-                            extended_set.insert(*successor, [q0, q1]);
-                        }
-                    }
-                    to_visit.push_back(*successor);
-                }
-                
-            }
-        }
-        
-        for (index, amount) in decremented.iter().enumerate() {
-            self.required_predecessors[index] += amount;
-        }
-
-        extended_set
-    }
-
     fn get_extended_set(&mut self, extended_set_size: i32) -> MicroFront {
         let mut to_visit: Vec<i32> = self.front_layer.nodes.keys().copied().collect();
         let mut i = 0;
@@ -249,14 +226,15 @@ impl MicroSABRE {
         let mut visited = vec![false; dag_size];
 
         while i < to_visit.len() && extended_set.len() < extended_set_size as usize {
+        // while i < to_visit.len() {
             visit_now.push(to_visit[i]);
             let mut j = 0;
 
             while j < visit_now.len() {
 
-                if extended_set.len() > extended_set_size as usize {
-                    break
-                }
+                // if extended_set.len() > extended_set_size as usize {
+                //     break
+                // }
                 let node_id = visit_now[j];
 
                 if let Some(successors) = self.adjacency_list.get(&node_id) {
@@ -283,11 +261,25 @@ impl MicroSABRE {
 
                             // Also adding the first layer of unroutable gates seems to improve results
                             // Interesting observation: It gets stuck without it
-                            if succ.qubits.len() == 2 {
-                                let physical_q0 = self.layout.virtual_to_physical(succ.qubits[0]);
-                                let physical_q1 = self.layout.virtual_to_physical(succ.qubits[1]);
-                                extended_set.insert(successor, [physical_q0, physical_q1]);
-                            }
+                        //     if succ.qubits.len() == 2 {
+                        //         let physical_q0 = self.layout.virtual_to_physical(succ.qubits[0]);
+                        //         let physical_q1 = self.layout.virtual_to_physical(succ.qubits[1]);
+                        //         extended_set.insert(successor, [physical_q0, physical_q1]);
+                        //     }
+
+                        // if succ.qubits.len() == 2
+                        //     && self.required_predecessors[successor as usize] == 1 {
+                        //         let vq0 = succ.qubits[0];
+                        //         let vq1 = succ.qubits[1];
+                        //         let pq0 = self.layout.virtual_to_physical(vq0);
+                        //         let pq1 = self.layout.virtual_to_physical(vq1);
+
+                        //         // Only add if the physical distance is small enough
+                        //         let distance = self.distance[pq0 as usize][pq1 as usize];
+                        //         if distance <= 3 {
+                        //             extended_set.insert(successor, [pq0, pq1]);
+                        //         }
+                        //     }
                         }
                     }
                 }
@@ -310,7 +302,7 @@ impl MicroSABRE {
         let swap_candidates: Vec<(i32, i32)> = self.compute_swap_candidates();
 
         for &(q0, q1) in &swap_candidates {
-            let before = self.calculate_heuristic(None, heuristic, extended_set_size);
+            let before: f64 = self.calculate_heuristic(None, heuristic, extended_set_size);
 
             self.apply_swap((q0, q1));
 
@@ -396,4 +388,27 @@ impl MicroSABRE {
             }
         }
     }
+}
+
+fn get_successor_map(dag: &MicroDAG) -> Vec<usize> {
+    let adj = build_adjacency_list(dag);
+    let mut successor_set: FxHashMap<i32, HashSet<i32>> =
+        dag.nodes.keys().map(|&n| (n, HashSet::new())).collect();
+
+    for u in (0..dag.nodes.len() as i32).rev() {
+        if let Some(neighbors) = adj.get(&u) {
+            for &v in neighbors {
+                successor_set.get_mut(&u).unwrap().insert(v);
+                if let Some(succ_v) = successor_set.get(&v) {
+                    let succ_v_cloned = succ_v.clone();
+                    successor_set.get_mut(&u).unwrap().extend(succ_v_cloned);
+                }
+            }
+        }
+    }
+
+    dag.nodes
+        .keys()
+        .map(|&n| successor_set[&n].len())
+        .collect()
 }

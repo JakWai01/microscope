@@ -9,14 +9,9 @@ class DAG:
 
     def insert(self, node_id, qubits):
         node = microboost.MicroDAGNode(node_id, qubits)
-        # node = DAGNode(node_id, qubits)
-
         node_index = len(self.nodes)
-
         self.nodes[node_index] = node
-
         self._update_edges(node_index)
-
         return node_id
 
     def _update_edges(self, node_index):
@@ -67,7 +62,6 @@ class DAG:
         return self
 
     def to_micro_dag(self):
-        # TODO: We need to have Rust DAGNode Objects as nodes
         return microboost.MicroDAG(self.nodes, self.edges)
 
     def __str__(self):
