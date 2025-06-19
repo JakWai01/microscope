@@ -88,3 +88,27 @@ inside of the extended set. This improves the result in that not only positive
 outcomes are considered inside of the heuristic. Furthermore, MicroSABRE
 introduces are visited array that prevents some unnecessary processing when
 considering a node multiple times.
+
+
+## Ideas
+
+- [ ] Track number of dag nodes
+- [ ] Track extended set range for circuits
+    - With a given limit of items in the extended set (e.g. 20), with small
+      circuits, we don't actually leverage the full set. However, it is
+      interesting to see that if we fill it up for every size (e.g. 930 qubits
+      sample), then the best result is still at a fairly small lookahead (30 in
+      that case). This indicates, that accounting for too many gates has
+      diminishing returns.
+- [ ] Track avg elements in extended set
+- [ ] Which elements to choose for the extended set might be relvant depending
+  on which heuristic to choose
+- [ ] How can we move that optimal point? Is it related to the weight we give
+  the extended set?
+
+- [ ] Finding optimal parameters probably requires categorizing the circuits
+- [ ] Understand what elements are populated into the current extended set and
+  the implications
+    - It might not make sense to implement critical path on the current
+      extended set if it only accounts for nodes that can be executed
+      immediately afterwards

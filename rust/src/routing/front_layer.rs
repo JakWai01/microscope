@@ -1,7 +1,7 @@
 use indexmap::IndexMap;
 use pyo3::pyclass;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[pyclass(module = "microboost.routing.sabre")]
 pub struct MicroFront {
     pub nodes: IndexMap<i32, [i32; 2]>,

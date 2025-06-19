@@ -63,6 +63,7 @@ def single(config, show):
     columns = ["File", "Heuristic", "Extended Set Size", "Swaps", "Depth"]
 
     for heuristic in heuristics:
+        # Extended Set type and size should be differentiated
         (es, swaps), rows = run(path, heuristic, num_executions, extended_set, show)
         data.append((es, swaps, heuristic))
         accumulated_rows.extend(rows)

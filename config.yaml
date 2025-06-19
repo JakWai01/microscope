@@ -1,9 +1,11 @@
 single:
-  path: examples/adder_n64.qasm
-  trials: 10 
+  # Biggest
+  # path: /home/jakob/Documents/hamiltonians/ham_heis_graph_2D_grid_pbc_qubitnodes_Lx_5_Ly_186_h_3.qasm
+  # 930 but less deep
+  path: /home/jakob/Documents/hamiltonians/ham_heis_graph_2D_grid_nonpbc_qubitnodes_Lx_5_Ly_186_h_0_5.qasm
+  trials: 10
   heuristics:
     - "lookahead"
-    - "lookahead-0.5-scaling"
   extended-set: "dynamic"
 
 multi:
