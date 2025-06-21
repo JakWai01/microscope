@@ -92,7 +92,8 @@ considering a node multiple times.
 
 ## Ideas
 
-- [ ] Move functions into separate packages to separate concerns and use MicroSABRE as a wrapper
+- [ ] Move functions into separate packages to separate concerns and use
+  MicroSABRE as a wrapper
 - [ ] Track number of dag nodes
 - [ ] Track extended set range for circuits
     - With a given limit of items in the extended set (e.g. 20), with small
@@ -101,7 +102,11 @@ considering a node multiple times.
       sample), then the best result is still at a fairly small lookahead (30 in
       that case). This indicates, that accounting for too many gates has
       diminishing returns.
-        - When running the 930 qubit circuit with no limit on items in the extended set, it contains ~1600 items per iteration. However, this does not improve resuts. Now, the question is if we introduce a decay in the heuristic (based on critical path), can we get it to scale linearly
+        - When running the 930 qubit circuit with no limit on items in the
+          extended set, it contains ~1600 items per iteration. However, this
+          does not improve resuts. Now, the question is if we introduce a decay
+          in the heuristic (based on critical path), can we get it to scale
+          linearly
 - [ ] Track avg elements in extended set
 - [ ] Which elements to choose for the extended set might be relvant depending
   on which heuristic to choose
@@ -114,9 +119,19 @@ considering a node multiple times.
     - It might not make sense to implement critical path on the current
       extended set if it only accounts for nodes that can be executed
       immediately afterwards
-- The inherent randomness in the SABRE algorithm can lead to one approach seeming better than another one.
-- What actually happens, why do we always contain the same number of gates in the extended set?
+- [ ] The inherent randomness in the SABRE algorithm can lead to one approach
+  seeming better than another one.
+- [ ] What actually happens, why do we always contain the same number of gates in
+  the extended set?
   - Understand the extended set
   - Implement a critical path / decay heuristic
-- Why is there still a dip?
-  - Understand what items are in the extended set and whether critical path can be applied to that?
+- [ ] Why is there still a dip?
+  - Understand what items are in the extended set and whether critical path can
+    be applied to that?
+- [ ] The extended set actually just contains all gates, that are routable assuming
+  the front can be executed. If I am not mistaken, accounting for the number of
+  gates in the extended set might be interesting. Also, what happens when we
+  create another front at the end of the extended set?
+    - Does the heuristic account for that and give more elements in the
+      extended set a benefit?
+- [ ] I don't want the algorithm to get stuck _ever_ cause it feels like the heuristic failed me in that case

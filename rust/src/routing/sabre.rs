@@ -144,42 +144,34 @@ impl MicroSABRE {
 
     fn calculate_heuristic(
         &mut self,
-        front_layer: Option<MicroFront>,
         heuristic: &str,
         extended_set_size: i32,
     ) -> f64 {
         match heuristic {
-            "basic" => self.h_basic(front_layer, 1.0),
-            "lookahead" => self.h_lookahead(front_layer, 1.0, extended_set_size),
+            "basic" => self.h_basic(1.0),
+            "lookahead" => self.h_lookahead(0.5, extended_set_size),
             _ => panic!("Unknown heuristic type: {}", heuristic),
         }
     }
 
     fn h_lookahead(
         &mut self,
-        front_layer: Option<MicroFront>,
         weight: f64,
         extended_set_size: i32,
     ) -> f64 {
-        let nodes = front_layer
-            .as_ref()
-            .unwrap_or(&self.front_layer)
-            .nodes
-            .values();
-
-        let front_len = nodes.len() as f64;
+        let front_len = self.front_layer.len() as f64;
         if front_len == 0.0 {
             return 0.0;
         }
 
-        let h_basic_result = self.h_basic(None, 1.0);
+        let h_basic_result = self.h_basic(1.0);
         let extended_set = self.get_extended_set(extended_set_size);
         let extended_len = extended_set.len();
         
         if self.extended_set_max < extended_len {
             self.extended_set_max = extended_len;
         }
-        let h_basic_result_extended = self.h_extended_set(extended_set, 1.0);
+        let h_basic_result_extended = self.h_extended_set(extended_set, 0.5);
 
         let extended_len = extended_len.max(1) as f64;
 
@@ -189,26 +181,24 @@ impl MicroSABRE {
     fn h_extended_set(&self, extended_set: MicroFront, weight: f64) -> f64 {
         extended_set.nodes.iter().fold(0.0, |h_sum, (node_id, [a, b])| {
             let distance = self.distance[*a as usize][*b as usize];
-            let num_successors = self.successor_map[*node_id as usize];
+            // let num_successors = self.successor_map[*node_id as usize];
             // Increase penalty by scaling the exponent (e.g., multiply by 2.0)
-            let penalty_factor = 1.0 / (1.0 + (num_successors as f64).ln());
+            // let penalty_factor = 1.0 / (1.0 + (num_successors as f64).ln());
             // let penalty_factor = (-((num_successors + 1) as f64)).exp();
             // println!("num successors: {:?}, penalty factor: {:?}", num_successors, penalty_factor);
-            // let penalty_factor = 1.0;
+            let penalty_factor = 1.0;
             h_sum + weight * distance as f64 * penalty_factor
         })
     }
 
-    fn h_basic(&self, front_layer: Option<MicroFront>, weight: f64) -> f64 {
-        let nodes = front_layer
-            .as_ref()
-            .unwrap_or(&self.front_layer)
-            .nodes
-            .values();
-
-        nodes.fold(0.0, |h_sum, [a, b]| {
+    fn h_basic(&self, weight: f64) -> f64 {
+        self.front_layer.nodes.iter().fold(0.0, |h_sum, (node_id, [a, b])| {
             let distance = self.distance[*a as usize][*b as usize];
-            h_sum + weight * distance as f64
+            // let num_successors = self.successor_map[*node_id as usize];
+            // let penalty_factor = 1.0 / (1.0 + (num_successors as f64).ln());
+            // let penalty_factor = (-((num_successors + 1) as f64)).exp();
+            let penalty_factor = 1.0; 
+            h_sum + weight * distance as f64 * penalty_factor
         })
     }
     
@@ -261,11 +251,11 @@ impl MicroSABRE {
 
                             // Also adding the first layer of unroutable gates seems to improve results
                             // Interesting observation: It gets stuck without it
-                        //     if succ.qubits.len() == 2 {
-                        //         let physical_q0 = self.layout.virtual_to_physical(succ.qubits[0]);
-                        //         let physical_q1 = self.layout.virtual_to_physical(succ.qubits[1]);
-                        //         extended_set.insert(successor, [physical_q0, physical_q1]);
-                        //     }
+                            if succ.qubits.len() == 2 {
+                                let physical_q0 = self.layout.virtual_to_physical(succ.qubits[0]);
+                                let physical_q1 = self.layout.virtual_to_physical(succ.qubits[1]);
+                                extended_set.insert(successor, [physical_q0, physical_q1]);
+                            }
 
                         // if succ.qubits.len() == 2
                         //     && self.required_predecessors[successor as usize] == 1 {
@@ -302,11 +292,11 @@ impl MicroSABRE {
         let swap_candidates: Vec<(i32, i32)> = self.compute_swap_candidates();
 
         for &(q0, q1) in &swap_candidates {
-            let before: f64 = self.calculate_heuristic(None, heuristic, extended_set_size);
+            let before: f64 = self.calculate_heuristic(heuristic, extended_set_size);
 
             self.apply_swap((q0, q1));
 
-            let after = self.calculate_heuristic(None, heuristic, extended_set_size);
+            let after = self.calculate_heuristic(heuristic, extended_set_size);
 
             self.apply_swap((q1, q0));
 
