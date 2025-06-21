@@ -26,8 +26,9 @@ pub struct MicroSABRE {
     neighbour_map: FxHashMap<i32, Vec<i32>>,
     layout: MicroLayout,
     num_qubits: i32,
-    extended_set_max: usize,
-    successor_map: Vec<usize>
+    extended_set_max: f64,
+    successor_map: Vec<usize>,
+    recent_swaps: VecDeque<(i32, i32)>
 }
 
 #[pymethods]
@@ -55,7 +56,8 @@ impl MicroSABRE {
             neighbour_map: build_coupling_neighbour_map(&coupling_map),
             initial_coupling_map: coupling_map,
             num_qubits,
-            extended_set_max: 0,
+            extended_set_max: 0.0,
+            recent_swaps: VecDeque::with_capacity(5)
         })
     }
 
@@ -105,6 +107,13 @@ impl MicroSABRE {
                     panic!("We are stuck!")
                 }
                 let best_swap = self.choose_best_swap(heuristic, extended_set_size);
+                
+                if self.recent_swaps.len() == self.recent_swaps.capacity() {
+                    self.recent_swaps.pop_back();
+                }
+                self.recent_swaps.push_front(best_swap);
+
+                println!("Best swap: {:?}", best_swap);
 
                 let physical_q0 = best_swap.0;
                 let physical_q1 = best_swap.1;
@@ -132,6 +141,10 @@ impl MicroSABRE {
             }
             self.advance_front_layer(&execute_gate_list);
             execute_gate_list.clear();
+
+            // Clearing recent swaps since we just want to prevent that swaps are reversed in a
+            // single iteration. In general, there can't be two same swaps in a single pass
+            self.recent_swaps.clear();
         }
 
         // println!("extended-set maximum: {:?}", self.extended_set_max);
@@ -159,34 +172,35 @@ impl MicroSABRE {
         weight: f64,
         extended_set_size: i32,
     ) -> f64 {
-        let front_len = self.front_layer.len() as f64;
-        if front_len == 0.0 {
-            return 0.0;
-        }
-
+        // Compute heuristic for front layer
         let h_basic_result = self.h_basic(1.0);
-        let extended_set = self.get_extended_set(extended_set_size);
-        let extended_len = extended_set.len();
         
+        // Determine extended set
+        let extended_set = self.get_extended_set(extended_set_size);
+        
+        // Compute heuristic for extended set
+        let h_basic_result_extended = self.h_extended_set(&extended_set, 1.0);
+
+        let front_len = self.front_layer.len().max(1) as f64;
+        let extended_len = extended_set.len().max(1) as f64;
         if self.extended_set_max < extended_len {
             self.extended_set_max = extended_len;
         }
-        let h_basic_result_extended = self.h_extended_set(extended_set, 0.5);
-
-        let extended_len = extended_len.max(1) as f64;
-
-        (1.0 / front_len) * h_basic_result + weight * (1.0 / extended_len) * h_basic_result_extended
+        
+        // Compute overall heuristic result
+        // (1.0 / front_len) * h_basic_result + weight * (1.0 / extended_len) * h_basic_result_extended
+        h_basic_result + weight * h_basic_result_extended
     }
 
-    fn h_extended_set(&self, extended_set: MicroFront, weight: f64) -> f64 {
+    fn h_extended_set(&self, extended_set: &MicroFront, weight: f64) -> f64 {
         extended_set.nodes.iter().fold(0.0, |h_sum, (node_id, [a, b])| {
             let distance = self.distance[*a as usize][*b as usize];
-            // let num_successors = self.successor_map[*node_id as usize];
+            let num_successors = self.successor_map[*node_id as usize];
             // Increase penalty by scaling the exponent (e.g., multiply by 2.0)
-            // let penalty_factor = 1.0 / (1.0 + (num_successors as f64).ln());
+            let penalty_factor = 1.0 / (1.0 + (num_successors as f64).ln());
             // let penalty_factor = (-((num_successors + 1) as f64)).exp();
             // println!("num successors: {:?}, penalty factor: {:?}", num_successors, penalty_factor);
-            let penalty_factor = 1.0;
+            // let penalty_factor = 1.0;
             h_sum + weight * distance as f64 * penalty_factor
         })
     }
@@ -290,6 +304,8 @@ impl MicroSABRE {
         let mut scores: FxHashMap<(i32, i32), f64> = FxHashMap::default();
 
         let swap_candidates: Vec<(i32, i32)> = self.compute_swap_candidates();
+        
+        println!("Swap Candidates: {:?}", swap_candidates);
 
         for &(q0, q1) in &swap_candidates {
             let before: f64 = self.calculate_heuristic(heuristic, extended_set_size);
@@ -299,9 +315,19 @@ impl MicroSABRE {
             let after = self.calculate_heuristic(heuristic, extended_set_size);
 
             self.apply_swap((q1, q0));
+    
+            // if (after - before).abs() < 1e-6 {
+            //     continue // Skip neutral swaps
+            // }
+
+            if self.recent_swaps.contains(&(q0, q1)) || self.recent_swaps.contains(&(q1, q0)) {
+                continue // Skip recent swaps
+            }
 
             scores.insert((q0, q1), after - before);
         }
+
+        // Returning
         min_score(scores)
     }
 

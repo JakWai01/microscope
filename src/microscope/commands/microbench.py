@@ -108,6 +108,9 @@ def run(file: str, heuristic: str, num_executions: int, extended_set: str, show:
     rows = []
 
     test_executions = []
+    
+    if extended_set == "solo":
+        test_executions.append((heuristic, False, 20))
 
     if extended_set == "constant":
         for i in range(10, 1001, 10):
@@ -139,6 +142,10 @@ def run(file: str, heuristic: str, num_executions: int, extended_set: str, show:
 
             accumulated_depth += depth
             accumulated_swaps += swaps
+        
+        if extended_set == "solo":
+            circuit = dag_to_circuit(transpiled_dag)
+            circuit.draw("mpl", fold=-1)
 
         avg_depth = accumulated_depth / num_executions
         avg_swaps = accumulated_swaps / num_executions

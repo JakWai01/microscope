@@ -2,7 +2,7 @@ bench: build
 	python3 src/microscope/main.py bench 
 
 single: build
-	python3 src/microscope/main.py single
+	RUST_BACKTRACE=1 python3 src/microscope/main.py single
 
 build:
 	maturin develop --release
