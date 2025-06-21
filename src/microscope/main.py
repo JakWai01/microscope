@@ -6,6 +6,7 @@ from commands.baseline import qiskit_baseline
 from commands.hamiltonians import hamiltonians
 from commands.microbench import single, bench
 from commands.slide import slide
+from commands.ocular import ocular 
 
 import time
 import yaml
@@ -23,6 +24,8 @@ def main(command: str, show: bool):
     t0 = time.perf_counter()
 
     match command:
+        case "ocular":
+            ocular(config)
         case "hamiltonians":
             hamiltonians(show)
         case "single":

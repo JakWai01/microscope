@@ -1,3 +1,6 @@
+ocular: build
+	python3 src/microscope/main.py ocular
+
 bench: build
 	python3 src/microscope/main.py bench 
 

@@ -85,7 +85,6 @@ impl MicroSABRE {
     fn run(
         &mut self,
         heuristic: &str,
-        _critical_path: bool,
         extended_set_size: i32,
     ) -> (FxHashMap<i32, Vec<(i32, i32)>>, Vec<i32>) {
         self.clear_data_structures();
@@ -113,7 +112,7 @@ impl MicroSABRE {
                 }
                 self.recent_swaps.push_front(best_swap);
 
-                println!("Best swap: {:?}", best_swap);
+                // println!("Best swap: {:?}", best_swap);
 
                 let physical_q0 = best_swap.0;
                 let physical_q1 = best_swap.1;
@@ -161,25 +160,30 @@ impl MicroSABRE {
         extended_set_size: i32,
     ) -> f64 {
         match heuristic {
-            "basic" => self.h_basic(1.0),
-            "lookahead" => self.h_lookahead(0.5, extended_set_size),
+            "basic" => self.h_basic("basic"),
+            "lookahead" => self.h_lookahead(0.5, extended_set_size, "basic", "basic"),
+            "lookahead_ln_1p_basic" => self.h_lookahead(0.5, extended_set_size, "ln_1p", "basic"),
+            "lookahead_basic_ln" => self.h_lookahead(0.5, extended_set_size, "basic", "ln"),
+            "lookahead_ln_1p_ln" => self.h_lookahead(0.5, extended_set_size, "ln_1p", "ln"),
             _ => panic!("Unknown heuristic type: {}", heuristic),
         }
     }
 
     fn h_lookahead(
         &mut self,
-        weight: f64,
+        extended_set_weight: f64,
         extended_set_size: i32,
+        critical_path_mode_basic: &str,
+        critical_path_mode_extended: &str,
     ) -> f64 {
         // Compute heuristic for front layer
-        let h_basic_result = self.h_basic(1.0);
+        let h_basic_result = self.h_basic(critical_path_mode_basic);
         
         // Determine extended set
         let extended_set = self.get_extended_set(extended_set_size);
         
         // Compute heuristic for extended set
-        let h_basic_result_extended = self.h_extended_set(&extended_set, 1.0);
+        let h_basic_result_extended = self.h_extended(&extended_set, critical_path_mode_extended);
 
         let front_len = self.front_layer.len().max(1) as f64;
         let extended_len = extended_set.len().max(1) as f64;
@@ -188,31 +192,36 @@ impl MicroSABRE {
         }
         
         // Compute overall heuristic result
-        // (1.0 / front_len) * h_basic_result + weight * (1.0 / extended_len) * h_basic_result_extended
-        h_basic_result + weight * h_basic_result_extended
+        h_basic_result + extended_set_weight * h_basic_result_extended
     }
 
-    fn h_extended_set(&self, extended_set: &MicroFront, weight: f64) -> f64 {
+    fn h_extended(&self, extended_set: &MicroFront, critical_path_mode: &str) -> f64 {
         extended_set.nodes.iter().fold(0.0, |h_sum, (node_id, [a, b])| {
             let distance = self.distance[*a as usize][*b as usize];
             let num_successors = self.successor_map[*node_id as usize];
-            // Increase penalty by scaling the exponent (e.g., multiply by 2.0)
-            let penalty_factor = 1.0 / (1.0 + (num_successors as f64).ln());
-            // let penalty_factor = (-((num_successors + 1) as f64)).exp();
-            // println!("num successors: {:?}, penalty factor: {:?}", num_successors, penalty_factor);
-            // let penalty_factor = 1.0;
-            h_sum + weight * distance as f64 * penalty_factor
+
+            let penalty_factor = match critical_path_mode {
+                "basic" => 1.0,
+                "ln"    => 1.0 / (1.0 + (num_successors as f64).ln()),
+                _ => panic!("Invalid critical_path_mode for h_extended"),
+            };
+
+            h_sum + distance as f64 * penalty_factor
         })
     }
 
-    fn h_basic(&self, weight: f64) -> f64 {
+    fn h_basic(&self, critical_path_mode: &str) -> f64 {
         self.front_layer.nodes.iter().fold(0.0, |h_sum, (node_id, [a, b])| {
             let distance = self.distance[*a as usize][*b as usize];
-            // let num_successors = self.successor_map[*node_id as usize];
-            // let penalty_factor = 1.0 / (1.0 + (num_successors as f64).ln());
-            // let penalty_factor = (-((num_successors + 1) as f64)).exp();
-            let penalty_factor = 1.0; 
-            h_sum + weight * distance as f64 * penalty_factor
+            let num_successors = self.successor_map[*node_id as usize];
+            
+            let penalty_factor = match critical_path_mode {
+                "basic" => 1.0,
+                "ln_1p" => 1.0 / (1.0 + (num_successors as f64).ln_1p()),
+                _ => panic!("Invalid critical_path_mode for h_basic"),
+            };
+
+            h_sum + distance as f64 * penalty_factor
         })
     }
     
@@ -305,7 +314,7 @@ impl MicroSABRE {
 
         let swap_candidates: Vec<(i32, i32)> = self.compute_swap_candidates();
         
-        println!("Swap Candidates: {:?}", swap_candidates);
+        // println!("Swap Candidates: {:?}", swap_candidates);
 
         for &(q0, q1) in &swap_candidates {
             let before: f64 = self.calculate_heuristic(heuristic, extended_set_size);

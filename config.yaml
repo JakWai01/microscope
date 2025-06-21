@@ -1,13 +1,24 @@
+ocular:
+  path: examples/adder_n64.qasm
+  # path: /home/jakob/Documents/hamiltonians/ham_heis_graph_2D_grid_nonpbc_qubitnodes_Lx_5_Ly_186_h_0_5.qasm
+  trials: 10
+  heuristics:
+    - "lookahead"
+  extended-set-size: 100
+
 single:
   # Biggest
   # path: /home/jakob/Documents/hamiltonians/ham_heis_graph_2D_grid_pbc_qubitnodes_Lx_5_Ly_186_h_3.qasm
   # 930 but less deep
-  # path: /home/jakob/Documents/hamiltonians/ham_heis_graph_2D_grid_nonpbc_qubitnodes_Lx_5_Ly_186_h_0_5.qasm
-  path: examples/adder_n28.qasm
-  trials: 1
+  path: /home/jakob/Documents/hamiltonians/ham_heis_graph_2D_grid_nonpbc_qubitnodes_Lx_5_Ly_186_h_0_5.qasm
+  # path: examples/adder_n28.qasm
+  trials: 10 
   heuristics:
+    # - "lookahead_ln_1p_ln"
+    # - "lookahead_basic_ln"
     - "lookahead"
-  extended-set: "solo"
+    # - "lookahead_ln_1p_basic"
+  extended-set: "dynamic"
 
 multi:
   files:

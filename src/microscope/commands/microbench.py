@@ -55,7 +55,7 @@ def transpile_circuit(circuit):
 def single(config, show):
     path = config["single"]["path"]
     heuristics = config["single"]["heuristics"]
-    num_executions = config["single"]["trials"]
+    trials = config["single"]["trials"]
     extended_set = config["single"]["extended-set"]
 
     data = []
@@ -63,10 +63,10 @@ def single(config, show):
     columns = ["File", "Heuristic", "Extended Set Size", "Swaps", "Depth"]
 
     for heuristic in heuristics:
-        # Extended Set type and size should be differentiated
-        (es, swaps), rows = run(path, heuristic, num_executions, extended_set, show)
-        data.append((es, swaps, heuristic))
-        accumulated_rows.extend(rows)
+        for extended_set_size in range(0, 101, 10):
+            (es, swaps), rows = run(path, heuristic, trials, extended_set, show, extended_set_size)
+            data.append((es, swaps, heuristic))
+            accumulated_rows.extend(rows)
 
     result_table(accumulated_rows, columns)
     plot_result(data)
@@ -85,8 +85,8 @@ def bench(config, show):
         data.append((es, swaps, file))
 
 
-def run(file: str, heuristic: str, num_executions: int, extended_set: str, show: bool):
-    input_circuit = QuantumCircuit.from_qasm_file(file)
+def run(path: str, heuristic: str, trials: int, extended_set: str, show: bool, extended_set_size: int):
+    input_circuit = QuantumCircuit.from_qasm_file(path)
 
     coupling_map = CouplingMap.from_line(input_circuit.num_qubits)
     preprocessing_dag = circuit_to_dag(input_circuit)
@@ -109,16 +109,17 @@ def run(file: str, heuristic: str, num_executions: int, extended_set: str, show:
 
     test_executions = []
     
-    if extended_set == "solo":
-        test_executions.append((heuristic, False, 20))
+    test_executions.append((heuristic, False, extended_set_size))
+    # if extended_set == "solo":
+    #     test_executions.append((heuristic, False, 20))
 
-    if extended_set == "constant":
-        for i in range(10, 1001, 10):
-            test_executions.append((heuristic, False, 20))
+    # if extended_set == "constant":
+    #     for i in range(10, 101, 10):
+    #         test_executions.append((heuristic, False, 20))
 
-    if extended_set == "dynamic":
-        for i in range(10, 101, 10):
-            test_executions.append((heuristic, False, i))
+    # if extended_set == "dynamic":
+    #     for i in range(10, 101, 10):
+    #         test_executions.append((heuristic, False, i))
 
     es_size = []
     num_swaps = []
@@ -127,7 +128,7 @@ def run(file: str, heuristic: str, num_executions: int, extended_set: str, show:
         accumulated_depth = 0
         accumulated_swaps = 0
 
-        for _ in range(0, num_executions):
+        for _ in range(0, trials):
             depth, swaps, transpiled_dag, _ = microsabre(
                 input_dag,
                 rust_dag,
@@ -147,12 +148,12 @@ def run(file: str, heuristic: str, num_executions: int, extended_set: str, show:
             circuit = dag_to_circuit(transpiled_dag)
             circuit.draw("mpl", fold=-1)
 
-        avg_depth = accumulated_depth / num_executions
-        avg_swaps = accumulated_swaps / num_executions
+        avg_depth = accumulated_depth / trials 
+        avg_swaps = accumulated_swaps / trials 
 
         # Set values in table
         rows.append(
-            [file, heuristic, str(extended_set_size), str(avg_swaps), str(avg_depth)]
+            [path, heuristic, str(extended_set_size), str(avg_swaps), str(avg_depth)]
         )
 
         # Add values for plot
@@ -173,11 +174,12 @@ def microsabre(
     critical=False,
     extended_set_size=20,
 ):
+    # We don't actually need to create the object each time but we seem to do it right here.
     rust_ms = microboost.MicroSABRE(
         rust_dag, micro_mapping, coupling_map.get_edges(), num_qubits
     )
 
-    sabre_result = rust_ms.run(heuristic, critical, extended_set_size)
+    sabre_result = rust_ms.run(heuristic, extended_set_size)
 
     transpiled_sabre_dag_boosted, segments_boosted = apply_sabre_result(
         preprocessed_dag.copy_empty_like(),
