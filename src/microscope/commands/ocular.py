@@ -16,6 +16,8 @@ from qiskit.transpiler.passes import (
 from collections import defaultdict
 from graph.dag import DAG
 from tqdm import tqdm
+
+import matplotlib.pyplot as plt
     
 from commands.helper import (
     apply_sabre_result,
@@ -141,18 +143,46 @@ def ocular(config):
 
 
 def process_results(test_results):
-    data = []
+    data = defaultdict(lambda: ([], []))
     
     rows = []
     columns = ["Heuristic", "Extended Set Size", "Swaps", "Depth"]
-
+    
     for key, results in test_results.items():
         total_depth = sum(d for d, s in results)
         total_swaps = sum(s for d, s in results)
         count = len(results)
-        rows.append([key[0], str(key[1]), str(total_swaps / count), str(total_depth / count)])
-        data.append((key[1], total_swaps / count, key[0]))
+        
+        avg_swaps = total_swaps / count
+        avg_depth = total_depth / count
+        heuristic = key[0]
+        extended_set_size = key[1]
+        
+        rows.append([str(heuristic), str(extended_set_size), str(avg_swaps), str(avg_depth)])
+        data[heuristic][0].append(extended_set_size)
+        data[heuristic][1].append(avg_swaps)
 
     result_table(rows, columns)
-    plot_result(data)
+    
+    # Plot result
+    _, ax = plt.subplots()
+
+    for heuristic, axis_data in data.items():
+        extended_set_size = axis_data[0]
+        swaps = axis_data[1]
+
+        ax.plot(extended_set_size, swaps, label=f"{heuristic}")
+
+    ax.legend()
+
+    ax.set(
+        xlabel="Extended-Set Size",
+        ylabel="Swaps",
+        title="Extended-Set Size Scaling",
+        xlim=(0, 8),
+        xticks=range(0, 101, 10),
+    )
+    ax.grid()
+
+    plt.xlim((0, 100))
         
