@@ -12,13 +12,13 @@ from qiskit.transpiler.passes import (
     ApplyLayout,
     RemoveBarriers,
 )
-    
+
 from collections import defaultdict
 from graph.dag import DAG
 from tqdm import tqdm
 
 import matplotlib.pyplot as plt
-    
+
 from commands.helper import (
     apply_sabre_result,
     generate_initial_mapping,
@@ -27,6 +27,7 @@ from commands.helper import (
 )
 
 import microboost
+
 
 # We want a class that manages all the benchmark parameters and generates runs for us
 class BenchmarkSet:
@@ -37,7 +38,7 @@ class BenchmarkSet:
 
     def get_test_cases(self):
         test_cases = []
-        
+
         for heuristic in self.heuristics:
             for i in range(0, self.extended_set_size, 10):
                 for _ in range(self.trials):
@@ -45,9 +46,10 @@ class BenchmarkSet:
 
         return test_cases
 
+
 def ocular(config):
     print("ocular")
-    
+
     # Parse config variables
     path = config["ocular"]["path"]
     heuristics = config["ocular"]["heuristics"]
@@ -57,7 +59,7 @@ def ocular(config):
     # Parse circuit
     input_circuit = QuantumCircuit.from_qasm_file(path)
     num_qubits = input_circuit.num_qubits
-    
+
     # Generate coupling map
     coupling_map = CouplingMap.from_line(input_circuit.num_qubits)
 
@@ -68,13 +70,13 @@ def ocular(config):
     preprocessing_layout = generate_initial_mapping(input_dag)
 
     pm = PassManager(
-            [
-                Unroll3qOrMore(),
-                SetLayout(preprocessing_layout),
-                FullAncillaAllocation(coupling_map),
-                ApplyLayout(),
-                RemoveBarriers(),
-            ]
+        [
+            Unroll3qOrMore(),
+            SetLayout(preprocessing_layout),
+            FullAncillaAllocation(coupling_map),
+            ApplyLayout(),
+            RemoveBarriers(),
+        ]
     )
 
     preprocessed_circuit = pm.run(input_circuit)
@@ -93,22 +95,21 @@ def ocular(config):
 
     # Create Rust DAG
     rust_dag = DAG().from_qiskit_dag(preprocessed_dag).to_micro_dag()
-     
+
     # Create test test cases
     test_cases = BenchmarkSet(heuristics, trials, extended_set_size).get_test_cases()
     test_results = defaultdict(list)
-    
+
     # Loop through test cases
     for heuristic, extended_set_size in tqdm(test_cases):
-
         # Initialize MicroSABRE struct
         rust_ms = microboost.MicroSABRE(
-            rust_dag, initial_layout, coupling_map.get_edges(), num_qubits 
+            rust_dag, initial_layout, coupling_map.get_edges(), num_qubits
         )
-        
+
         # Run single SABRE execution
         sabre_result = rust_ms.run(heuristic, extended_set_size)
-        
+
         # Insert SWAPs into original DAG
         transpiled_sabre_dag_boosted, _ = apply_sabre_result(
             preprocessed_dag.copy_empty_like(),
@@ -117,22 +118,22 @@ def ocular(config):
             preprocessed_dag.qubits,
             coupling_map,
         )
-        
+
         # Create final result circuit
-        transpiled_sabre_circuit_boosted = dag_to_circuit(
-                transpiled_sabre_dag_boosted
-        )
-        
+        transpiled_sabre_circuit_boosted = dag_to_circuit(transpiled_sabre_dag_boosted)
+
         # Initialize PassManager to check correctness of result
         cm = CheckMap(coupling_map=coupling_map)
         pm = PassManager([cm])
-        
+
         # Run PassManager
         _ = pm.run(transpiled_sabre_circuit_boosted)
 
         if not cm.property_set.get("is_swap_mapped"):
-            raise ValueError("CheckMap identified invalid mapping from DAG to coupling_map")
-        
+            raise ValueError(
+                "CheckMap identified invalid mapping from DAG to coupling_map"
+            )
+
         # Gather metrics
         depth = transpiled_sabre_circuit_boosted.depth()
         swaps = len(transpiled_sabre_dag_boosted.op_nodes(op=SwapGate))
@@ -144,26 +145,28 @@ def ocular(config):
 
 def process_results(test_results):
     data = defaultdict(lambda: ([], []))
-    
+
     rows = []
     columns = ["Heuristic", "Extended Set Size", "Swaps", "Depth"]
-    
+
     for key, results in test_results.items():
         total_depth = sum(d for d, s in results)
         total_swaps = sum(s for d, s in results)
         count = len(results)
-        
+
         avg_swaps = total_swaps / count
         avg_depth = total_depth / count
         heuristic = key[0]
         extended_set_size = key[1]
-        
-        rows.append([str(heuristic), str(extended_set_size), str(avg_swaps), str(avg_depth)])
+
+        rows.append(
+            [str(heuristic), str(extended_set_size), str(avg_swaps), str(avg_depth)]
+        )
         data[heuristic][0].append(extended_set_size)
         data[heuristic][1].append(avg_swaps)
 
     result_table(rows, columns)
-    
+
     # Plot result
     _, ax = plt.subplots()
 
@@ -185,4 +188,3 @@ def process_results(test_results):
     ax.grid()
 
     plt.xlim((0, 100))
-        

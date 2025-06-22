@@ -28,7 +28,7 @@ pub struct MicroSABRE {
     num_qubits: i32,
     extended_set_max: f64,
     successor_map: Vec<usize>,
-    recent_swaps: VecDeque<(i32, i32)>
+    recent_swaps: VecDeque<(i32, i32)>,
 }
 
 #[pymethods]
@@ -57,7 +57,7 @@ impl MicroSABRE {
             initial_coupling_map: coupling_map,
             num_qubits,
             extended_set_max: 0.0,
-            recent_swaps: VecDeque::with_capacity(5)
+            recent_swaps: VecDeque::with_capacity(5),
         })
     }
 
@@ -106,7 +106,7 @@ impl MicroSABRE {
                     panic!("We are stuck!")
                 }
                 let best_swap = self.choose_best_swap(heuristic, extended_set_size);
-                
+
                 if self.recent_swaps.len() == self.recent_swaps.capacity() {
                     self.recent_swaps.pop_back();
                 }
@@ -154,11 +154,7 @@ impl MicroSABRE {
         )
     }
 
-    fn calculate_heuristic(
-        &mut self,
-        heuristic: &str,
-        extended_set_size: i32,
-    ) -> f64 {
+    fn calculate_heuristic(&mut self, heuristic: &str, extended_set_size: i32) -> f64 {
         match heuristic {
             "basic" => self.h_basic("basic"),
             "lookahead" => self.h_lookahead(0.5, extended_set_size, "basic", "basic"),
@@ -178,10 +174,10 @@ impl MicroSABRE {
     ) -> f64 {
         // Compute heuristic for front layer
         let h_basic_result = self.h_basic(critical_path_mode_basic);
-        
+
         // Determine extended set
         let extended_set = self.get_extended_set(extended_set_size);
-        
+
         // Compute heuristic for extended set
         let h_basic_result_extended = self.h_extended(&extended_set, critical_path_mode_extended);
 
@@ -190,48 +186,54 @@ impl MicroSABRE {
         if self.extended_set_max < extended_len {
             self.extended_set_max = extended_len;
         }
-        
+
         // Compute overall heuristic result
         h_basic_result + extended_set_weight * h_basic_result_extended
     }
 
     fn h_extended(&self, extended_set: &MicroFront, critical_path_mode: &str) -> f64 {
-        extended_set.nodes.iter().fold(0.0, |h_sum, (node_id, [a, b])| {
-            let distance = self.distance[*a as usize][*b as usize];
-            let num_successors = self.successor_map[*node_id as usize];
+        extended_set
+            .nodes
+            .iter()
+            .fold(0.0, |h_sum, (node_id, [a, b])| {
+                let distance = self.distance[*a as usize][*b as usize];
+                let num_successors = self.successor_map[*node_id as usize];
 
-            let penalty_factor = match critical_path_mode {
-                "basic" => 1.0,
-                "ln"    => 1.0 / (1.0 + (num_successors as f64).ln()),
-                _ => panic!("Invalid critical_path_mode for h_extended"),
-            };
+                let penalty_factor = match critical_path_mode {
+                    "basic" => 1.0,
+                    "ln" => 1.0 / (1.0 + (num_successors as f64).ln()),
+                    _ => panic!("Invalid critical_path_mode for h_extended"),
+                };
 
-            h_sum + distance as f64 * penalty_factor
-        })
+                h_sum + distance as f64 * penalty_factor
+            })
     }
 
     fn h_basic(&self, critical_path_mode: &str) -> f64 {
-        self.front_layer.nodes.iter().fold(0.0, |h_sum, (node_id, [a, b])| {
-            let distance = self.distance[*a as usize][*b as usize];
-            let num_successors = self.successor_map[*node_id as usize];
-            
-            let penalty_factor = match critical_path_mode {
-                "basic" => 1.0,
-                "ln_1p" => 1.0 / (1.0 + (num_successors as f64).ln_1p()),
-                _ => panic!("Invalid critical_path_mode for h_basic"),
-            };
+        self.front_layer
+            .nodes
+            .iter()
+            .fold(0.0, |h_sum, (node_id, [a, b])| {
+                let distance = self.distance[*a as usize][*b as usize];
+                let num_successors = self.successor_map[*node_id as usize];
 
-            h_sum + distance as f64 * penalty_factor
-        })
+                let penalty_factor = match critical_path_mode {
+                    "basic" => 1.0,
+                    "ln_1p" => 1.0 / (1.0 + (num_successors as f64).ln_1p()),
+                    _ => panic!("Invalid critical_path_mode for h_basic"),
+                };
+
+                h_sum + distance as f64 * penalty_factor
+            })
     }
-    
+
     fn get_extended_set(&mut self, extended_set_size: i32) -> MicroFront {
         let mut to_visit: Vec<i32> = self.front_layer.nodes.keys().copied().collect();
         let mut i = 0;
 
         let mut extended_set: MicroFront = MicroFront::new(self.num_qubits);
         let mut visit_now: Vec<i32> = Vec::new();
- 
+
         let dag_size = self.dag.nodes.len();
 
         let mut decremented = vec![0; dag_size];
@@ -239,12 +241,11 @@ impl MicroSABRE {
         let mut visited = vec![false; dag_size];
 
         while i < to_visit.len() && extended_set.len() < extended_set_size as usize {
-        // while i < to_visit.len() {
+            // while i < to_visit.len() {
             visit_now.push(to_visit[i]);
             let mut j = 0;
 
             while j < visit_now.len() {
-
                 // if extended_set.len() > extended_set_size as usize {
                 //     break
                 // }
@@ -280,19 +281,19 @@ impl MicroSABRE {
                                 extended_set.insert(successor, [physical_q0, physical_q1]);
                             }
 
-                        // if succ.qubits.len() == 2
-                        //     && self.required_predecessors[successor as usize] == 1 {
-                        //         let vq0 = succ.qubits[0];
-                        //         let vq1 = succ.qubits[1];
-                        //         let pq0 = self.layout.virtual_to_physical(vq0);
-                        //         let pq1 = self.layout.virtual_to_physical(vq1);
+                            // if succ.qubits.len() == 2
+                            //     && self.required_predecessors[successor as usize] == 1 {
+                            //         let vq0 = succ.qubits[0];
+                            //         let vq1 = succ.qubits[1];
+                            //         let pq0 = self.layout.virtual_to_physical(vq0);
+                            //         let pq1 = self.layout.virtual_to_physical(vq1);
 
-                        //         // Only add if the physical distance is small enough
-                        //         let distance = self.distance[pq0 as usize][pq1 as usize];
-                        //         if distance <= 3 {
-                        //             extended_set.insert(successor, [pq0, pq1]);
-                        //         }
-                        //     }
+                            //         // Only add if the physical distance is small enough
+                            //         let distance = self.distance[pq0 as usize][pq1 as usize];
+                            //         if distance <= 3 {
+                            //             extended_set.insert(successor, [pq0, pq1]);
+                            //         }
+                            //     }
                         }
                     }
                 }
@@ -313,7 +314,7 @@ impl MicroSABRE {
         let mut scores: FxHashMap<(i32, i32), f64> = FxHashMap::default();
 
         let swap_candidates: Vec<(i32, i32)> = self.compute_swap_candidates();
-        
+
         // println!("Swap Candidates: {:?}", swap_candidates);
 
         for &(q0, q1) in &swap_candidates {
@@ -324,13 +325,13 @@ impl MicroSABRE {
             let after = self.calculate_heuristic(heuristic, extended_set_size);
 
             self.apply_swap((q1, q0));
-    
+
             // if (after - before).abs() < 1e-6 {
             //     continue // Skip neutral swaps
             // }
 
             if self.recent_swaps.contains(&(q0, q1)) || self.recent_swaps.contains(&(q1, q0)) {
-                continue // Skip recent swaps
+                continue; // Skip recent swaps
             }
 
             scores.insert((q0, q1), after - before);
@@ -432,8 +433,5 @@ fn get_successor_map(dag: &MicroDAG) -> Vec<usize> {
         }
     }
 
-    dag.nodes
-        .keys()
-        .map(|&n| successor_set[&n].len())
-        .collect()
+    dag.nodes.keys().map(|&n| successor_set[&n].len()).collect()
 }

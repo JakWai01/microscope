@@ -71,8 +71,6 @@ pub fn min_score(scores: FxHashMap<(i32, i32), f64>) -> (i32, i32) {
         }
     }
 
-    // println!("Min score: {:?}", min_score);
-
     let mut rng = rng();
     *best_swaps.choose(&mut rng).unwrap()
 }

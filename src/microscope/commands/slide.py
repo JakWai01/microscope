@@ -1,6 +1,54 @@
 from qiskit import QuantumCircuit
-from commands.microbench import transpile_circuit
+from qiskit.transpiler import PassManager
+from qiskit.transpiler.passes import (
+    CheckMap,
+)
 
+from graph.dag import DAG
+from tqdm import tqdm
+from qiskit._accelerate.nlayout import NLayout
+from typing import List
+
+import microboost
+
+from commands.helper import (
+    plot_result,
+    generate_initial_mapping,
+    preprocess,
+    apply_swaps,
+    mapping_to_micro_mapping,
+    result_table,
+)
+from qiskit.converters import circuit_to_dag, dag_to_circuit
+from qiskit.transpiler import CouplingMap
+from qiskit.circuit.library.standard_gates import SwapGate
+from qiskit.transpiler.layout import Layout
+from qiskit.dagcircuit import DAGOpNode
+
+def transpile_circuit(circuit):
+    coupling_map = CouplingMap.from_line(circuit.num_qubits)
+    dag = circuit_to_dag(circuit)
+
+    preprocessed_circuit, preprocessed_dag = preprocess(circuit, dag, coupling_map)
+
+    initial_mapping = generate_initial_mapping(preprocessed_dag)
+
+    micro_dag = DAG().from_qiskit_dag(preprocessed_dag).to_micro_dag()
+    micro_mapping = mapping_to_micro_mapping(initial_mapping)
+
+    _, _, transpiled_dag, segments = microsabre(
+        preprocessed_dag,
+        micro_dag,
+        micro_mapping,
+        coupling_map,
+        False,
+        "lookahead",
+        preprocessed_circuit.num_qubits,
+        False,
+        20,
+    )
+
+    return preprocessed_dag, transpiled_dag, segments
 
 def slide():
     circuit = QuantumCircuit.from_qasm_file("examples/adder_n10.qasm")

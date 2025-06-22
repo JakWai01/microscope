@@ -98,7 +98,7 @@ def apply_swaps(dest_dag, swaps, layout, physical_qubits):
         layout.swap_physical(a, b)
         dest_dag.apply_operation_back(SwapGate(), qubits, (), check=False)
 
-    
+
 def apply_sabre_result(
     dest_dag, source_dag, sabre_result, physical_qubits, coupling_map
 ):
