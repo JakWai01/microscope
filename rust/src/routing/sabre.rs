@@ -29,6 +29,8 @@ pub struct MicroSABRE {
     extended_set_max: f64,
     successor_map: Vec<usize>,
     recent_swaps: VecDeque<(i32, i32)>,
+    random_choices: i32,
+    total_choices: i32,
 }
 
 #[pymethods]
@@ -58,6 +60,8 @@ impl MicroSABRE {
             num_qubits,
             extended_set_max: 0.0,
             recent_swaps: VecDeque::with_capacity(5),
+            random_choices: 0,
+            total_choices: 0
         })
     }
 
@@ -145,6 +149,7 @@ impl MicroSABRE {
         }
 
         // println!("extended-set maximum: {:?}", self.extended_set_max);
+        println!("Randomness: {:?}", self.random_choices as f64 / self.total_choices as f64);
 
         (
             std::mem::take(&mut self.out_map),
@@ -155,6 +160,7 @@ impl MicroSABRE {
     fn calculate_heuristic(&mut self, heuristic: &str, extended_set_size: i32) -> f64 {
         match heuristic {
             "basic" => self.h_basic("basic"),
+            "basic_ln_1p" => self.h_basic("ln_1p"),
             "lookahead" => self.h_lookahead(0.5, extended_set_size, "basic", "basic"),
             "lookahead_ln_1p_basic" => self.h_lookahead(0.5, extended_set_size, "ln_1p", "basic"),
             "lookahead_basic_ln" => self.h_lookahead(0.5, extended_set_size, "basic", "ln"),
@@ -334,8 +340,15 @@ impl MicroSABRE {
             scores.insert((q0, q1), after - before);
         }
 
-        // Returning
-        min_score(scores)
+        let (best_swap, random) = min_score(scores);
+
+        // Calculate fraction of random choices
+        if random {
+            self.random_choices += 1;
+        }
+        self.total_choices += 1;
+
+        best_swap
     }
 
     fn compute_swap_candidates(&self) -> Vec<(i32, i32)> {

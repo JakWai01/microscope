@@ -53,44 +53,7 @@ pub fn build_coupling_neighbour_map(coupling_map: &Vec<Vec<i32>>) -> FxHashMap<i
     neighbour_map
 }
 
-// pub fn min_score(scores: FxHashMap<(i32, i32), f64>) -> (i32, i32) {
-//     let mut best_swaps = Vec::new();
-// 
-//     let mut iter = scores.iter();
-//     let (min_swap, mut min_score) = iter.next().map(|(&swap, &score)| (swap, score)).unwrap();
-// 
-//     best_swaps.push(min_swap);
-// 
-//     for (&swap, &score) in iter {
-//         if score < min_score {
-//             min_score = score;
-//             best_swaps.clear();
-//             best_swaps.push(swap);
-//         } else if score == min_score {
-//             best_swaps.push(swap);
-//         }
-//     }
-// 
-//     let mut rng = rng();
-//     *best_swaps.choose(&mut rng).unwrap()
-// }
-
-// pub fn min_score(scores: FxHashMap<(i32, i32), f64>) -> (i32, i32) {
-//     scores
-//         .into_iter()
-//         .min_by(|a, b| {
-//             a.1
-//                 .partial_cmp(&b.1)
-//                 .unwrap_or(std::cmp::Ordering::Equal)
-//                 .then_with(|| a.0.cmp(&b.0)) // Optional: tie-break using swap tuple
-//         })
-//         .map(|(swap, _)| swap)
-//         .unwrap()
-// }
-
-use rand::{thread_rng, seq::SliceRandom}; // <-- important!
-
-pub fn min_score(scores: FxHashMap<(i32, i32), f64>) -> (i32, i32) {
+pub fn min_score(scores: FxHashMap<(i32, i32), f64>) -> ((i32, i32), bool) {
     let mut best_swaps = Vec::new();
 
     let mut iter = scores.iter();
@@ -108,7 +71,21 @@ pub fn min_score(scores: FxHashMap<(i32, i32), f64>) -> (i32, i32) {
         }
     }
 
-    let mut rng = thread_rng(); // ✅ real random, seeded from system entropy
-    *best_swaps.choose(&mut rng).unwrap()
+    let mut rng = rng();
+
+    // If length of best_swaps > 1 is true, then a random choice was made
+    (*best_swaps.choose(&mut rng).unwrap(), best_swaps.len() > 1)
 }
 
+// pub fn min_score(scores: FxHashMap<(i32, i32), f64>) -> (i32, i32) {
+//     scores
+//         .into_iter()
+//         .min_by(|a, b| {
+//             a.1
+//                 .partial_cmp(&b.1)
+//                 .unwrap_or(std::cmp::Ordering::Equal)
+//                 .then_with(|| a.0.cmp(&b.0)) // Optional: tie-break using swap tuple
+//         })
+//         .map(|(swap, _)| swap)
+//         .unwrap()
+// }
