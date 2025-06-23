@@ -1,8 +1,9 @@
 ocular:
   path: examples/adder_n28.qasm
   # path: /home/jakob/Documents/hamiltonians/ham_heis_graph_2D_grid_nonpbc_qubitnodes_Lx_5_Ly_186_h_0_5.qasm
-  trials: 2
+  trials: 100
   heuristics:
+    - "basic"
     - "lookahead"
     - "lookahead_basic_ln"
     # - "lookahead_ln_1p_ln"

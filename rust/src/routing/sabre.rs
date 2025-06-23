@@ -112,8 +112,6 @@ impl MicroSABRE {
                 }
                 self.recent_swaps.push_front(best_swap);
 
-                // println!("Best swap: {:?}", best_swap);
-
                 let physical_q0 = best_swap.0;
                 let physical_q1 = best_swap.1;
 
@@ -181,7 +179,6 @@ impl MicroSABRE {
         // Compute heuristic for extended set
         let h_basic_result_extended = self.h_extended(&extended_set, critical_path_mode_extended);
 
-        let front_len = self.front_layer.len().max(1) as f64;
         let extended_len = extended_set.len().max(1) as f64;
         if self.extended_set_max < extended_len {
             self.extended_set_max = extended_len;

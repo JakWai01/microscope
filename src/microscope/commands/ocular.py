@@ -55,53 +55,54 @@ def ocular(config):
     heuristics = config["ocular"]["heuristics"]
     trials = config["ocular"]["trials"]
     extended_set_size = config["ocular"]["extended-set-size"]
-
-    # Parse circuit
-    input_circuit = QuantumCircuit.from_qasm_file(path)
-    num_qubits = input_circuit.num_qubits
-
-    # Generate coupling map
-    coupling_map = CouplingMap.from_line(input_circuit.num_qubits)
-
-    # Generate DAG from circuit
-    input_dag = circuit_to_dag(input_circuit)
-
-    # Preprocess circuit
-    preprocessing_layout = generate_initial_mapping(input_dag)
-
-    pm = PassManager(
-        [
-            Unroll3qOrMore(),
-            SetLayout(preprocessing_layout),
-            FullAncillaAllocation(coupling_map),
-            ApplyLayout(),
-            RemoveBarriers(),
-        ]
-    )
-
-    preprocessed_circuit = pm.run(input_circuit)
-    preprocessed_dag = circuit_to_dag(preprocessed_circuit)
-
-    # Generate initial layout
-    canonical_register = preprocessed_dag.qregs["q"]
-    current_layout = Layout.generate_trivial_layout(canonical_register)
-    qubit_indices = {bit: idx for idx, bit in enumerate(canonical_register)}
-    layout_mapping = {
-        qubit_indices[k]: v for k, v in current_layout.get_virtual_bits().items()
-    }
-    initial_layout = microboost.MicroLayout(
-        layout_mapping, len(preprocessed_dag.qubits), coupling_map.size()
-    )
-
-    # Create Rust DAG
-    rust_dag = DAG().from_qiskit_dag(preprocessed_dag).to_micro_dag()
-
+    
     # Create test test cases
     test_cases = BenchmarkSet(heuristics, trials, extended_set_size).get_test_cases()
     test_results = defaultdict(list)
 
     # Loop through test cases
     for heuristic, extended_set_size in tqdm(test_cases):
+
+        # Parse circuit
+        input_circuit = QuantumCircuit.from_qasm_file(path)
+        num_qubits = input_circuit.num_qubits
+
+        # Generate coupling map
+        coupling_map = CouplingMap.from_line(input_circuit.num_qubits)
+
+        # Generate DAG from circuit
+        input_dag = circuit_to_dag(input_circuit)
+
+        # Preprocess circuit
+        preprocessing_layout = generate_initial_mapping(input_dag)
+
+        pm = PassManager(
+            [
+                Unroll3qOrMore(),
+                SetLayout(preprocessing_layout),
+                FullAncillaAllocation(coupling_map),
+                ApplyLayout(),
+                RemoveBarriers(),
+            ]
+        )
+
+        preprocessed_circuit = pm.run(input_circuit)
+        preprocessed_dag = circuit_to_dag(preprocessed_circuit)
+
+        # Generate initial layout
+        canonical_register = preprocessed_dag.qregs["q"]
+        current_layout = Layout.generate_trivial_layout(canonical_register)
+        qubit_indices = {bit: idx for idx, bit in enumerate(canonical_register)}
+        layout_mapping = {
+            qubit_indices[k]: v for k, v in current_layout.get_virtual_bits().items()
+        }
+        initial_layout = microboost.MicroLayout(
+            layout_mapping, len(preprocessed_dag.qubits), coupling_map.size()
+        )
+
+        # Create Rust DAG
+        rust_dag = DAG().from_qiskit_dag(preprocessed_dag).to_micro_dag()
+
         # Initialize MicroSABRE struct
         rust_ms = microboost.MicroSABRE(
             rust_dag, initial_layout, coupling_map.get_edges(), num_qubits
