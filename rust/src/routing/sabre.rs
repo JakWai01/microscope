@@ -275,28 +275,6 @@ impl MicroSABRE {
                                 }
                                 visit_now.push(successor);
                             }
-
-                            // Also adding the first layer of unroutable gates seems to improve results
-                            // Interesting observation: It gets stuck without it
-                            if succ.qubits.len() == 2 {
-                                let physical_q0 = self.layout.virtual_to_physical(succ.qubits[0]);
-                                let physical_q1 = self.layout.virtual_to_physical(succ.qubits[1]);
-                                extended_set.insert(successor, [physical_q0, physical_q1]);
-                            }
-
-                            // if succ.qubits.len() == 2
-                            //     && self.required_predecessors[successor as usize] == 1 {
-                            //         let vq0 = succ.qubits[0];
-                            //         let vq1 = succ.qubits[1];
-                            //         let pq0 = self.layout.virtual_to_physical(vq0);
-                            //         let pq1 = self.layout.virtual_to_physical(vq1);
-
-                            //         // Only add if the physical distance is small enough
-                            //         let distance = self.distance[pq0 as usize][pq1 as usize];
-                            //         if distance <= 3 {
-                            //             extended_set.insert(successor, [pq0, pq1]);
-                            //         }
-                            //     }
                         }
                     }
                 }
@@ -336,7 +314,7 @@ impl MicroSABRE {
             if self.recent_swaps.contains(&(q0, q1)) || self.recent_swaps.contains(&(q1, q0)) {
                 continue; // Skip recent swaps
             }
-
+            
             scores.insert((q0, q1), after - before);
         }
 

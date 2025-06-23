@@ -71,8 +71,9 @@ pub fn min_score(scores: FxHashMap<(i32, i32), f64>) -> ((i32, i32), bool) {
         }
     }
 
+    // println!("{:?}", scores);
     let mut rng = rng();
-
+    
     // If length of best_swaps > 1 is true, then a random choice was made
     (*best_swaps.choose(&mut rng).unwrap(), best_swaps.len() > 1)
 }

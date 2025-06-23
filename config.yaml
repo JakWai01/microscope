@@ -9,7 +9,7 @@ ocular:
     # - "lookahead_ln_1p_basic"
     # - "basic_ln_1p"
     - "lookahead"
-  extended-set-size: 30
+  extended-set-size: 100
 
 single:
   # Biggest

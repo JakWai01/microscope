@@ -135,3 +135,4 @@ considering a node multiple times.
     - Does the heuristic account for that and give more elements in the
       extended set a benefit?
 - [ ] I don't want the algorithm to get stuck _ever_ cause it feels like the heuristic failed me in that case
+- [ ] Layered approach, take the extended set of the extended set with a weight of 0.25 etc.
