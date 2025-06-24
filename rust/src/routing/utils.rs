@@ -56,6 +56,10 @@ pub fn build_coupling_neighbour_map(coupling_map: &Vec<Vec<i32>>) -> FxHashMap<i
 pub fn min_score(scores: FxHashMap<(i32, i32), f64>) -> ((i32, i32), bool) {
     let mut best_swaps = Vec::new();
 
+    if scores.len() == 0 {
+        panic!("Got nothing to score!")
+    }
+    
     let mut iter = scores.iter();
     let (min_swap, mut min_score) = iter.next().map(|(&swap, &score)| (swap, score)).unwrap();
 
@@ -75,6 +79,7 @@ pub fn min_score(scores: FxHashMap<(i32, i32), f64>) -> ((i32, i32), bool) {
     let mut rng = rng();
     
     // If length of best_swaps > 1 is true, then a random choice was made
+    // TODO: We shouldn't be crashing here. We have to have at least one swap unless we have no scores
     (*best_swaps.choose(&mut rng).unwrap(), best_swaps.len() > 1)
 }
 

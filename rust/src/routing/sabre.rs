@@ -149,7 +149,7 @@ impl MicroSABRE {
         }
 
         // println!("extended-set maximum: {:?}", self.extended_set_max);
-        println!("Randomness: {:?}", self.random_choices as f64 / self.total_choices as f64);
+        // println!("Randomness: {:?}", self.random_choices as f64 / self.total_choices as f64);
 
         (
             std::mem::take(&mut self.out_map),
@@ -179,11 +179,21 @@ impl MicroSABRE {
         // Compute heuristic for front layer
         let h_basic_result = self.h_basic(critical_path_mode_basic);
 
+        // TODO: Remove this clone again to improve performance
         // Determine extended set
-        let extended_set = self.get_extended_set(extended_set_size);
+        let extended_set = self.get_extended_set(&self.front_layer.clone(), extended_set_size);
 
         // Compute heuristic for extended set
         let h_basic_result_extended = self.h_extended(&extended_set, critical_path_mode_extended);
+
+        // let extended_extended_set = self.get_extended_set(&extended_set, extended_set_size);
+
+        // let h_basic_result_extended_extended = self.h_extended(&extended_extended_set, critical_path_mode_extended);
+
+        // let extended_extended_set_extended = self.get_extended_set(&extended_extended_set, extended_set_size);
+
+        // let h_basic_result_extended_extended_extended = self.h_extended(&extended_extended_set_extended, critical_path_mode_extended);
+
 
         let extended_len = extended_set.len().max(1) as f64;
         if self.extended_set_max < extended_len {
@@ -230,8 +240,9 @@ impl MicroSABRE {
             })
     }
 
-    fn get_extended_set(&mut self, extended_set_size: i32) -> MicroFront {
-        let mut to_visit: Vec<i32> = self.front_layer.nodes.keys().copied().collect();
+    // Providing a front so we can try an iterative approach
+    fn get_extended_set(&mut self, front_layer: &MicroFront, extended_set_size: i32) -> MicroFront {
+        let mut to_visit: Vec<i32> = front_layer.nodes.keys().copied().collect();
         let mut i = 0;
 
         let mut extended_set: MicroFront = MicroFront::new(self.num_qubits);
@@ -311,9 +322,9 @@ impl MicroSABRE {
             //     continue // Skip neutral swaps
             // }
 
-            if self.recent_swaps.contains(&(q0, q1)) || self.recent_swaps.contains(&(q1, q0)) {
-                continue; // Skip recent swaps
-            }
+            // if self.recent_swaps.contains(&(q0, q1)) || self.recent_swaps.contains(&(q1, q0)) {
+            //     continue; // Skip recent swaps
+            // }
             
             scores.insert((q0, q1), after - before);
         }

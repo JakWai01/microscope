@@ -92,8 +92,6 @@ considering a node multiple times.
 
 ## Ideas
 
-- [ ] Move functions into separate packages to separate concerns and use
-  MicroSABRE as a wrapper
 - [ ] Track number of dag nodes
 - [ ] Track extended set range for circuits
     - With a given limit of items in the extended set (e.g. 20), with small
@@ -136,3 +134,9 @@ considering a node multiple times.
       extended set a benefit?
 - [ ] I don't want the algorithm to get stuck _ever_ cause it feels like the heuristic failed me in that case
 - [ ] Layered approach, take the extended set of the extended set with a weight of 0.25 etc.
+  - How does randomness behave here?
+  - Is it more random than the normal lookahead?
+
+##
+
+![Heuristics](./assets/heuristics_10k.png)
