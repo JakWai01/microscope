@@ -120,6 +120,13 @@ def ocular(config):
 
     print(f"Critical Depth: {critical_depth} [num_cx_longest_path: {num_cx_longest_path}, num_cx: {num_cx}]")
 
+    # Compute Parallelism
+    num_gates = sum(preprocessed_dag.count_ops().values())
+    depth = preprocessed_dag.depth()
+
+    parallelism = round((num_gates / depth - 1) * (1 / (num_qubits - 1)), 2)
+    print(f"Parallelism: {parallelism}")
+
     # Generate initial layout
     canonical_register = preprocessed_dag.qregs["q"]
     current_layout = Layout.generate_trivial_layout(canonical_register)
