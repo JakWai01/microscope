@@ -87,6 +87,29 @@ def ocular(config):
     preprocessed_circuit = pm.run(input_circuit)
     preprocessed_dag = circuit_to_dag(preprocessed_circuit)
 
+    # Compute Program Communication
+    interactions = defaultdict(set)
+
+    # Collect interactions from multi-qubit gates
+    for node in preprocessed_dag.op_nodes():
+        qubits = [q._index for q in node.qargs]
+        if len(qubits) > 1:
+            for i in range(len(qubits)):
+                for j in range(i + 1, len(qubits)):
+                    interactions[qubits[i]].add(qubits[j])
+                    interactions[qubits[j]].add(qubits[i])
+
+    # Compute degrees
+    degrees = [len(neighbors) for neighbors in interactions.values()]
+    num_qubits = len(preprocessed_circuit.qubits)
+
+    # If a qubit had no interactions, include it with degree 0
+    all_degrees = degrees + [0] * (num_qubits - len(degrees))
+    
+    program_communication =  round(sum(all_degrees) / (num_qubits * (num_qubits - 1)), 2)
+
+    print(f"Program Communication: {program_communication}")
+
     # Compute critical depth
     ops_longest_path = preprocessed_dag.count_ops_longest_path()
     longest_path_len = sum(ops_longest_path.values())
