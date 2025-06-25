@@ -88,7 +88,10 @@ def ocular(config):
     preprocessed_dag = circuit_to_dag(preprocessed_circuit)
 
     # Compute critical depth
-    num_cx_longest_path = preprocessed_dag.count_ops_longest_path()['cx']
+    ops_longest_path = preprocessed_dag.count_ops_longest_path()
+    longest_path_len = sum(ops_longest_path.values())
+    print(f"Critical Path length: {longest_path_len}")
+    num_cx_longest_path = ops_longest_path['cx']
     num_cx = preprocessed_dag.count_ops()['cx']
     critical_depth = num_cx_longest_path / num_cx
 
