@@ -31,6 +31,7 @@ pub struct MicroSABRE {
     recent_swaps: VecDeque<(i32, i32)>,
     random_choices: i32,
     total_choices: i32,
+    critical_path: Vec<usize>
 }
 
 #[pymethods]
@@ -42,6 +43,8 @@ impl MicroSABRE {
         coupling_map: Vec<Vec<i32>>,
         num_qubits: i32,
     ) -> PyResult<Self> {
+        let (successor_map, critical_path) = get_successor_map_and_critical_paths(&dag);
+
         Ok(Self {
             required_predecessors: vec![0; dag.nodes.len()],
             adjacency_list: build_adjacency_list(&dag),
@@ -53,7 +56,7 @@ impl MicroSABRE {
             gate_order: Vec::new(),
             front_layer: MicroFront::new(num_qubits),
             initial_mapping: initial_layout.clone(),
-            successor_map: get_successor_map(&dag),
+            successor_map: successor_map,
             initial_dag: dag,
             neighbour_map: build_coupling_neighbour_map(&coupling_map),
             initial_coupling_map: coupling_map,
@@ -61,7 +64,8 @@ impl MicroSABRE {
             extended_set_max: 0.0,
             recent_swaps: VecDeque::with_capacity(5),
             random_choices: 0,
-            total_choices: 0
+            total_choices: 0,
+            critical_path: critical_path
         })
     }
 
@@ -165,6 +169,7 @@ impl MicroSABRE {
             "lookahead_ln_1p_basic" => self.h_lookahead(0.5, extended_set_size, "ln_1p", "basic"),
             "lookahead_basic_ln" => self.h_lookahead(0.5, extended_set_size, "basic", "ln"),
             "lookahead_ln_1p_ln" => self.h_lookahead(0.5, extended_set_size, "ln_1p", "ln"),
+            "lookahead_basic_critical" => self.h_lookahead(0.5, extended_set_size, "basic", "critical"),
             _ => panic!("Unknown heuristic type: {}", heuristic),
         }
     }
@@ -211,10 +216,12 @@ impl MicroSABRE {
             .fold(0.0, |h_sum, (node_id, [a, b])| {
                 let distance = self.distance[*a as usize][*b as usize];
                 let num_successors = self.successor_map[*node_id as usize];
+                let critical_path = self.critical_path[*node_id as usize];
 
                 let penalty_factor = match critical_path_mode {
                     "basic" => 1.0,
                     "ln" => 1.0 / (1.0 + (num_successors as f64).ln()),
+                    "critical" => 1.0 / (1.0 + (critical_path as f64).ln()),
                     _ => panic!("Invalid critical_path_mode for h_extended"),
                 };
 
@@ -415,22 +422,45 @@ impl MicroSABRE {
     }
 }
 
-fn get_successor_map(dag: &MicroDAG) -> Vec<usize> {
+fn get_successor_map_and_critical_paths(dag: &MicroDAG) -> (Vec<usize>, Vec<usize>) {
     let adj = build_adjacency_list(dag);
     let mut successor_set: FxHashMap<i32, HashSet<i32>> =
         dag.nodes.keys().map(|&n| (n, HashSet::new())).collect();
+    let mut critical_path_len: FxHashMap<i32, usize> =
+        dag.nodes.keys().map(|&n| (n, 0)).collect();
 
+    // Reverse topological traversal: assumes nodes are 0..N and acyclic
     for u in (0..dag.nodes.len() as i32).rev() {
         if let Some(neighbors) = adj.get(&u) {
             for &v in neighbors {
+                // Add v as successor of u
                 successor_set.get_mut(&u).unwrap().insert(v);
+                // Add all successors of v to u
                 if let Some(succ_v) = successor_set.get(&v) {
                     let succ_v_cloned = succ_v.clone();
                     successor_set.get_mut(&u).unwrap().extend(succ_v_cloned);
+                }
+
+                // Update critical path length
+                let cand_len = 1 + critical_path_len[&v];
+                if cand_len > critical_path_len[&u] {
+                    critical_path_len.insert(u, cand_len);
                 }
             }
         }
     }
 
-    dag.nodes.keys().map(|&n| successor_set[&n].len()).collect()
+    let successor_counts: Vec<usize> = dag
+        .nodes
+        .keys()
+        .map(|&n| successor_set[&n].len())
+        .collect();
+
+    let critical_path_lengths: Vec<usize> = dag
+        .nodes
+        .keys()
+        .map(|&n| critical_path_len[&n])
+        .collect();
+
+    (successor_counts, critical_path_lengths)
 }
