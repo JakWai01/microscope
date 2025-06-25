@@ -86,7 +86,14 @@ def ocular(config):
 
     preprocessed_circuit = pm.run(input_circuit)
     preprocessed_dag = circuit_to_dag(preprocessed_circuit)
-    
+
+    # Compute critical depth
+    num_cx_longest_path = preprocessed_dag.count_ops_longest_path()['cx']
+    num_cx = preprocessed_dag.count_ops()['cx']
+    critical_depth = num_cx_longest_path / num_cx
+
+    print(f"Critical Depth: {critical_depth} [num_cx_longest_path: {num_cx_longest_path}, num_cx: {num_cx}]")
+
     # Generate initial layout
     canonical_register = preprocessed_dag.qregs["q"]
     current_layout = Layout.generate_trivial_layout(canonical_register)
@@ -100,7 +107,10 @@ def ocular(config):
 
     # Create DAG
     micro_dag = DAG().from_qiskit_dag(preprocessed_dag)
-    print(f"Number of DAG Nodes: {len(micro_dag)}")
+
+    # Print numer of DAG nodes
+    NUM_DAG_NODES = len(micro_dag);
+    print(f"DAG Nodes: {NUM_DAG_NODES}")
 
     # Convert to Rust
     rust_dag = micro_dag.to_micro_dag()
