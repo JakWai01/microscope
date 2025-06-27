@@ -17,6 +17,9 @@ from collections import defaultdict
 from graph.dag import DAG
 from tqdm import tqdm
 
+from rich.console import Console
+from rich.table import Table
+
 import matplotlib.pyplot as plt
 
 from commands.helper import (
@@ -48,8 +51,6 @@ class BenchmarkSet:
 
 
 def ocular(config):
-    print("ocular")
-
     # Parse config variables
     path = config["ocular"]["path"]
     heuristics = config["ocular"]["heuristics"]
@@ -105,28 +106,20 @@ def ocular(config):
 
     # If a qubit had no interactions, include it with degree 0
     all_degrees = degrees + [0] * (num_qubits - len(degrees))
-    
     program_communication =  round(sum(all_degrees) / (num_qubits * (num_qubits - 1)), 2)
-
-    print(f"Program Communication: {program_communication}")
 
     # Compute critical depth
     ops_longest_path = preprocessed_dag.count_ops_longest_path()
     longest_path_len = sum(ops_longest_path.values())
-    print(f"Critical Path length: {longest_path_len}")
     num_cx_longest_path = ops_longest_path['cx']
     num_cx = preprocessed_dag.count_ops()['cx']
-    critical_depth = num_cx_longest_path / num_cx
-
-    print(f"Critical Depth: {critical_depth} [num_cx_longest_path: {num_cx_longest_path}, num_cx: {num_cx}]")
+    critical_depth = round(num_cx_longest_path / num_cx, 2)
 
     # Compute Parallelism
     num_gates = sum(preprocessed_dag.count_ops().values())
     depth = preprocessed_dag.depth()
-
     parallelism = round((num_gates / depth - 1) * (1 / (num_qubits - 1)), 2)
-    print(f"Parallelism: {parallelism}")
-
+    
     # Generate initial layout
     canonical_register = preprocessed_dag.qregs["q"]
     current_layout = Layout.generate_trivial_layout(canonical_register)
@@ -142,8 +135,22 @@ def ocular(config):
     micro_dag = DAG().from_qiskit_dag(preprocessed_dag)
 
     # Print numer of DAG nodes
-    NUM_DAG_NODES = len(micro_dag);
-    print(f"DAG Nodes: {NUM_DAG_NODES}")
+    num_dag_nodes = len(micro_dag);
+    
+    # Print metrics
+    table = Table(title="Circuit Metrics")
+
+    table.add_column("Metric")
+    table.add_column("Value")
+
+    table.add_row(*["Program Communication", str(program_communication)], style="bright_green")
+    table.add_row(*["Critical Depth", str(critical_depth)], style="bright_green")
+    table.add_row(*["Paralellism", str(parallelism)], style="bright_green")
+    table.add_row(*["Critical Path Length", str(longest_path_len)], style="bright_green")
+    table.add_row(*["DAG Nodes", str(num_dag_nodes)], style="bright_green")
+    
+    console = Console()
+    console.print(table)
 
     # Convert to Rust
     rust_dag = micro_dag.to_micro_dag()
