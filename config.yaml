@@ -1,18 +1,18 @@
 ocular:
-  path: examples/adder_n28.qasm
-  # path: examples/adder_n4.qasm
+  # path: examples/adder_n28.qasm
+  path: examples/adder_n4.qasm
   # path: /home/jakob/Documents/hamiltonians/ham_heis_graph_2D_grid_nonpbc_qubitnodes_Lx_5_Ly_186_h_0_5.qasm
   # path: /home/jakob/Documents/hamiltonians/ham_heis_graph_2D_grid_pbc_qubitnodes_Lx_5_Ly_186_h_3.qasm
   # path: /home/jakob/Documents/hamiltonians/ham_BH_D_1_d_4_bh_graph_1D_grid_nonpbc_qubitnodes_Lx_12_U_40_enc_unary_d_4.qasm
-  trials: 10
+  trials: 1
   heuristics:
     # - "basic"
     # TODO: Figure out why we are getting stuck at 20
     - "lookahead"
-    - "lookahead_basic_ln"
+    # - "lookahead_basic_ln"
     # As soon as we have a lookahead larger than 0, this breaks
     # - "lookahead_ln_1p_ln"
     # - "lookahead_ln_1p_basic"
     # - "basic_ln_1p"
-    - "lookahead_basic_critical"
+    # - "lookahead_basic_critical"
   extended-set-size: 100

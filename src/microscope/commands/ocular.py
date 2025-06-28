@@ -110,7 +110,9 @@ def ocular(config):
 
     # Compute critical depth
     ops_longest_path = preprocessed_dag.count_ops_longest_path()
+    print(ops_longest_path)
     longest_path_len = sum(ops_longest_path.values())
+    print(preprocessed_dag.two_qubit_ops())
     num_cx_longest_path = ops_longest_path['cx']
     num_cx = preprocessed_dag.count_ops()['cx']
     critical_depth = round(num_cx_longest_path / num_cx, 2)
@@ -165,11 +167,13 @@ def ocular(config):
         # Run single SABRE execution
         sabre_result = rust_ms.run(heuristic, extended_set_size)
 
+        out_map, gate_order, randomness, avg_front_size, avg_lookahead_size, max_lookahead_size = sabre_result
+
         # Insert SWAPs into original DAG
         transpiled_sabre_dag_boosted, _ = apply_sabre_result(
             preprocessed_dag.copy_empty_like(),
             preprocessed_dag,
-            sabre_result,
+            (out_map, gate_order),
             preprocessed_dag.qubits,
             coupling_map,
         )
@@ -193,7 +197,7 @@ def ocular(config):
         depth = transpiled_sabre_circuit_boosted.depth()
         swaps = len(transpiled_sabre_dag_boosted.op_nodes(op=SwapGate))
 
-        test_results[(heuristic, extended_set_size)].append((depth, swaps))
+        test_results[(heuristic, extended_set_size)].append((depth, swaps, randomness, avg_front_size, avg_lookahead_size, max_lookahead_size))
 
     process_results(test_results)
 
@@ -202,20 +206,30 @@ def process_results(test_results):
     data = defaultdict(lambda: ([], []))
 
     rows = []
-    columns = ["Heuristic", "Extended Set Size", "Swaps", "Depth"]
+    columns = ["Heuristic", "Extended Set Size", "Swaps", "Depth", "Randomness", "Front Size", "Extended Set Size", "Max Elements in Extended Set"]
 
     for key, results in test_results.items():
-        total_depth = sum(d for d, s in results)
-        total_swaps = sum(s for d, s in results)
+        total_depth = sum(d for d, s, r, f, e, m  in results)
+        total_swaps = sum(s for d, s, r, f, e, m in results)
+        total_randomness = sum(r for d, s, r, f, e, m in results)
+        total_front_size = sum(f for d, s, r, f, e, m in results)
+        total_lookahead_size = sum(e for d, s, r, f, e, m in results)
+        total_max_size = sum(m for d, s, r, f, e, m in results)
+
         count = len(results)
 
         avg_swaps = total_swaps / count
         avg_depth = total_depth / count
+        avg_randomness = total_randomness / count
+        avg_front_size = total_front_size / count
+        avg_lookahead_size = total_lookahead_size / count
+        avg_total_max_size = total_max_size / count
+
         heuristic = key[0]
         extended_set_size = key[1]
 
         rows.append(
-            [str(heuristic), str(extended_set_size), str(avg_swaps), str(avg_depth)]
+            [str(heuristic), str(extended_set_size), str(avg_swaps), str(avg_depth), str(round(avg_randomness, 2)), str(round(avg_front_size, 2)), str(round(avg_lookahead_size, 2)), str(round(avg_total_max_size, 2))]
         )
         data[heuristic][0].append(extended_set_size)
         data[heuristic][1].append(avg_swaps)
