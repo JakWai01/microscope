@@ -136,6 +136,8 @@ considering a node multiple times.
 - [ ] Layered approach, take the extended set of the extended set with a weight of 0.25 etc.
   - How does randomness behave here?
   - Is it more random than the normal lookahead?
+- [ ] Decompose heuristics into separate module, since that will most likely stay the same
+- [ ] Comments, Naming, Types
 
 ##
 
