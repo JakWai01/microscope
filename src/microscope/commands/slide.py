@@ -25,6 +25,7 @@ from qiskit.circuit.library.standard_gates import SwapGate
 from qiskit.transpiler.layout import Layout
 from qiskit.dagcircuit import DAGOpNode
 
+
 def transpile_circuit(circuit):
     coupling_map = CouplingMap.from_line(circuit.num_qubits)
     dag = circuit_to_dag(circuit)
@@ -49,6 +50,7 @@ def transpile_circuit(circuit):
     )
 
     return preprocessed_dag, transpiled_dag, segments
+
 
 def slide():
     circuit = QuantumCircuit.from_qasm_file("examples/adder_n10.qasm")

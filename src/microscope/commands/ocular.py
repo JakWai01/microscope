@@ -56,11 +56,11 @@ def ocular(config):
     heuristics = config["ocular"]["heuristics"]
     trials = config["ocular"]["trials"]
     extended_set_size = config["ocular"]["extended-set-size"]
-    
-    # Create test test cases
-    test_cases = BenchmarkSet(heuristics, trials, extended_set_size).get_test_cases()
-    test_results = defaultdict(list)
 
+    # Create test test cases
+    # test_cases = BenchmarkSet(heuristics, trials, extended_set_size).get_test_cases()
+    test_cases = [("lookahead", 20)]
+    test_results = defaultdict(list)
 
     # Parse circuit
     input_circuit = QuantumCircuit.from_qasm_file(path)
@@ -106,22 +106,22 @@ def ocular(config):
 
     # If a qubit had no interactions, include it with degree 0
     all_degrees = degrees + [0] * (num_qubits - len(degrees))
-    program_communication =  round(sum(all_degrees) / (num_qubits * (num_qubits - 1)), 2)
+    program_communication = round(sum(all_degrees) / (num_qubits * (num_qubits - 1)), 2)
 
     # Compute critical depth
     ops_longest_path = preprocessed_dag.count_ops_longest_path()
     print(ops_longest_path)
     longest_path_len = sum(ops_longest_path.values())
     print(preprocessed_dag.two_qubit_ops())
-    num_cx_longest_path = ops_longest_path['cx']
-    num_cx = preprocessed_dag.count_ops()['cx']
+    num_cx_longest_path = ops_longest_path["cx"]
+    num_cx = preprocessed_dag.count_ops()["cx"]
     critical_depth = round(num_cx_longest_path / num_cx, 2)
 
     # Compute Parallelism
     num_gates = sum(preprocessed_dag.count_ops().values())
     depth = preprocessed_dag.depth()
     parallelism = round((num_gates / depth - 1) * (1 / (num_qubits - 1)), 2)
-    
+
     # Generate initial layout
     canonical_register = preprocessed_dag.qregs["q"]
     current_layout = Layout.generate_trivial_layout(canonical_register)
@@ -137,20 +137,24 @@ def ocular(config):
     micro_dag = DAG().from_qiskit_dag(preprocessed_dag)
 
     # Print numer of DAG nodes
-    num_dag_nodes = len(micro_dag);
-    
+    num_dag_nodes = len(micro_dag)
+
     # Print metrics
     table = Table(title="Circuit Metrics")
 
     table.add_column("Metric")
     table.add_column("Value")
 
-    table.add_row(*["Program Communication", str(program_communication)], style="bright_green")
+    table.add_row(
+        *["Program Communication", str(program_communication)], style="bright_green"
+    )
     table.add_row(*["Critical Depth", str(critical_depth)], style="bright_green")
     table.add_row(*["Paralellism", str(parallelism)], style="bright_green")
-    table.add_row(*["Critical Path Length", str(longest_path_len)], style="bright_green")
+    table.add_row(
+        *["Critical Path Length", str(longest_path_len)], style="bright_green"
+    )
     table.add_row(*["DAG Nodes", str(num_dag_nodes)], style="bright_green")
-    
+
     console = Console()
     console.print(table)
 
@@ -160,14 +164,26 @@ def ocular(config):
     # Loop through test cases
     for heuristic, extended_set_size in tqdm(test_cases):
         # Initialize MicroSABRE struct
-        rust_ms = microboost.MicroSABRE(
+        # rust_ms = microboost.MicroSABRE(
+        #     rust_dag, initial_layout, coupling_map.get_edges(), num_qubits
+        # )
+
+        rust_multi = microboost.MultiSABRE(
             rust_dag, initial_layout, coupling_map.get_edges(), num_qubits
         )
 
         # Run single SABRE execution
-        sabre_result = rust_ms.run(heuristic, extended_set_size)
+        # sabre_result = rust_ms.run(heuristic, extended_set_size)
+        sabre_result = rust_multi.run(2)
 
-        out_map, gate_order, randomness, avg_front_size, avg_lookahead_size, max_lookahead_size = sabre_result
+        (
+            out_map,
+            gate_order,
+            randomness,
+            avg_front_size,
+            avg_lookahead_size,
+            max_lookahead_size,
+        ) = sabre_result
 
         # Insert SWAPs into original DAG
         transpiled_sabre_dag_boosted, _ = apply_sabre_result(
@@ -197,7 +213,16 @@ def ocular(config):
         depth = transpiled_sabre_circuit_boosted.depth()
         swaps = len(transpiled_sabre_dag_boosted.op_nodes(op=SwapGate))
 
-        test_results[(heuristic, extended_set_size)].append((depth, swaps, randomness, avg_front_size, avg_lookahead_size, max_lookahead_size))
+        test_results[(heuristic, extended_set_size)].append(
+            (
+                depth,
+                swaps,
+                randomness,
+                avg_front_size,
+                avg_lookahead_size,
+                max_lookahead_size,
+            )
+        )
 
     process_results(test_results)
 
@@ -206,10 +231,19 @@ def process_results(test_results):
     data = defaultdict(lambda: ([], []))
 
     rows = []
-    columns = ["Heuristic", "Extended Set Size", "Swaps", "Depth", "Randomness", "Front Size", "Extended Set Size", "Max Elements in Extended Set"]
+    columns = [
+        "Heuristic",
+        "Extended Set Size",
+        "Swaps",
+        "Depth",
+        "Randomness",
+        "Front Size",
+        "Extended Set Size",
+        "Max Elements in Extended Set",
+    ]
 
     for key, results in test_results.items():
-        total_depth = sum(d for d, s, r, f, e, m  in results)
+        total_depth = sum(d for d, s, r, f, e, m in results)
         total_swaps = sum(s for d, s, r, f, e, m in results)
         total_randomness = sum(r for d, s, r, f, e, m in results)
         total_front_size = sum(f for d, s, r, f, e, m in results)
@@ -229,7 +263,16 @@ def process_results(test_results):
         extended_set_size = key[1]
 
         rows.append(
-            [str(heuristic), str(extended_set_size), str(avg_swaps), str(avg_depth), str(round(avg_randomness, 2)), str(round(avg_front_size, 2)), str(round(avg_lookahead_size, 2)), str(round(avg_total_max_size, 2))]
+            [
+                str(heuristic),
+                str(extended_set_size),
+                str(avg_swaps),
+                str(avg_depth),
+                str(round(avg_randomness, 2)),
+                str(round(avg_front_size, 2)),
+                str(round(avg_lookahead_size, 2)),
+                str(round(avg_total_max_size, 2)),
+            ]
         )
         data[heuristic][0].append(extended_set_size)
         data[heuristic][1].append(avg_swaps)

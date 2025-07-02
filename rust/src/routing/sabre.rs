@@ -73,7 +73,7 @@ impl MicroSABRE {
             front_set_size_sum: 0,
             front_set_size_counter: 0,
             extended_set_size_sum: 0,
-            extended_set_size_counter: 0 
+            extended_set_size_counter: 0,
         })
     }
 
@@ -102,7 +102,14 @@ impl MicroSABRE {
         &mut self,
         heuristic: &str,
         extended_set_size: i32,
-    ) -> (FxHashMap<i32, Vec<(i32, i32)>>, Vec<i32>, f64, f64, f64, f64) {
+    ) -> (
+        FxHashMap<i32, Vec<(i32, i32)>>,
+        Vec<i32>,
+        f64,
+        f64,
+        f64,
+        f64,
+    ) {
         self.clear_data_structures();
         self.dag
             .edges()
@@ -166,7 +173,7 @@ impl MicroSABRE {
             self.random_choices as f64 / self.total_choices as f64,
             self.front_set_size_sum as f64 / self.front_set_size_counter as f64,
             self.extended_set_size_sum as f64 / self.extended_set_size_counter as f64,
-            self.extended_set_max as f64
+            self.extended_set_max as f64,
         )
     }
 
@@ -178,7 +185,9 @@ impl MicroSABRE {
             "lookahead_ln_1p_basic" => self.h_lookahead(0.5, extended_set_size, "ln_1p", "basic"),
             "lookahead_basic_ln" => self.h_lookahead(0.5, extended_set_size, "basic", "ln"),
             "lookahead_ln_1p_ln" => self.h_lookahead(0.5, extended_set_size, "ln_1p", "ln"),
-            "lookahead_basic_critical" => self.h_lookahead(0.5, extended_set_size, "basic", "critical"),
+            "lookahead_basic_critical" => {
+                self.h_lookahead(0.5, extended_set_size, "basic", "critical")
+            }
             _ => panic!("Unknown heuristic type: {}", heuristic),
         }
     }
@@ -208,7 +217,7 @@ impl MicroSABRE {
         }
 
         // Compute overall heuristic result
-        h_basic_result + extended_set_weight * h_basic_result_extended 
+        h_basic_result + extended_set_weight * h_basic_result_extended
     }
 
     fn h_extended(&self, extended_set: &MicroFront, critical_path_mode: &str) -> f64 {
@@ -232,7 +241,8 @@ impl MicroSABRE {
     }
 
     fn h_basic(&mut self, critical_path_mode: &str) -> f64 {
-        let h_basic_res = self.front_layer
+        let h_basic_res = self
+            .front_layer
             .nodes
             .iter()
             .fold(0.0, |h_sum, (node_id, [a, b])| {
@@ -424,8 +434,7 @@ pub fn get_successor_map_and_critical_paths(dag: &MicroDAG) -> (Vec<usize>, Vec<
     let adj = build_adjacency_list(dag);
     let mut successor_set: FxHashMap<i32, HashSet<i32>> =
         dag.nodes.keys().map(|&n| (n, HashSet::new())).collect();
-    let mut critical_path_len: FxHashMap<i32, usize> =
-        dag.nodes.keys().map(|&n| (n, 0)).collect();
+    let mut critical_path_len: FxHashMap<i32, usize> = dag.nodes.keys().map(|&n| (n, 0)).collect();
 
     // Reverse topological traversal: assumes nodes are 0..N and acyclic
     for u in (0..dag.nodes.len() as i32).rev() {
@@ -448,17 +457,10 @@ pub fn get_successor_map_and_critical_paths(dag: &MicroDAG) -> (Vec<usize>, Vec<
         }
     }
 
-    let successor_counts: Vec<usize> = dag
-        .nodes
-        .keys()
-        .map(|&n| successor_set[&n].len())
-        .collect();
+    let successor_counts: Vec<usize> = dag.nodes.keys().map(|&n| successor_set[&n].len()).collect();
 
-    let critical_path_lengths: Vec<usize> = dag
-        .nodes
-        .keys()
-        .map(|&n| critical_path_len[&n])
-        .collect();
+    let critical_path_lengths: Vec<usize> =
+        dag.nodes.keys().map(|&n| critical_path_len[&n]).collect();
 
     (successor_counts, critical_path_lengths)
 }
