@@ -101,7 +101,9 @@ impl MultiSABRE {
 
                 println!("2 Swaps are: {:?}", swaps);
 
-                for swap in [swaps.0, swaps.1] {
+                // TODO: This is a bold move! Check that we can actually do that
+                // info: swapped [swaps.0, swaps.1] for swaps
+                for swap in swaps {
                     let q0 = swap.0;
                     let q1 = swap.1;
 
@@ -148,6 +150,20 @@ impl MultiSABRE {
                             .extend(&current_swaps);
 
                         self.advance_front_layer(&execute_gate_list);
+                        
+                        if self.front_layer.is_empty() {
+                            return (
+                                std::mem::take(&mut self.out_map),
+                                std::mem::take(&mut self.gate_order),
+                                0.,
+                                0.,
+                                0.,
+                                0.,
+                            ) 
+                        }
+                        // When we end up here, we always clear the executed
+                        // gate list and hence will always go into the next
+                        // iteration
                         execute_gate_list.clear();
                         current_swaps.clear();
                     }
@@ -230,8 +246,8 @@ impl MultiSABRE {
     // advance the front layer, compute the swap candidates and apply those
     // second swaps. Finally, we compute the heuristic after executing both
     // swaps temporarily and add the result to the scores vector.
-    fn compute_swaps(&mut self) -> ((i32, i32), (i32, i32)) {
-        let mut scores: FxHashMap<((i32, i32), (i32, i32)), f64> = FxHashMap::default();
+    fn compute_swaps(&mut self) -> Vec<(i32, i32)> {
+        let mut scores: FxHashMap<Vec<(i32, i32)>, f64> = FxHashMap::default();
 
         let swap_candidates: Vec<(i32, i32)> = self.compute_swap_candidates(&self.front_layer);
 
@@ -279,8 +295,11 @@ impl MultiSABRE {
             let (mut tmp_front_layer, new_required_predecessors) =
                 self.advance_front_in_place(&tmp_front_layer_before, &tmp_execute_gate_list);
 
+            // In case the inner front layer is empty, just push the current swap into the list of swaps
             if tmp_front_layer.is_empty() {
-                panic!("Inner front layer is empty");
+                scores.insert(vec![(q0, q1)], diff_first);
+                // panic!("Inner front layer is empty");
+                break
             }
             let inner_swap_candidates = self.compute_swap_candidates(&tmp_front_layer);
 
@@ -300,7 +319,7 @@ impl MultiSABRE {
                     self.calculate_heuristic(&tmp_front_layer, &new_required_predecessors);
                 let diff_second = after_second - before_second;
 
-                scores.insert(((q0, q1), (inner_q0, inner_q1)), diff_first + diff_second);
+                scores.insert(vec![(q0, q1), (inner_q0, inner_q1)], diff_first + diff_second);
 
                 tmp_front_layer.apply_swap([inner_q1, inner_q0]);
                 self.apply_swap((inner_q1, inner_q0));
@@ -488,7 +507,7 @@ impl MultiSABRE {
     }
 }
 
-fn min_score(scores: FxHashMap<((i32, i32), (i32, i32)), f64>) -> ((i32, i32), (i32, i32)) {
+fn min_score(scores: FxHashMap<Vec<(i32, i32)>, f64>) -> Vec<(i32, i32)> {
     println!("Scores: {:?}", scores);
     let mut best_swap_sequences = Vec::new();
 
@@ -496,23 +515,23 @@ fn min_score(scores: FxHashMap<((i32, i32), (i32, i32)), f64>) -> ((i32, i32), (
 
     let (min_swap_sequence, mut min_score) = iter
         .next()
-        .map(|(&swap_sequence, &score)| (swap_sequence, score))
+        .map(|(swap_sequence, &score)| (swap_sequence, score))
         .unwrap();
 
     best_swap_sequences.push(min_swap_sequence);
 
     // TODO: Consider introducing an epsilon threshold here
-    for (&swap_sequence, &score) in iter {
+    for (swap_sequence, &score) in iter {
         if score < min_score {
             min_score = score;
             best_swap_sequences.clear();
-            best_swap_sequences.push(swap_sequence);
+            best_swap_sequences.push(&swap_sequence);
         } else if score == min_score {
-            best_swap_sequences.push(swap_sequence);
+            best_swap_sequences.push(&swap_sequence);
         }
     }
 
     let mut rng = rng();
 
-    *best_swap_sequences.choose(&mut rng).unwrap()
+    best_swap_sequences.choose(&mut rng).unwrap().to_vec()
 }
