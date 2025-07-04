@@ -138,6 +138,7 @@ considering a node multiple times.
   - Is it more random than the normal lookahead?
 - [ ] Decompose heuristics into separate module, since that will most likely stay the same
 - [ ] Comments, Naming, Types
+- [ ] Not getting stuck would also be a major improvement (liveness)
 
 ##
 

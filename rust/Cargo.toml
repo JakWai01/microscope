@@ -9,12 +9,14 @@ name = "microboost"
 crate-type = ["cdylib"]
 
 [dependencies]
+ahash = "0.8.12"
 flame = "0.2.2"
 flamegraph = "0.6.8"
 indexmap = "2.9.0"
 pyo3 = "0.24.0"
 rand = "0.9.1"
 rustc-hash = "2.1.1"
+rustworkx-core = "0.16.0"
 
 [profile.release]
 debug = true        # Debug symbols for our profiler

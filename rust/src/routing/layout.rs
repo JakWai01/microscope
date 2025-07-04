@@ -36,13 +36,17 @@ impl MicroLayout {
         self.phys_to_virt[phys as usize]
     }
 
-    pub fn swap_virtual(&mut self, bit_a: i32, bit_b: i32) {
+    pub fn swap_virtual(&mut self, bits: [i32; 2]) {
+        let bit_a = bits[0];
+        let bit_b = bits[1];
         self.virt_to_phys.swap(bit_a as usize, bit_b as usize);
         self.phys_to_virt[self.virt_to_phys[bit_a as usize] as usize] = bit_a;
         self.phys_to_virt[self.virt_to_phys[bit_b as usize] as usize] = bit_b;
     }
 
-    pub fn swap_physical(&mut self, bit_a: i32, bit_b: i32) {
+    pub fn swap_physical(&mut self, bits: [i32; 2]) {
+        let bit_a = bits[0];
+        let bit_b = bits[1];
         self.phys_to_virt.swap(bit_a as usize, bit_b as usize);
         self.virt_to_phys[self.phys_to_virt[bit_a as usize] as usize] = bit_a;
         self.virt_to_phys[self.phys_to_virt[bit_b as usize] as usize] = bit_b;

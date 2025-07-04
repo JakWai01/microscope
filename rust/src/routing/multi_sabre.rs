@@ -1,4 +1,5 @@
 use std::{
+    cmp::Ordering,
     collections::{HashSet, VecDeque},
     thread::current,
 };
@@ -14,9 +15,14 @@ use crate::{
         },
     },
 };
+use ahash::RandomState;
+use indexmap::IndexMap;
 use pyo3::{pyclass, pymethods, PyResult};
 use rand::{rng, seq::IndexedRandom};
 use rustc_hash::FxHashMap;
+
+use rustworkx_core::{dictmap::{DictMap, InitWithHasher}, petgraph::prelude::{DiGraph, NodeIndex}};
+use rustworkx_core::shortest_path::dijkstra;
 
 #[pyclass(module = "microboost.routing.mutlisabre")]
 pub struct MultiSABRE {
@@ -108,7 +114,7 @@ impl MultiSABRE {
                     let q1 = swap.1;
 
                     current_swaps.push(swap);
-                    self.apply_swap((q0, q1));
+                    self.apply_swap([q0, q1]);
 
                     println!("Current swap: {:?}", swap);
                     if let Some(node) = self.executable_node_on_qubit(q0) {
@@ -150,7 +156,7 @@ impl MultiSABRE {
                             .extend(&current_swaps);
 
                         self.advance_front_layer(&execute_gate_list);
-                        
+
                         if self.front_layer.is_empty() {
                             return (
                                 std::mem::take(&mut self.out_map),
@@ -159,7 +165,7 @@ impl MultiSABRE {
                                 0.,
                                 0.,
                                 0.,
-                            ) 
+                            );
                         }
                         // When we end up here, we always clear the executed
                         // gate list and hence will always go into the next
@@ -183,6 +189,73 @@ impl MultiSABRE {
 }
 
 impl MultiSABRE {
+    fn release_valve(&mut self, current_swaps: &mut Vec<[i32; 2]>) -> Vec<i32> {
+        let (&closest_node, &qubits) = {
+            self.front_layer
+                .nodes
+                .iter()
+                .min_by(|(_, qubits_a), (_, qubits_b)| {
+                    self.distance[qubits_a[0] as usize][qubits_a[1] as usize]
+                        .partial_cmp(&self.distance[qubits_b[0] as usize][qubits_b[1] as usize])
+                        .unwrap_or(Ordering::Equal)
+                })
+                .unwrap()
+        };
+
+        let shortest_path = {
+            let mut shortest_paths: DictMap<NodeIndex, Vec<NodeIndex>> = DictMap::new();
+            (dijkstra(
+                &build_digraph_from_neighbors(&self.neighbour_map),
+                NodeIndex::new(qubits[0] as usize),
+                Some(NodeIndex::new(qubits[1] as usize)),
+                |_| Ok(1.),
+                Some(&mut shortest_paths),
+            ) as PyResult<Vec<Option<f64>>>)
+            .unwrap();
+
+            shortest_paths
+                .get(&NodeIndex::new(qubits[1] as usize))
+                .unwrap()
+                .iter()
+                .map(|n| n.index())
+                .collect::<Vec<_>>()
+        };
+
+        let split: usize = shortest_path.len() / 2;
+        current_swaps.reserve(shortest_path.len() - 2);
+        for i in 0..split {
+            current_swaps.push([shortest_path[i] as i32, shortest_path[i + 1] as i32]);
+        }
+        for i in 0..split - 1 {
+            let end = shortest_path.len() - 1 - i;
+            current_swaps.push([shortest_path[end] as i32, shortest_path[end - 1] as i32]);
+        }
+        current_swaps.iter().for_each(|&swap| self.apply_swap(swap));
+
+        if current_swaps.len() > 1 {
+            vec![closest_node]
+        } else {
+            // check if the closest node has neighbors that are now routable -- for that we get
+            // the other physical qubit that was swapped and check whether the node on it
+            // is now routable
+            let mut possible_other_qubit = current_swaps[0]
+                .iter()
+                // check if other nodes are in the front layer that are connected by this swap
+                .filter_map(|&swap_qubit| self.front_layer.qubits[swap_qubit as usize])
+                // remove the closest_node, which we know we already routed
+                .filter(|(node_index, _other_qubit)| *node_index != closest_node)
+                .map(|(_node_index, other_qubit)| other_qubit);
+
+            // if there is indeed another candidate, check if that gate is routable
+            if let Some(other_qubit) = possible_other_qubit.next() {
+                if let Some(also_routed) = self.executable_node_on_qubit(other_qubit) {
+                    return vec![closest_node, also_routed];
+                }
+            }
+            vec![closest_node]
+        }
+    }
+
     fn advance_front_in_place(
         &mut self,
         front_layer: &MicroFront,
@@ -255,13 +328,15 @@ impl MultiSABRE {
             panic!("No swap candidates left!");
         }
 
+        println!("Number of swap candidates: {:?}", swap_candidates.len());
+
         for &(q0, q1) in &swap_candidates {
             // Temporarily apply first swap and calculate heuristics
             let before_first = self.calculate_heuristic(
                 &self.front_layer.clone(),
                 &self.required_predecessors.clone(),
             );
-            self.apply_swap((q0, q1));
+            self.apply_swap([q0, q1]);
             let after_first = self.calculate_heuristic(
                 &self.front_layer.clone(),
                 &self.required_predecessors.clone(),
@@ -299,7 +374,7 @@ impl MultiSABRE {
             if tmp_front_layer.is_empty() {
                 scores.insert(vec![(q0, q1)], diff_first);
                 // panic!("Inner front layer is empty");
-                break
+                break;
             }
             let inner_swap_candidates = self.compute_swap_candidates(&tmp_front_layer);
 
@@ -312,20 +387,23 @@ impl MultiSABRE {
                 //
                 let before_second =
                     self.calculate_heuristic(&tmp_front_layer, &new_required_predecessors);
-                self.apply_swap((inner_q0, inner_q1));
+                self.apply_swap([inner_q0, inner_q1]);
                 tmp_front_layer.apply_swap([inner_q0, inner_q1]);
 
                 let after_second =
                     self.calculate_heuristic(&tmp_front_layer, &new_required_predecessors);
                 let diff_second = after_second - before_second;
 
-                scores.insert(vec![(q0, q1), (inner_q0, inner_q1)], diff_first + diff_second);
+                scores.insert(
+                    vec![(q0, q1), (inner_q0, inner_q1)],
+                    diff_first + diff_second,
+                );
 
                 tmp_front_layer.apply_swap([inner_q1, inner_q0]);
-                self.apply_swap((inner_q1, inner_q0));
+                self.apply_swap([inner_q1, inner_q0]);
             }
 
-            self.apply_swap((q1, q0));
+            self.apply_swap([q1, q0]);
         }
 
         if scores.is_empty() {
@@ -427,9 +505,9 @@ impl MultiSABRE {
         extended_set
     }
 
-    fn apply_swap(&mut self, swap: (i32, i32)) {
-        self.front_layer.apply_swap([swap.0, swap.1]);
-        self.running_mapping.swap_physical(swap.0, swap.1);
+    fn apply_swap(&mut self, swap: [i32; 2]) {
+        self.front_layer.apply_swap(swap);
+        self.running_mapping.swap_physical(swap);
     }
 
     // Check if any node in the front layer can be executed after a
@@ -534,4 +612,14 @@ fn min_score(scores: FxHashMap<Vec<(i32, i32)>, f64>) -> Vec<(i32, i32)> {
     let mut rng = rng();
 
     best_swap_sequences.choose(&mut rng).unwrap().to_vec()
+}
+
+fn build_digraph_from_neighbors(neighbor_map: &FxHashMap<i32, Vec<i32>>) -> DiGraph<(), ()> {
+    let edge_list: Vec<(u32, u32)> = neighbor_map
+        .iter()
+        .flat_map(|(&src, targets)| targets.iter().map(move |&dst| (src as u32, dst as u32)))
+        .collect();
+
+    // `from_edges` creates a graph where node indices are inferred from edge endpoints
+    DiGraph::<(), ()>::from_edges(edge_list)
 }

@@ -80,7 +80,7 @@ impl MicroSABRE {
     // Maybe it would make sense to also maintain an extended set and apply swaps there
     fn apply_swap(&mut self, swap: (i32, i32)) {
         self.front_layer.apply_swap([swap.0, swap.1]);
-        self.layout.swap_physical(swap.0, swap.1);
+        self.layout.swap_physical([swap.0, swap.1]);
     }
 
     fn clear_data_structures(&mut self) {
