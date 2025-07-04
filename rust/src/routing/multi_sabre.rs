@@ -161,6 +161,7 @@ impl MultiSABRE {
         let initial_front_layer = self.front_layer.clone();
         let initial_required_predecessors = self.required_predecessors.clone();
         let initial_mapping = self.running_mapping.clone();
+        let initial_gate_order = self.gate_order.clone();
 
         let swap_candidates: Vec<[i32; 2]> = self.compute_swap_candidates();
 
@@ -187,15 +188,6 @@ impl MultiSABRE {
 
             self.advance_front_layer(&execute_gate_list);
 
-            // TODO: We need to think about this case! This doesn't only occur at the end
-            // if self.front_layer.is_empty() {
-            //     scores.insert(vec![[q0, q1]], diff_first);
-            //     self.front_layer = initial_front_layer.clone();
-            //     self.required_predecessors = initial_required_predecessors.clone();
-            //     self.running_mapping = initial_mapping.clone();
-            //     continue;
-            // }
-
             let inner_swap_candidates = self.compute_swap_candidates();
 
             for &[inner_q0, inner_q1] in &inner_swap_candidates {
@@ -220,6 +212,7 @@ impl MultiSABRE {
             self.front_layer = initial_front_layer.clone();
             self.required_predecessors = initial_required_predecessors.clone();
             self.running_mapping = initial_mapping.clone();
+            self.gate_order = initial_gate_order.clone();
         }
 
         min_score(scores)
