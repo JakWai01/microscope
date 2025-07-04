@@ -1,7 +1,6 @@
 use std::{
     cmp::Ordering,
     collections::{HashSet, VecDeque},
-    thread::current,
 };
 
 use crate::{
@@ -15,8 +14,6 @@ use crate::{
         },
     },
 };
-use ahash::RandomState;
-use indexmap::IndexMap;
 use pyo3::{pyclass, pymethods, PyResult};
 use rand::{rng, seq::IndexedRandom};
 use rustc_hash::FxHashMap;
@@ -28,7 +25,7 @@ use rustworkx_core::shortest_path::dijkstra;
 pub struct MultiSABRE {
     dag: MicroDAG,
     coupling_map: Vec<Vec<i32>>,
-    out_map: FxHashMap<i32, Vec<(i32, i32)>>,
+    out_map: FxHashMap<i32, Vec<[i32; 2]>>,
     gate_order: Vec<i32>,
     required_predecessors: Vec<i32>,
     adjacency_list: FxHashMap<i32, Vec<i32>>,
@@ -73,7 +70,7 @@ impl MultiSABRE {
         &mut self,
         _layers: i32,
     ) -> (
-        FxHashMap<i32, Vec<(i32, i32)>>,
+        FxHashMap<i32, Vec<[i32; 2]>>,
         Vec<i32>,
         f64,
         f64,
@@ -96,8 +93,9 @@ impl MultiSABRE {
         let mut execute_gate_list = Vec::new();
 
         while !self.front_layer.is_empty() {
-            let mut current_swaps: Vec<(i32, i32)> = Vec::new();
+            let mut current_swaps: Vec<[i32; 2]> = Vec::new();
 
+            // while execute_gate_list.is_empty() && current_swaps.len() < self.num_qubits as usize * 10 {
             while execute_gate_list.is_empty() {
                 if current_swaps.len() > 10000 {
                     panic!("We are stuck!");
@@ -110,8 +108,8 @@ impl MultiSABRE {
                 // TODO: This is a bold move! Check that we can actually do that
                 // info: swapped [swaps.0, swaps.1] for swaps
                 for swap in swaps {
-                    let q0 = swap.0;
-                    let q1 = swap.1;
+                    let q0 = swap[0];
+                    let q1 = swap[1];
 
                     current_swaps.push(swap);
                     self.apply_swap([q0, q1]);
@@ -175,6 +173,12 @@ impl MultiSABRE {
                     }
                 }
             }
+
+            // if execute_gate_list.is_empty() {
+            //     current_swaps.drain(..).rev().for_each(|swap| self.apply_swap(swap));
+            //     let force_routed = self.release_valve(&mut current_swaps);
+            //     execute_gate_list.extend(force_routed);
+            // }
         }
 
         (
@@ -298,13 +302,13 @@ impl MultiSABRE {
         (front_layer, required_predecessors)
     }
 
-    fn compute_swap_candidates(&self, front_layer: &MicroFront) -> Vec<(i32, i32)> {
-        let mut swap_candidates: Vec<(i32, i32)> = Vec::new();
+    fn compute_swap_candidates(&self, front_layer: &MicroFront) -> Vec<[i32; 2]> {
+        let mut swap_candidates: Vec<[i32; 2]> = Vec::new();
 
         for &phys in front_layer.nodes.values().flatten() {
             for neighbour in self.neighbour_map[&phys].iter() {
                 if neighbour > &phys || !front_layer.is_active(*neighbour) {
-                    swap_candidates.push((phys, *neighbour))
+                    swap_candidates.push([phys, *neighbour])
                 }
             }
         }
@@ -319,10 +323,10 @@ impl MultiSABRE {
     // advance the front layer, compute the swap candidates and apply those
     // second swaps. Finally, we compute the heuristic after executing both
     // swaps temporarily and add the result to the scores vector.
-    fn compute_swaps(&mut self) -> Vec<(i32, i32)> {
-        let mut scores: FxHashMap<Vec<(i32, i32)>, f64> = FxHashMap::default();
+    fn compute_swaps(&mut self) -> Vec<[i32; 2]> {
+        let mut scores: FxHashMap<Vec<[i32; 2]>, f64> = FxHashMap::default();
 
-        let swap_candidates: Vec<(i32, i32)> = self.compute_swap_candidates(&self.front_layer);
+        let swap_candidates: Vec<[i32; 2]> = self.compute_swap_candidates(&self.front_layer);
 
         if swap_candidates.is_empty() {
             panic!("No swap candidates left!");
@@ -330,7 +334,7 @@ impl MultiSABRE {
 
         println!("Number of swap candidates: {:?}", swap_candidates.len());
 
-        for &(q0, q1) in &swap_candidates {
+        for &[q0, q1] in &swap_candidates {
             // Temporarily apply first swap and calculate heuristics
             let before_first = self.calculate_heuristic(
                 &self.front_layer.clone(),
@@ -372,7 +376,7 @@ impl MultiSABRE {
 
             // In case the inner front layer is empty, just push the current swap into the list of swaps
             if tmp_front_layer.is_empty() {
-                scores.insert(vec![(q0, q1)], diff_first);
+                scores.insert(vec![[q0, q1]], diff_first);
                 // panic!("Inner front layer is empty");
                 break;
             }
@@ -382,7 +386,7 @@ impl MultiSABRE {
                 panic!("No inner swap candidates left!");
             }
 
-            for &(inner_q0, inner_q1) in &inner_swap_candidates {
+            for &[inner_q0, inner_q1] in &inner_swap_candidates {
                 // As long as we revert this afterwards, we should be fine
                 //
                 let before_second =
@@ -395,7 +399,7 @@ impl MultiSABRE {
                 let diff_second = after_second - before_second;
 
                 scores.insert(
-                    vec![(q0, q1), (inner_q0, inner_q1)],
+                    vec![[q0, q1], [inner_q0, inner_q1]],
                     diff_first + diff_second,
                 );
 
@@ -585,7 +589,7 @@ impl MultiSABRE {
     }
 }
 
-fn min_score(scores: FxHashMap<Vec<(i32, i32)>, f64>) -> Vec<(i32, i32)> {
+fn min_score(scores: FxHashMap<Vec<[i32; 2]>, f64>) -> Vec<[i32; 2]> {
     println!("Scores: {:?}", scores);
     let mut best_swap_sequences = Vec::new();
 
