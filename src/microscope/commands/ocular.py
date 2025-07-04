@@ -25,7 +25,6 @@ import matplotlib.pyplot as plt
 from commands.helper import (
     apply_sabre_result,
     generate_initial_mapping,
-    plot_result,
     result_table,
 )
 

@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from qiskit import warnings
 
 from commands.ocular import ocular
+from commands.qiskit import qiskit
 
 import time
 import yaml
@@ -21,6 +22,8 @@ def main(command: str):
     match command:
         case "ocular":
             ocular(config)
+        case "qiskit":
+            qiskit(config)
         case _:
             print(
                 "Invalid command. Choose one out of [hamiltonians, microbench, slide, qiskit_baseline]"
