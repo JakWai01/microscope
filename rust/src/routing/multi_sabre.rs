@@ -8,7 +8,6 @@ use crate::{
     routing::{
         front_layer::MicroFront,
         layout::MicroLayout,
-        sabre::get_successor_map_and_critical_paths,
         utils::{
             build_adjacency_list, build_coupling_neighbour_map, compute_all_pairs_shortest_paths,
         },
@@ -18,21 +17,21 @@ use pyo3::{pyclass, pymethods, PyResult};
 use rand::{rng, seq::IndexedRandom};
 use rustc_hash::FxHashMap;
 
-use rustworkx_core::{dictmap::{DictMap, InitWithHasher}, petgraph::prelude::{DiGraph, NodeIndex}};
 use rustworkx_core::shortest_path::dijkstra;
+use rustworkx_core::{
+    dictmap::{DictMap, InitWithHasher},
+    petgraph::prelude::{DiGraph, NodeIndex},
+};
 
 #[pyclass(module = "microboost.routing.mutlisabre")]
 pub struct MultiSABRE {
     dag: MicroDAG,
-    coupling_map: Vec<Vec<i32>>,
     out_map: FxHashMap<i32, Vec<[i32; 2]>>,
     gate_order: Vec<i32>,
     required_predecessors: Vec<i32>,
     adjacency_list: FxHashMap<i32, Vec<i32>>,
     distance: Vec<Vec<i32>>,
-    initial_mapping: MicroLayout,
     running_mapping: MicroLayout,
-    successor_map: Vec<usize>,
     front_layer: MicroFront,
     neighbour_map: FxHashMap<i32, Vec<i32>>,
     num_qubits: i32,
@@ -47,20 +46,15 @@ impl MultiSABRE {
         coupling_map: Vec<Vec<i32>>,
         num_qubits: i32,
     ) -> PyResult<Self> {
-        let (successor_map, _) = get_successor_map_and_critical_paths(&dag);
-
         Ok(Self {
             required_predecessors: vec![0; dag.nodes.len()],
             adjacency_list: build_adjacency_list(&dag),
             dag,
             distance: compute_all_pairs_shortest_paths(&coupling_map),
             neighbour_map: build_coupling_neighbour_map(&coupling_map),
-            coupling_map,
             out_map: FxHashMap::default(),
             gate_order: Vec::new(),
             running_mapping: initial_mapping.clone(),
-            initial_mapping: initial_mapping,
-            successor_map,
             front_layer: MicroFront::new(num_qubits),
             num_qubits,
         })
@@ -69,14 +63,7 @@ impl MultiSABRE {
     fn run(
         &mut self,
         _layers: i32,
-    ) -> (
-        FxHashMap<i32, Vec<[i32; 2]>>,
-        Vec<i32>,
-        f64,
-        f64,
-        f64,
-        f64,
-    ) {
+    ) -> (FxHashMap<i32, Vec<[i32; 2]>>, Vec<i32>, f64, f64, f64, f64) {
         // Initialize required predecessors
         self.dag
             .edges()
@@ -100,13 +87,13 @@ impl MultiSABRE {
                 if current_swaps.len() > 10000 {
                     panic!("We are stuck!");
                 }
+
+                println!("Previous swap: {:?}", current_swaps.last());
                 // Precompute two swap layers up front and return multiple results that will be applied
                 let swaps = self.compute_swaps();
 
                 println!("2 Swaps are: {:?}", swaps);
 
-                // TODO: This is a bold move! Check that we can actually do that
-                // info: swapped [swaps.0, swaps.1] for swaps
                 for swap in swaps {
                     let q0 = swap[0];
                     let q1 = swap[1];
@@ -215,7 +202,7 @@ impl MultiSABRE {
                 |_| Ok(1.),
                 Some(&mut shortest_paths),
             ) as PyResult<Vec<Option<f64>>>)
-            .unwrap();
+                .unwrap();
 
             shortest_paths
                 .get(&NodeIndex::new(qubits[1] as usize))
@@ -282,10 +269,6 @@ impl MultiSABRE {
                     continue;
                 }
             }
-
-            // if !self.gate_order.contains(&node.id) {
-            //     self.gate_order.push(node.id);
-            // }
 
             if let Some(successors) = self.adjacency_list.get(&node_index) {
                 for successor in successors {
@@ -363,6 +346,12 @@ impl MultiSABRE {
             if let Some(node) = self.executable_node_on_qubit(q1) {
                 println!("Second one: {:?}", node);
                 tmp_execute_gate_list.push(node);
+                let node = self.dag.get(node).unwrap();
+                println!(
+                    "Has qubits: {:?},{:?}",
+                    self.running_mapping.virtual_to_physical(node.qubits[0]),
+                    self.running_mapping.virtual_to_physical(node.qubits[0])
+                )
             }
 
             let mut tmp_front_layer_before = self.front_layer.clone();
@@ -374,11 +363,14 @@ impl MultiSABRE {
             let (mut tmp_front_layer, new_required_predecessors) =
                 self.advance_front_in_place(&tmp_front_layer_before, &tmp_execute_gate_list);
 
-            // In case the inner front layer is empty, just push the current swap into the list of swaps
+            // In case the inner front layer is empty, just push the current swap into the list of swaps. This should only happen in the end.
+
+            // TODO: We need to think about this case! This doesn't only occur at the end
             if tmp_front_layer.is_empty() {
+                println!("Literally nothing is executable");
                 scores.insert(vec![[q0, q1]], diff_first);
                 // panic!("Inner front layer is empty");
-                break;
+                continue;
             }
             let inner_swap_candidates = self.compute_swap_candidates(&tmp_front_layer);
 
@@ -387,8 +379,6 @@ impl MultiSABRE {
             }
 
             for &[inner_q0, inner_q1] in &inner_swap_candidates {
-                // As long as we revert this afterwards, we should be fine
-                //
                 let before_second =
                     self.calculate_heuristic(&tmp_front_layer, &new_required_predecessors);
                 self.apply_swap([inner_q0, inner_q1]);
@@ -462,14 +452,10 @@ impl MultiSABRE {
         let mut visited = vec![false; dag_size];
 
         while i < to_visit.len() && extended_set.len() < 20 as usize {
-            // while i < to_visit.len() {
             visit_now.push(to_visit[i]);
             let mut j = 0;
 
             while j < visit_now.len() {
-                // if extended_set.len() > extended_set_size as usize {
-                //     break
-                // }
                 let node_id = visit_now[j];
 
                 if let Some(successors) = self.adjacency_list.get(&node_id) {

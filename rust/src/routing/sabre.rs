@@ -5,6 +5,7 @@ use crate::routing::utils::{
 };
 use crate::{graph::dag::MicroDAG, routing::utils::build_adjacency_list};
 use std::collections::{HashSet, VecDeque};
+use std::thread::current;
 
 use pyo3::{pyclass, pymethods, PyResult};
 
@@ -128,8 +129,9 @@ impl MicroSABRE {
                 if current_swaps.len() > 10000 {
                     panic!("We are stuck!")
                 }
-                let best_swap = self.choose_best_swap(heuristic, extended_set_size);
 
+                println!("Previous swap: {:?}", current_swaps.last());
+                let best_swap = self.choose_best_swap(heuristic, extended_set_size);
                 if self.recent_swaps.len() == self.recent_swaps.capacity() {
                     self.recent_swaps.pop_back();
                 }

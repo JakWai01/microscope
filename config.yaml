@@ -1,5 +1,5 @@
 ocular:
-  path: examples/adder_n28.qasm
+  path: examples/adder_n10.qasm
   # path: examples/adder_n4.qasm
   # path: /home/jakob/Documents/hamiltonians/ham_heis_graph_2D_grid_nonpbc_qubitnodes_Lx_5_Ly_186_h_0_5.qasm
   # path: /home/jakob/Documents/hamiltonians/ham_heis_graph_2D_grid_pbc_qubitnodes_Lx_5_Ly_186_h_3.qasm

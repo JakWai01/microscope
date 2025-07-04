@@ -1,0 +1,14 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch Python with PyO3",
+            "type": "lldb",
+            "request": "launch",
+            "program": "~/.venvs/qiskit-dev/bin/python",
+            "args": ["${file}", "ocular"],
+            "cwd": "${workspaceFolder}",
+            "sourceLanguages": ["rust"]
+        }
+    ]
+}
