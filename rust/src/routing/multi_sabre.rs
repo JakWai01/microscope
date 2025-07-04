@@ -64,17 +64,14 @@ impl MultiSABRE {
         &mut self,
         _layers: i32,
     ) -> (FxHashMap<i32, Vec<[i32; 2]>>, Vec<i32>, f64, f64, f64, f64) {
-        // Initialize required predecessors
         self.dag
             .edges()
             .unwrap()
             .iter()
             .for_each(|edge| self.required_predecessors[edge.1 as usize] += 1);
 
-        // Initialize front layer
         let initial_front = self.initial_front();
 
-        // Advance front layer to first gates that cannot be executed
         self.advance_front_layer(&initial_front);
 
         let mut execute_gate_list = Vec::new();
@@ -84,15 +81,11 @@ impl MultiSABRE {
 
             // while execute_gate_list.is_empty() && current_swaps.len() < self.num_qubits as usize * 10 {
             while execute_gate_list.is_empty() {
-                if current_swaps.len() > 10000 {
+                if current_swaps.len() > 10 * self.num_qubits as usize {
                     panic!("We are stuck!");
                 }
 
-                println!("Previous swap: {:?}", current_swaps.last());
-                // Precompute two swap layers up front and return multiple results that will be applied
                 let swaps = self.compute_swaps();
-
-                println!("2 Swaps are: {:?}", swaps);
 
                 for swap in swaps {
                     let q0 = swap[0];
@@ -101,36 +94,16 @@ impl MultiSABRE {
                     current_swaps.push(swap);
                     self.apply_swap([q0, q1]);
 
-                    println!("Current swap: {:?}", swap);
                     if let Some(node) = self.executable_node_on_qubit(q0) {
-                        println!("Executable node: {:?}", node);
                         execute_gate_list.push(node);
-                        let node = self.dag.get(node).unwrap();
-                        let q0 = self.running_mapping.virtual_to_physical(node.qubits[0]);
-                        let q1 = self.running_mapping.virtual_to_physical(node.qubits[1]);
-                        println!(
-                            "Node operates on virtual qubits: {:?}",
-                            node.qubits().unwrap()
-                        );
-                        println!("Node operates on physical qubits: {:?}, {:?}", q0, q1);
                     }
                     if let Some(node) = self.executable_node_on_qubit(q1) {
-                        println!("Executable node: {:?}", node);
                         execute_gate_list.push(node);
-                        let node = self.dag.get(node).unwrap();
-                        let q0 = self.running_mapping.virtual_to_physical(node.qubits[0]);
-                        let q1 = self.running_mapping.virtual_to_physical(node.qubits[1]);
-                        println!(
-                            "Node operates on virtual qubits: {:?}",
-                            node.qubits().unwrap()
-                        );
-                        println!("Node operates on physical qubits: {:?}, {:?}", q0, q1);
                     }
-
-                    // TODO: We should remove the node from the front layer here
+                    
+                    // TODO: I can probably improve this part
                     if !execute_gate_list.is_empty() {
                         for &node in &execute_gate_list {
-                            println!("Trying to remove {:?}", node);
                             self.front_layer.remove(&node);
                         }
 
@@ -180,71 +153,88 @@ impl MultiSABRE {
 }
 
 impl MultiSABRE {
-    fn release_valve(&mut self, current_swaps: &mut Vec<[i32; 2]>) -> Vec<i32> {
-        let (&closest_node, &qubits) = {
-            self.front_layer
-                .nodes
-                .iter()
-                .min_by(|(_, qubits_a), (_, qubits_b)| {
-                    self.distance[qubits_a[0] as usize][qubits_a[1] as usize]
-                        .partial_cmp(&self.distance[qubits_b[0] as usize][qubits_b[1] as usize])
-                        .unwrap_or(Ordering::Equal)
-                })
-                .unwrap()
-        };
+    /*
+        Returns the two heuristically best consecutive swaps. As a starting
+        point, the heuristic is computed before any change is made. Then, the
+        swap candidates are computed from the current front layer. For each of
+        those SWAP candidates, we create a temporary front_layer to track our
+        changes. We temporariliy execute the swap, check for executable gates,
+        advance the front layer, compute the swap candidates and apply those
+        second swaps. Finally, we compute the heuristic after executing both
+        swaps temporarily and add the result to the scores vector.
+     */
+    fn compute_swaps(&mut self) -> Vec<[i32; 2]> {
+        let mut scores: FxHashMap<Vec<[i32; 2]>, f64> = FxHashMap::default();
 
-        let shortest_path = {
-            let mut shortest_paths: DictMap<NodeIndex, Vec<NodeIndex>> = DictMap::new();
-            (dijkstra(
-                &build_digraph_from_neighbors(&self.neighbour_map),
-                NodeIndex::new(qubits[0] as usize),
-                Some(NodeIndex::new(qubits[1] as usize)),
-                |_| Ok(1.),
-                Some(&mut shortest_paths),
-            ) as PyResult<Vec<Option<f64>>>)
-                .unwrap();
+        let swap_candidates: Vec<[i32; 2]> = self.compute_swap_candidates(&self.front_layer);
 
-            shortest_paths
-                .get(&NodeIndex::new(qubits[1] as usize))
-                .unwrap()
-                .iter()
-                .map(|n| n.index())
-                .collect::<Vec<_>>()
-        };
+        for &[q0, q1] in &swap_candidates {
+            // Temporarily apply first swap and calculate heuristics
+            let before_first = self.calculate_heuristic(
+                &self.front_layer.clone(),
+                &self.required_predecessors.clone(),
+            );
+            self.apply_swap([q0, q1]);
+            let after_first = self.calculate_heuristic(
+                &self.front_layer.clone(),
+                &self.required_predecessors.clone(),
+            );
+            let diff_first = after_first - before_first;
 
-        let split: usize = shortest_path.len() / 2;
-        current_swaps.reserve(shortest_path.len() - 2);
-        for i in 0..split {
-            current_swaps.push([shortest_path[i] as i32, shortest_path[i + 1] as i32]);
-        }
-        for i in 0..split - 1 {
-            let end = shortest_path.len() - 1 - i;
-            current_swaps.push([shortest_path[end] as i32, shortest_path[end - 1] as i32]);
-        }
-        current_swaps.iter().for_each(|&swap| self.apply_swap(swap));
+            // Create temporary data structures to track changes of temporary swaps
+            let mut tmp_execute_gate_list = Vec::new();
 
-        if current_swaps.len() > 1 {
-            vec![closest_node]
-        } else {
-            // check if the closest node has neighbors that are now routable -- for that we get
-            // the other physical qubit that was swapped and check whether the node on it
-            // is now routable
-            let mut possible_other_qubit = current_swaps[0]
-                .iter()
-                // check if other nodes are in the front layer that are connected by this swap
-                .filter_map(|&swap_qubit| self.front_layer.qubits[swap_qubit as usize])
-                // remove the closest_node, which we know we already routed
-                .filter(|(node_index, _other_qubit)| *node_index != closest_node)
-                .map(|(_node_index, other_qubit)| other_qubit);
-
-            // if there is indeed another candidate, check if that gate is routable
-            if let Some(other_qubit) = possible_other_qubit.next() {
-                if let Some(also_routed) = self.executable_node_on_qubit(other_qubit) {
-                    return vec![closest_node, also_routed];
-                }
+            // q0 and q1 are the qubits that were involved in a swap. Here, we check whether some
+            // node on the front_layer that operates on one of those qubits that was just changed
+            // is now executable. So if both of the following if-statements return the same node,
+            // then this would mean that this node contains both qubits q0 and q1, which indicates
+            // that the gate should have been executable before even applying the swap.
+            if let Some(node) = self.executable_node_on_qubit(q0) {
+                tmp_execute_gate_list.push(node);
             }
-            vec![closest_node]
+
+            if let Some(node) = self.executable_node_on_qubit(q1) {
+                tmp_execute_gate_list.push(node);
+            }
+
+            let mut tmp_front_layer_before = self.front_layer.clone();
+            for node in tmp_execute_gate_list.iter() {
+                tmp_front_layer_before.remove(node);
+            }
+
+            let (mut tmp_front_layer, new_required_predecessors) =
+                self.advance_front_in_place(&tmp_front_layer_before, &tmp_execute_gate_list);
+
+            // TODO: We need to think about this case! This doesn't only occur at the end
+            if tmp_front_layer.is_empty() {
+                scores.insert(vec![[q0, q1]], diff_first);
+                continue;
+            }
+            let inner_swap_candidates = self.compute_swap_candidates(&tmp_front_layer);
+
+            for &[inner_q0, inner_q1] in &inner_swap_candidates {
+                let before_second =
+                    self.calculate_heuristic(&tmp_front_layer, &new_required_predecessors);
+                self.apply_swap([inner_q0, inner_q1]);
+                tmp_front_layer.apply_swap([inner_q0, inner_q1]);
+
+                let after_second =
+                    self.calculate_heuristic(&tmp_front_layer, &new_required_predecessors);
+                let diff_second = after_second - before_second;
+
+                scores.insert(
+                    vec![[q0, q1], [inner_q0, inner_q1]],
+                    diff_first + diff_second,
+                );
+
+                tmp_front_layer.apply_swap([inner_q0, inner_q1]);
+                self.apply_swap([inner_q0, inner_q1]);
+            }
+
+            self.apply_swap([q0, q1]);
         }
+
+        min_score(scores)
     }
 
     fn advance_front_in_place(
@@ -289,122 +279,13 @@ impl MultiSABRE {
         let mut swap_candidates: Vec<[i32; 2]> = Vec::new();
 
         for &phys in front_layer.nodes.values().flatten() {
-            for neighbour in self.neighbour_map[&phys].iter() {
-                if neighbour > &phys || !front_layer.is_active(*neighbour) {
-                    swap_candidates.push([phys, *neighbour])
+            for &neighbour in self.neighbour_map[&phys].iter() {
+                if neighbour > phys || !front_layer.is_active(neighbour) {
+                    swap_candidates.push([phys, neighbour])
                 }
             }
         }
         swap_candidates
-    }
-
-    // Returns the two heuristically best consecutive swaps. As a starting
-    // point, the heuristic is computed before any change is made. Then, the
-    // swap candidates are computed from the current front layer. For each of
-    // those SWAP candidates, we create a temporary front_layer to track our
-    // changes. We temporariliy execute the swap, check for executable gates,
-    // advance the front layer, compute the swap candidates and apply those
-    // second swaps. Finally, we compute the heuristic after executing both
-    // swaps temporarily and add the result to the scores vector.
-    fn compute_swaps(&mut self) -> Vec<[i32; 2]> {
-        let mut scores: FxHashMap<Vec<[i32; 2]>, f64> = FxHashMap::default();
-
-        let swap_candidates: Vec<[i32; 2]> = self.compute_swap_candidates(&self.front_layer);
-
-        if swap_candidates.is_empty() {
-            panic!("No swap candidates left!");
-        }
-
-        println!("Number of swap candidates: {:?}", swap_candidates.len());
-
-        for &[q0, q1] in &swap_candidates {
-            // Temporarily apply first swap and calculate heuristics
-            let before_first = self.calculate_heuristic(
-                &self.front_layer.clone(),
-                &self.required_predecessors.clone(),
-            );
-            self.apply_swap([q0, q1]);
-            let after_first = self.calculate_heuristic(
-                &self.front_layer.clone(),
-                &self.required_predecessors.clone(),
-            );
-            let diff_first = after_first - before_first;
-
-            // Create temporary data structures to track changes of temporary swaps
-            let mut tmp_execute_gate_list = Vec::new();
-
-            // q0 and q1 are the qubits that were involved in a swap. Here, we check whether some
-            // node on the front_layer that operates on one of those qubits that was just changed
-            // is now executable. So if both of the following if-statements return the same node,
-            // then this would mean that this node contains both qubits q0 and q1, which indicates
-            // that the gate should have been executable before even applying the swap.
-            if let Some(node) = self.executable_node_on_qubit(q0) {
-                println!("First one: {:?}", node);
-                tmp_execute_gate_list.push(node);
-            }
-
-            if let Some(node) = self.executable_node_on_qubit(q1) {
-                println!("Second one: {:?}", node);
-                tmp_execute_gate_list.push(node);
-                let node = self.dag.get(node).unwrap();
-                println!(
-                    "Has qubits: {:?},{:?}",
-                    self.running_mapping.virtual_to_physical(node.qubits[0]),
-                    self.running_mapping.virtual_to_physical(node.qubits[0])
-                )
-            }
-
-            let mut tmp_front_layer_before = self.front_layer.clone();
-            for node in tmp_execute_gate_list.iter() {
-                println!("Removing: {:?}", node);
-                tmp_front_layer_before.remove(node);
-            }
-
-            let (mut tmp_front_layer, new_required_predecessors) =
-                self.advance_front_in_place(&tmp_front_layer_before, &tmp_execute_gate_list);
-
-            // In case the inner front layer is empty, just push the current swap into the list of swaps. This should only happen in the end.
-
-            // TODO: We need to think about this case! This doesn't only occur at the end
-            if tmp_front_layer.is_empty() {
-                println!("Literally nothing is executable");
-                scores.insert(vec![[q0, q1]], diff_first);
-                // panic!("Inner front layer is empty");
-                continue;
-            }
-            let inner_swap_candidates = self.compute_swap_candidates(&tmp_front_layer);
-
-            if inner_swap_candidates.is_empty() {
-                panic!("No inner swap candidates left!");
-            }
-
-            for &[inner_q0, inner_q1] in &inner_swap_candidates {
-                let before_second =
-                    self.calculate_heuristic(&tmp_front_layer, &new_required_predecessors);
-                self.apply_swap([inner_q0, inner_q1]);
-                tmp_front_layer.apply_swap([inner_q0, inner_q1]);
-
-                let after_second =
-                    self.calculate_heuristic(&tmp_front_layer, &new_required_predecessors);
-                let diff_second = after_second - before_second;
-
-                scores.insert(
-                    vec![[q0, q1], [inner_q0, inner_q1]],
-                    diff_first + diff_second,
-                );
-
-                tmp_front_layer.apply_swap([inner_q1, inner_q0]);
-                self.apply_swap([inner_q1, inner_q0]);
-            }
-
-            self.apply_swap([q1, q0]);
-        }
-
-        if scores.is_empty() {
-            panic!("Nothing to score!");
-        }
-
-        min_score(scores)
     }
 
     fn calculate_heuristic(
@@ -528,39 +409,32 @@ impl MultiSABRE {
             .collect()
     }
 
-    // Advance front layer to gates that can't be executed on the hardware right away
+    /// Advances front layer by looking at successors of the nodes that were just
+    /// executed. Successors are added to the front layer if they do NOT have any
+    /// required predecessors AND can't be routed without inserting any SWAPs 
     fn advance_front_layer(&mut self, nodes: &Vec<i32>) {
         let mut node_queue: VecDeque<i32> = VecDeque::from(nodes.clone());
 
         while let Some(node_index) = node_queue.pop_front() {
             let node = self.dag.get(node_index).unwrap();
 
-            // Only two-qubit gates can potentially not be executed right away
             if node.qubits.len() == 2 {
                 let physical_q0 = self.running_mapping.virtual_to_physical(node.qubits[0]);
                 let physical_q1 = self.running_mapping.virtual_to_physical(node.qubits[1]);
 
                 if self.distance[physical_q0 as usize][physical_q1 as usize] != 1 {
-                    // If not executable, insert into front layer
                     self.front_layer
                         .insert(node_index, [physical_q0, physical_q1]);
-
-                    // Skip remainder of the loop-iteration
+                
                     continue;
                 }
             }
 
             // If we get here, the gate can be executed
             if !self.gate_order.contains(&node.id) {
-                // Add gate to the gate order
                 self.gate_order.push(node.id);
             }
 
-            // I should probably rename the adjacency list if it's actually just accounting for the
-            // successors
-            // Since we "executed" the gate, update successors.
-            // Required predecessors only accounts for the predecessors of the actual node we are
-            // looking at. If a node has two incoming edges, it has two required predecessors.
             if let Some(successors) = self.adjacency_list.get(&node_index) {
                 for successor in successors {
                     if let Some(count) = self.required_predecessors.get_mut(*successor as usize) {
@@ -571,6 +445,73 @@ impl MultiSABRE {
                     }
                 }
             }
+        }
+    }
+    
+    fn release_valve(&mut self, current_swaps: &mut Vec<[i32; 2]>) -> Vec<i32> {
+        let (&closest_node, &qubits) = {
+            self.front_layer
+                .nodes
+                .iter()
+                .min_by(|(_, qubits_a), (_, qubits_b)| {
+                    self.distance[qubits_a[0] as usize][qubits_a[1] as usize]
+                        .partial_cmp(&self.distance[qubits_b[0] as usize][qubits_b[1] as usize])
+                        .unwrap_or(Ordering::Equal)
+                })
+                .unwrap()
+        };
+
+        let shortest_path = {
+            let mut shortest_paths: DictMap<NodeIndex, Vec<NodeIndex>> = DictMap::new();
+            (dijkstra(
+                &build_digraph_from_neighbors(&self.neighbour_map),
+                NodeIndex::new(qubits[0] as usize),
+                Some(NodeIndex::new(qubits[1] as usize)),
+                |_| Ok(1.),
+                Some(&mut shortest_paths),
+            ) as PyResult<Vec<Option<f64>>>)
+                .unwrap();
+
+            shortest_paths
+                .get(&NodeIndex::new(qubits[1] as usize))
+                .unwrap()
+                .iter()
+                .map(|n| n.index())
+                .collect::<Vec<_>>()
+        };
+
+        let split: usize = shortest_path.len() / 2;
+        current_swaps.reserve(shortest_path.len() - 2);
+        for i in 0..split {
+            current_swaps.push([shortest_path[i] as i32, shortest_path[i + 1] as i32]);
+        }
+        for i in 0..split - 1 {
+            let end = shortest_path.len() - 1 - i;
+            current_swaps.push([shortest_path[end] as i32, shortest_path[end - 1] as i32]);
+        }
+        current_swaps.iter().for_each(|&swap| self.apply_swap(swap));
+
+        if current_swaps.len() > 1 {
+            vec![closest_node]
+        } else {
+            // check if the closest node has neighbors that are now routable -- for that we get
+            // the other physical qubit that was swapped and check whether the node on it
+            // is now routable
+            let mut possible_other_qubit = current_swaps[0]
+                .iter()
+                // check if other nodes are in the front layer that are connected by this swap
+                .filter_map(|&swap_qubit| self.front_layer.qubits[swap_qubit as usize])
+                // remove the closest_node, which we know we already routed
+                .filter(|(node_index, _other_qubit)| *node_index != closest_node)
+                .map(|(_node_index, other_qubit)| other_qubit);
+
+            // if there is indeed another candidate, check if that gate is routable
+            if let Some(other_qubit) = possible_other_qubit.next() {
+                if let Some(also_routed) = self.executable_node_on_qubit(other_qubit) {
+                    return vec![closest_node, also_routed];
+                }
+            }
+            vec![closest_node]
         }
     }
 }
