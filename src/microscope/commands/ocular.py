@@ -110,9 +110,7 @@ def ocular(config):
 
     # Compute critical depth
     ops_longest_path = preprocessed_dag.count_ops_longest_path()
-    print(ops_longest_path)
     longest_path_len = sum(ops_longest_path.values())
-    print(preprocessed_dag.two_qubit_ops())
     num_cx_longest_path = ops_longest_path["cx"]
     num_cx = preprocessed_dag.count_ops()["cx"]
     critical_depth = round(num_cx_longest_path / num_cx, 2)
@@ -136,10 +134,8 @@ def ocular(config):
     # Create DAG
     micro_dag = DAG().from_qiskit_dag(preprocessed_dag)
 
-    # Print numer of DAG nodes
     num_dag_nodes = len(micro_dag)
 
-    # Print metrics
     table = Table(title="Circuit Metrics")
 
     table.add_column("Metric")
@@ -196,6 +192,10 @@ def ocular(config):
 
         # Create final result circuit
         transpiled_sabre_circuit_boosted = dag_to_circuit(transpiled_sabre_dag_boosted)
+
+        # Print resulting circuit
+        transpiled_sabre_circuit_boosted.draw("mpl", fold=-1)
+        plt.show()
 
         # Initialize PassManager to check correctness of result
         cm = CheckMap(coupling_map=coupling_map)

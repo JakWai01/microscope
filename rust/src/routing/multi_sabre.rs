@@ -85,7 +85,7 @@ impl MultiSABRE {
                     panic!("We are stuck!");
                 }
 
-                let swaps = self.compute_swaps();
+                let swaps = self.choose_best_swaps();
 
                 for swap in swaps {
                     let q0 = swap[0];
@@ -153,134 +153,84 @@ impl MultiSABRE {
 }
 
 impl MultiSABRE {
-    /*
-        Returns the two heuristically best consecutive swaps. As a starting
-        point, the heuristic is computed before any change is made. Then, the
-        swap candidates are computed from the current front layer. For each of
-        those SWAP candidates, we create a temporary front_layer to track our
-        changes. We temporariliy execute the swap, check for executable gates,
-        advance the front layer, compute the swap candidates and apply those
-        second swaps. Finally, we compute the heuristic after executing both
-        swaps temporarily and add the result to the scores vector.
-     */
-    fn compute_swaps(&mut self) -> Vec<[i32; 2]> {
+    
+    /// Returns the two heuristically best consecutive SWAPs
+    fn choose_best_swaps(&mut self) -> Vec<[i32; 2]> {
         let mut scores: FxHashMap<Vec<[i32; 2]>, f64> = FxHashMap::default();
 
-        let swap_candidates: Vec<[i32; 2]> = self.compute_swap_candidates(&self.front_layer);
+        let initial_front_layer = self.front_layer.clone();
+        let initial_required_predecessors = self.required_predecessors.clone();
+        let initial_mapping = self.running_mapping.clone();
+
+        let swap_candidates: Vec<[i32; 2]> = self.compute_swap_candidates();
 
         for &[q0, q1] in &swap_candidates {
-            // Temporarily apply first swap and calculate heuristics
-            let before_first = self.calculate_heuristic(
-                &self.front_layer.clone(),
-                &self.required_predecessors.clone(),
-            );
+            let before = self.calculate_heuristic();
+
             self.apply_swap([q0, q1]);
-            let after_first = self.calculate_heuristic(
-                &self.front_layer.clone(),
-                &self.required_predecessors.clone(),
-            );
-            let diff_first = after_first - before_first;
 
-            // Create temporary data structures to track changes of temporary swaps
-            let mut tmp_execute_gate_list = Vec::new();
+            let after= self.calculate_heuristic();
 
-            // q0 and q1 are the qubits that were involved in a swap. Here, we check whether some
-            // node on the front_layer that operates on one of those qubits that was just changed
-            // is now executable. So if both of the following if-statements return the same node,
-            // then this would mean that this node contains both qubits q0 and q1, which indicates
-            // that the gate should have been executable before even applying the swap.
+            let diff_first = after - before;
+
+            let mut execute_gate_list = Vec::new();
+
             if let Some(node) = self.executable_node_on_qubit(q0) {
-                tmp_execute_gate_list.push(node);
+                execute_gate_list.push(node);
+                self.front_layer.remove(&node);
             }
 
             if let Some(node) = self.executable_node_on_qubit(q1) {
-                tmp_execute_gate_list.push(node);
+                execute_gate_list.push(node);
+                self.front_layer.remove(&node);
             }
 
-            let mut tmp_front_layer_before = self.front_layer.clone();
-            for node in tmp_execute_gate_list.iter() {
-                tmp_front_layer_before.remove(node);
-            }
-
-            let (mut tmp_front_layer, new_required_predecessors) =
-                self.advance_front_in_place(&tmp_front_layer_before, &tmp_execute_gate_list);
+            self.advance_front_layer(&execute_gate_list);
 
             // TODO: We need to think about this case! This doesn't only occur at the end
-            if tmp_front_layer.is_empty() {
-                scores.insert(vec![[q0, q1]], diff_first);
-                continue;
-            }
-            let inner_swap_candidates = self.compute_swap_candidates(&tmp_front_layer);
+            // if self.front_layer.is_empty() {
+            //     scores.insert(vec![[q0, q1]], diff_first);
+            //     self.front_layer = initial_front_layer.clone();
+            //     self.required_predecessors = initial_required_predecessors.clone();
+            //     self.running_mapping = initial_mapping.clone();
+            //     continue;
+            // }
+
+            let inner_swap_candidates = self.compute_swap_candidates();
 
             for &[inner_q0, inner_q1] in &inner_swap_candidates {
-                let before_second =
-                    self.calculate_heuristic(&tmp_front_layer, &new_required_predecessors);
+                let before=
+                    self.calculate_heuristic();
                 self.apply_swap([inner_q0, inner_q1]);
-                tmp_front_layer.apply_swap([inner_q0, inner_q1]);
 
-                let after_second =
-                    self.calculate_heuristic(&tmp_front_layer, &new_required_predecessors);
-                let diff_second = after_second - before_second;
+                let after =
+                    self.calculate_heuristic();
+                let diff_second = after - before;
 
                 scores.insert(
                     vec![[q0, q1], [inner_q0, inner_q1]],
                     diff_first + diff_second,
                 );
 
-                tmp_front_layer.apply_swap([inner_q0, inner_q1]);
                 self.apply_swap([inner_q0, inner_q1]);
             }
 
             self.apply_swap([q0, q1]);
+
+            self.front_layer = initial_front_layer.clone();
+            self.required_predecessors = initial_required_predecessors.clone();
+            self.running_mapping = initial_mapping.clone();
         }
 
         min_score(scores)
     }
 
-    fn advance_front_in_place(
-        &mut self,
-        front_layer: &MicroFront,
-        nodes: &Vec<i32>,
-    ) -> (MicroFront, Vec<i32>) {
-        let mut node_queue: VecDeque<i32> = VecDeque::from(nodes.clone());
-
-        let mut front_layer = front_layer.clone();
-        let mut required_predecessors = self.required_predecessors.clone();
-
-        while let Some(node_index) = node_queue.pop_front() {
-            let node = self.dag.get(node_index).unwrap();
-
-            if node.qubits.len() == 2 {
-                let physical_q0 = self.running_mapping.virtual_to_physical(node.qubits[0]);
-                let physical_q1 = self.running_mapping.virtual_to_physical(node.qubits[1]);
-
-                if self.distance[physical_q0 as usize][physical_q1 as usize] != 1 {
-                    front_layer.insert(node_index, [physical_q0, physical_q1]);
-                    continue;
-                }
-            }
-
-            if let Some(successors) = self.adjacency_list.get(&node_index) {
-                for successor in successors {
-                    if let Some(count) = required_predecessors.get_mut(*successor as usize) {
-                        *count -= 1;
-                        if *count == 0 {
-                            node_queue.push_back(*successor);
-                        }
-                    }
-                }
-            }
-        }
-
-        (front_layer, required_predecessors)
-    }
-
-    fn compute_swap_candidates(&self, front_layer: &MicroFront) -> Vec<[i32; 2]> {
+    fn compute_swap_candidates(&self) -> Vec<[i32; 2]> {
         let mut swap_candidates: Vec<[i32; 2]> = Vec::new();
 
-        for &phys in front_layer.nodes.values().flatten() {
+        for &phys in self.front_layer.nodes.values().flatten() {
             for &neighbour in self.neighbour_map[&phys].iter() {
-                if neighbour > phys || !front_layer.is_active(neighbour) {
+                if neighbour > phys || !self.front_layer.is_active(neighbour) {
                     swap_candidates.push([phys, neighbour])
                 }
             }
@@ -290,10 +240,8 @@ impl MultiSABRE {
 
     fn calculate_heuristic(
         &mut self,
-        front_layer: &MicroFront,
-        new_required_predecessors: &Vec<i32>,
     ) -> f64 {
-        let extended_set = self.get_extended_set(front_layer, new_required_predecessors);
+        let extended_set = self.get_extended_set();
 
         let basic = self
             .front_layer
@@ -315,12 +263,10 @@ impl MultiSABRE {
 
     fn get_extended_set(
         &mut self,
-        front_layer: &MicroFront,
-        required_predecessors: &Vec<i32>,
     ) -> MicroFront {
-        let mut required_predecessors = required_predecessors.clone();
+        let mut required_predecessors = self.required_predecessors.clone();
 
-        let mut to_visit: Vec<i32> = front_layer.nodes.keys().copied().collect();
+        let mut to_visit: Vec<i32> = self.front_layer.nodes.keys().copied().collect();
         let mut i = 0;
 
         let mut extended_set: MicroFront = MicroFront::new(self.num_qubits);
@@ -517,7 +463,6 @@ impl MultiSABRE {
 }
 
 fn min_score(scores: FxHashMap<Vec<[i32; 2]>, f64>) -> Vec<[i32; 2]> {
-    println!("Scores: {:?}", scores);
     let mut best_swap_sequences = Vec::new();
 
     let mut iter = scores.iter();

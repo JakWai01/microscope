@@ -86,12 +86,6 @@ def sliding_window(segments):
       swapped qubits?
     """
 
-    print(segments[0].__dict__)
-    print(segments[1].__dict__)
-
-    # segments = circuit_to_unswapped_segments(preprocessed_dag, transpiled_dag, micro_dag)
-    # print(segments[0])
-
     # TODO: Check if we are using the original unswapped qubits
 
     # TODO: Combine multiple adjascent segments to a subcircuit

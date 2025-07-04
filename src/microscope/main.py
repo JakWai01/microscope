@@ -32,8 +32,6 @@ def main(command: str):
 
 
 def parse_config():
-    # Parse yaml benchmark config file
-    files = []
     with open("config.yaml", "r") as file:
         return yaml.safe_load(file)
 

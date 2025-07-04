@@ -11,17 +11,10 @@ use crate::routing::{layout::MicroLayout, sabre::MicroSABRE};
 /// A Python module implemented in Rust.
 #[pymodule]
 fn microboost(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(hello_sabre, m)?)?;
     m.add_class::<MicroDAG>()?;
     m.add_class::<MicroDAGNode>()?;
     m.add_class::<MicroSABRE>()?;
     m.add_class::<MicroLayout>()?;
     m.add_class::<MultiSABRE>()?;
-
     Ok(())
-}
-
-#[pyfunction]
-fn hello_sabre(_py: Python, name: PyObject) {
-    println!("Hello {}", name)
 }

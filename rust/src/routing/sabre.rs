@@ -130,7 +130,6 @@ impl MicroSABRE {
                     panic!("We are stuck!")
                 }
 
-                println!("Previous swap: {:?}", current_swaps.last());
                 let best_swap = self.choose_best_swap(heuristic, extended_set_size);
                 if self.recent_swaps.len() == self.recent_swaps.capacity() {
                     self.recent_swaps.pop_back();
