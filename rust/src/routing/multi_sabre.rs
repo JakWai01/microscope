@@ -85,7 +85,7 @@ impl MultiSABRE {
                     panic!("We are stuck!");
                 }
 
-                let swaps = self.choose_best_swaps();
+                let swaps = self.choose_best_swaps(3);
 
                 for swap in swaps {
                     let q0 = swap[0];
@@ -152,35 +152,85 @@ impl MultiSABRE {
     }
 }
 
+// #[derive(Debug, Clone)]
+// struct SwapPath {
+//     path: Vec<[i32; 2]>,
+//     score: f64,
+//     depth: usize,
+//     state: StateSnapshot,
+// }
+
+// #[derive(Debug, Clone)]
+// struct StateSnapshot {
+//     front_layer: MicroFront,
+//     required_predecessors: Vec<i32>,
+//     running_mapping: MicroLayout,
+//     gate_order: Vec<i32>,
+// }
+
+#[derive(Clone)]
+struct MapperState {
+    front_layer: MicroFront,
+    required_predecessors: Vec<i32>,
+    running_mapping: MicroLayout,
+    gate_order: Vec<i32>,
+}
+
 impl MultiSABRE {
-    
-    /// Returns the two heuristically best consecutive SWAPs
-    fn choose_best_swaps(&mut self) -> Vec<[i32; 2]> {
+    fn save_state(&self) -> MapperState {
+        MapperState {
+            front_layer: self.front_layer.clone(),
+            required_predecessors: self.required_predecessors.clone(),
+            running_mapping: self.running_mapping.clone(),
+            gate_order: self.gate_order.clone(),
+        }
+    }
+
+    fn load_state(&mut self, state: MapperState) {
+        self.front_layer = state.front_layer;
+        self.required_predecessors = state.required_predecessors;
+        self.running_mapping = state.running_mapping;
+        self.gate_order = state.gate_order;
+    }
+
+    fn choose_best_swaps(&mut self, n: usize) -> Vec<[i32; 2]> {
         let mut scores: FxHashMap<Vec<[i32; 2]>, f64> = FxHashMap::default();
 
-        let initial_front_layer = self.front_layer.clone();
-        let initial_required_predecessors = self.required_predecessors.clone();
-        let initial_mapping = self.running_mapping.clone();
-        let initial_gate_order = self.gate_order.clone();
+        let initial_state = self.save_state();
 
-        let swap_candidates: Vec<[i32; 2]> = self.compute_swap_candidates();
+        self.recursive_swap_search(&mut vec![], n, 0.0, &mut scores);
+
+        self.load_state(initial_state);
+
+        min_score(scores)
+    }
+
+    fn recursive_swap_search(
+    &mut self,
+    current_sequence: &mut Vec<[i32; 2]>,
+    depth: usize,
+    current_score: f64,
+    scores: &mut FxHashMap<Vec<[i32; 2]>, f64>,
+    ) {
+        if depth == 0 {
+            scores.insert(current_sequence.clone(), current_score);
+            return;
+        }
+
+        let swap_candidates = self.compute_swap_candidates();
+        let saved_state = self.save_state();
 
         for &[q0, q1] in &swap_candidates {
             let before = self.calculate_heuristic();
-
             self.apply_swap([q0, q1]);
-
-            let after= self.calculate_heuristic();
-
-            let diff_first = after - before;
+            let after = self.calculate_heuristic();
+            let diff = after - before;
 
             let mut execute_gate_list = Vec::new();
-
             if let Some(node) = self.executable_node_on_qubit(q0) {
                 execute_gate_list.push(node);
                 self.front_layer.remove(&node);
             }
-
             if let Some(node) = self.executable_node_on_qubit(q1) {
                 execute_gate_list.push(node);
                 self.front_layer.remove(&node);
@@ -188,71 +238,12 @@ impl MultiSABRE {
 
             self.advance_front_layer(&execute_gate_list);
 
-            let inner_swap_candidates = self.compute_swap_candidates();
-                
-            let inner_initial_front_layer = self.front_layer.clone();
-            let inner_initial_required_predecessors = self.required_predecessors.clone();
-            let inner_initial_running_mapping = self.running_mapping.clone();
-            let inner_initial_gate_order = self.gate_order.clone();
+            current_sequence.push([q0, q1]);
+            self.recursive_swap_search(current_sequence, depth - 1, current_score + diff, scores);
+            current_sequence.pop();
 
-            for &[inner_q0, inner_q1] in &inner_swap_candidates {
-                let before=
-                    self.calculate_heuristic();
-                self.apply_swap([inner_q0, inner_q1]);
-
-                let after =
-                    self.calculate_heuristic();
-                let diff_second = after - before;
-
-                // Trying third iteration
-                let mut execute_gate_list = Vec::new();
-
-                if let Some(node) = self.executable_node_on_qubit(inner_q0) {
-                    execute_gate_list.push(node);
-                    self.front_layer.remove(&node);
-                }
-                if let Some(node) = self.executable_node_on_qubit(inner_q1) {
-                    execute_gate_list.push(node);
-                    self.front_layer.remove(&node);
-                }
-
-                self.advance_front_layer(&execute_gate_list);
-
-                let innermost_swap_candidates = self.compute_swap_candidates();
-
-                for &[innermost_q0, innermost_q1] in &innermost_swap_candidates {
-                    let before = self.calculate_heuristic();
-                    self.apply_swap([innermost_q0, innermost_q1]);
-                    let after = self.calculate_heuristic();
-
-                    let diff_third = after - before;
-                    
-                    scores.insert(
-                        vec![[q0, q1], [inner_q0, inner_q1], [innermost_q0, innermost_q1]],
-                        diff_first + diff_second + diff_third,
-                    );
-
-                    self.apply_swap([innermost_q0, innermost_q1]);
-                }
-
-                self.apply_swap([inner_q0, inner_q1]);
-                
-                // Ich kann hier nicht resetten, ich muss auf den Zwischenstand resetten
-                self.front_layer = inner_initial_front_layer.clone();
-                self.required_predecessors = inner_initial_required_predecessors.clone();
-                self.running_mapping = inner_initial_running_mapping.clone();
-                self.gate_order = inner_initial_gate_order.clone();
-            }
-
-            self.apply_swap([q0, q1]);
-
-            self.front_layer = initial_front_layer.clone();
-            self.required_predecessors = initial_required_predecessors.clone();
-            self.running_mapping = initial_mapping.clone();
-            self.gate_order = initial_gate_order.clone();
+            self.load_state(saved_state.clone()); // Restore state before trying next swap
         }
-
-        min_score(scores)
     }
 
     fn compute_swap_candidates(&self) -> Vec<[i32; 2]> {

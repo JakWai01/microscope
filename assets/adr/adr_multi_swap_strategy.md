@@ -48,10 +48,15 @@ The first goal is to heuristically evaluate and execute two swaps at a time in o
                     - Apply SWAP temporarily
                     - Insert score (of both swaps)
                     - Revert SWAP
-                - Revert SWAP    
+                - Revert SWAP
+                - Reset all changes to front layer etc. to state before second swap.
             - Choose minimum score
         - While there are SWAPs to insert
             - Apply SWAP
             - Check if gates on front layer that operate on the swapped qubits (maximum 2) can be executed.
                 - Remove executable gates from the front layer
                 - Advance front layer to add successors of nodes that were just executed to the front layer
+
+#### Three SWAP Strategy
+
+The three SWAP strategy proceeded exactly as before.

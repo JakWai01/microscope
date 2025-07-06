@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use pyo3::{pyclass, pymethods};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[pyclass(module = "microboost.routing.sabre")]
 pub struct MicroLayout {
     virt_to_phys: Vec<i32>,
