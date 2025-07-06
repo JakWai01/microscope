@@ -6,7 +6,7 @@ use std::{
 use crate::{
     graph::dag::MicroDAG,
     routing::{
-        front_layer::MicroFront,
+        front_layer::{self, MicroFront},
         layout::MicroLayout,
         utils::{
             build_adjacency_list, build_coupling_neighbour_map, compute_all_pairs_shortest_paths,
@@ -189,6 +189,11 @@ impl MultiSABRE {
             self.advance_front_layer(&execute_gate_list);
 
             let inner_swap_candidates = self.compute_swap_candidates();
+                
+            let inner_initial_front_layer = self.front_layer.clone();
+            let inner_initial_required_predecessors = self.required_predecessors.clone();
+            let inner_initial_running_mapping = self.running_mapping.clone();
+            let inner_initial_gate_order = self.gate_order.clone();
 
             for &[inner_q0, inner_q1] in &inner_swap_candidates {
                 let before=
@@ -199,12 +204,44 @@ impl MultiSABRE {
                     self.calculate_heuristic();
                 let diff_second = after - before;
 
-                scores.insert(
-                    vec![[q0, q1], [inner_q0, inner_q1]],
-                    diff_first + diff_second,
-                );
+                // Trying third iteration
+                let mut execute_gate_list = Vec::new();
+
+                if let Some(node) = self.executable_node_on_qubit(inner_q0) {
+                    execute_gate_list.push(node);
+                    self.front_layer.remove(&node);
+                }
+                if let Some(node) = self.executable_node_on_qubit(inner_q1) {
+                    execute_gate_list.push(node);
+                    self.front_layer.remove(&node);
+                }
+
+                self.advance_front_layer(&execute_gate_list);
+
+                let innermost_swap_candidates = self.compute_swap_candidates();
+
+                for &[innermost_q0, innermost_q1] in &innermost_swap_candidates {
+                    let before = self.calculate_heuristic();
+                    self.apply_swap([innermost_q0, innermost_q1]);
+                    let after = self.calculate_heuristic();
+
+                    let diff_third = after - before;
+                    
+                    scores.insert(
+                        vec![[q0, q1], [inner_q0, inner_q1], [innermost_q0, innermost_q1]],
+                        diff_first + diff_second + diff_third,
+                    );
+
+                    self.apply_swap([innermost_q0, innermost_q1]);
+                }
 
                 self.apply_swap([inner_q0, inner_q1]);
+                
+                // Ich kann hier nicht resetten, ich muss auf den Zwischenstand resetten
+                self.front_layer = inner_initial_front_layer.clone();
+                self.required_predecessors = inner_initial_required_predecessors.clone();
+                self.running_mapping = inner_initial_running_mapping.clone();
+                self.gate_order = inner_initial_gate_order.clone();
             }
 
             self.apply_swap([q0, q1]);
