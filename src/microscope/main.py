@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 
 from commands.ocular import ocular
 from commands.qiskit import qiskit
+from commands.olsq import olsq
 
 import time
 import yaml
@@ -22,6 +23,8 @@ def main(command: str):
             ocular(config)
         case "qiskit":
             qiskit(config)
+        case "olsq":
+            olsq(config)
         case _:
             print(
                 "Invalid command. Choose one out of [hamiltonians, microbench, slide, qiskit_baseline]"
