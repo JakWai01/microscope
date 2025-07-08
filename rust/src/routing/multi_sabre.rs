@@ -62,7 +62,7 @@ impl MultiSABRE {
 
     fn run(
         &mut self,
-        _layers: i32,
+        layers: i32,
     ) -> (FxHashMap<i32, Vec<[i32; 2]>>, Vec<i32>, f64, f64, f64, f64) {
         self.dag
             .edges()
@@ -85,7 +85,7 @@ impl MultiSABRE {
                     panic!("We are stuck!");
                 }
 
-                let swaps = self.choose_best_swaps(3);
+                let swaps = self.choose_best_swaps(layers as usize);
 
                 for swap in swaps {
                     let q0 = swap[0];

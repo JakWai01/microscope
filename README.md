@@ -139,6 +139,9 @@ considering a node multiple times.
 - [ ] Decompose heuristics into separate module, since that will most likely stay the same
 - [ ] Comments, Naming, Types
 - [ ] Not getting stuck would also be a major improvement (liveness)
+- [ ] Is there still a use for the lookahead heuristic or can we focus on local changes in that case?
+- [ ] Results seem to always be divisible by the number of swaps at a time (tested on 10 qubits and 930)?
+
 
 ##
 
