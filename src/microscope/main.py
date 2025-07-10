@@ -32,7 +32,7 @@ def main(command: str):
 
     t1 = time.perf_counter()
     print(f"Took {t1 - t0:.2f}s")
-    # plt.show()
+    plt.show()
 
 
 def parse_config():

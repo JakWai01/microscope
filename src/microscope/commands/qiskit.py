@@ -10,7 +10,8 @@ from qiskit.transpiler.passes import (
     SetLayout,
     FullAncillaAllocation,
     ApplyLayout,
-    RemoveBarriers
+    RemoveBarriers,
+    SabreLayout
 )
 
 from qiskit.circuit.library.standard_gates import SwapGate
@@ -43,9 +44,9 @@ def qiskit(config):
     pm = PassManager(
         [
             Unroll3qOrMore(),
-            SetLayout(preprocessing_layout),
-            FullAncillaAllocation(coupling_map),
+            SabreLayout(coupling_map, skip_routing=True),
             ApplyLayout(),
+            # FullAncillaAllocation(coupling_map),
             RemoveBarriers(),
         ]
     )
@@ -60,6 +61,7 @@ def qiskit(config):
         )
 
         transpiled_qc = qiskit_pm.run(preprocessed_circuit)
+        transpiled_qc.draw("mpl", fold=-1)
         transpiled_qc_dag = circuit_to_dag(transpiled_qc)
 
         if not cm.property_set.get("is_swap_mapped"):

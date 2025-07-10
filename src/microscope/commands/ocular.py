@@ -11,6 +11,9 @@ from qiskit.transpiler.passes import (
     FullAncillaAllocation,
     ApplyLayout,
     RemoveBarriers,
+    SabreLayout,
+    SabrePreLayout,
+    EnlargeWithAncilla
 )
 
 from collections import defaultdict
@@ -52,8 +55,6 @@ class BenchmarkSet:
 def ocular(config):
     # Parse config variables
     path = config["ocular"]["path"]
-    heuristics = config["ocular"]["heuristics"]
-    trials = config["ocular"]["trials"]
     extended_set_size = config["ocular"]["extended-set-size"]
 
     # Create test test cases
@@ -68,23 +69,17 @@ def ocular(config):
     # Generate coupling map
     coupling_map = CouplingMap.from_line(input_circuit.num_qubits)
 
-    # Generate DAG from circuit
-    input_dag = circuit_to_dag(input_circuit)
-
-    # Preprocess circuit
-    preprocessing_layout = generate_initial_mapping(input_dag)
-
     pm = PassManager(
         [
             Unroll3qOrMore(),
-            SetLayout(preprocessing_layout),
-            FullAncillaAllocation(coupling_map),
+            SabreLayout(coupling_map, skip_routing=True),
             ApplyLayout(),
             RemoveBarriers(),
         ]
     )
 
     preprocessed_circuit = pm.run(input_circuit)
+
     preprocessed_dag = circuit_to_dag(preprocessed_circuit)
 
     # Compute Program Communication
@@ -194,7 +189,7 @@ def ocular(config):
         transpiled_sabre_circuit_boosted = dag_to_circuit(transpiled_sabre_dag_boosted)
 
         # Print resulting circuit
-        # transpiled_sabre_circuit_boosted.draw("mpl", fold=-1)
+        transpiled_sabre_circuit_boosted.draw("mpl", fold=-1)
         # plt.show()
 
         # Initialize PassManager to check correctness of result

@@ -76,9 +76,11 @@ impl MultiSABRE {
 
         let mut execute_gate_list = Vec::new();
 
+        println!("Front layer len: {:?}", self.front_layer.len());
         while !self.front_layer.is_empty() {
             let mut current_swaps: Vec<[i32; 2]> = Vec::new();
 
+            println!("Are we even in here?");
             // while execute_gate_list.is_empty() && current_swaps.len() < self.num_qubits as usize * 10 {
             while execute_gate_list.is_empty() {
                 if current_swaps.len() > 10 * self.num_qubits as usize {
@@ -86,6 +88,9 @@ impl MultiSABRE {
                 }
 
                 let swaps = self.choose_best_swaps(layers as usize);
+
+                // We apparently never get here
+                println!("Chose swaps: {:?}", swaps);
 
                 for swap in swaps {
                     let q0 = swap[0];
@@ -507,6 +512,10 @@ fn min_score(scores: FxHashMap<Vec<[i32; 2]>, f64>) -> Vec<[i32; 2]> {
     }
 
     let mut rng = rng();
+
+    if best_swap_sequences.len() > 1 {
+        println!("Actually making a random choice");
+    }
 
     best_swap_sequences.choose(&mut rng).unwrap().to_vec()
 }

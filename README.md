@@ -141,7 +141,12 @@ considering a node multiple times.
 - [ ] Not getting stuck would also be a major improvement (liveness)
 - [ ] Is there still a use for the lookahead heuristic or can we focus on local changes in that case?
 - [ ] Results seem to always be divisible by the number of swaps at a time (tested on 10 qubits and 930)?
-
+- [ ] We seem to not get stuck when using the SABRELayout stage, but we also don't seem to get an improvement anywhere?
+  - Also the results do not seem random anymore
+- Before investigating the layout, take a look at the heuristic first
+- [ ] Properly understand the SABRELayout and what it means to have a reversible circuit
+- [ ] Heuristik ist egal, irgendwas ist total falsch
+- [ ] What if we used another coupling-map (like grid)
 
 ##
 
