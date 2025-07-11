@@ -38,10 +38,8 @@ def olsq(config):
     pm = PassManager(
         [
             Unroll3qOrMore(),
-            # SetLayout(preprocessing_layout),
-            # FullAncillaAllocation(coupling_map),
-            # ApplyLayout(),
-            SabreLayout(coupling_map, layout_trials=10, seed=42),
+            SabreLayout(coupling_map, skip_routing=True),
+            ApplyLayout(),
             RemoveBarriers(),
         ]
     )
