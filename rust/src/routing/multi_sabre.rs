@@ -157,33 +157,25 @@ impl MultiSABRE {
     }
 }
 
-// #[derive(Debug, Clone)]
-// struct SwapPath {
-//     path: Vec<[i32; 2]>,
-//     score: f64,
-//     depth: usize,
-//     state: StateSnapshot,
-// }
-
-// #[derive(Debug, Clone)]
-// struct StateSnapshot {
-//     front_layer: MicroFront,
-//     required_predecessors: Vec<i32>,
-//     running_mapping: MicroLayout,
-//     gate_order: Vec<i32>,
-// }
-
 #[derive(Clone)]
-struct MapperState {
+struct RoutingState {
     front_layer: MicroFront,
     required_predecessors: Vec<i32>,
     running_mapping: MicroLayout,
     gate_order: Vec<i32>,
 }
 
+#[derive(Clone)]
+struct StackState {
+    mapper_state: RoutingState,
+    current_sequence: Vec<[i32; 2]>,
+    current_score: f64,
+    layer: usize
+}
+
 impl MultiSABRE {
-    fn save_state(&self) -> MapperState {
-        MapperState {
+    fn save_state(&self) -> RoutingState {
+        RoutingState {
             front_layer: self.front_layer.clone(),
             required_predecessors: self.required_predecessors.clone(),
             running_mapping: self.running_mapping.clone(),
@@ -191,64 +183,73 @@ impl MultiSABRE {
         }
     }
 
-    fn load_state(&mut self, state: MapperState) {
+    fn apply_state(&mut self, state: RoutingState) {
         self.front_layer = state.front_layer;
         self.required_predecessors = state.required_predecessors;
         self.running_mapping = state.running_mapping;
         self.gate_order = state.gate_order;
     }
 
-    fn choose_best_swaps(&mut self, n: usize) -> Vec<[i32; 2]> {
+    fn choose_best_swaps(&mut self, layers: usize) -> Vec<[i32; 2]> {
+        let start_state = self.save_state();
+        
+        let mut stack = Vec::new();
         let mut scores: FxHashMap<Vec<[i32; 2]>, f64> = FxHashMap::default();
 
-        let initial_state = self.save_state();
+        stack.push(StackState {
+            mapper_state: self.save_state(),
+            current_sequence: Vec::new(),
+            current_score: 0.0,
+            layer: layers
+        });
 
-        self.recursive_swap_search(&mut vec![], n, 0.0, &mut scores);
+        while let Some(state) = stack.pop() {
+            if state.layer == 0 {
+                scores.insert(state.current_sequence.clone(), state.current_score);
+                continue
+            }
 
-        self.load_state(initial_state);
+            let initial_state  = state.mapper_state.clone();
+            
+            let swap_candidates = self.compute_swap_candidates();
+
+            for &[q0, q1] in &swap_candidates {
+                self.apply_state(initial_state.clone());
+
+                let before = self.calculate_heuristic();
+                self.apply_swap([q0, q1]);
+                let after = self.calculate_heuristic();
+                let diff = after - before;
+
+                let mut execute_gate_list = Vec::new();
+                if let Some(node) = self.executable_node_on_qubit(q0) {
+                    execute_gate_list.push(node);
+                    self.front_layer.remove(&node);
+                }
+                if let Some(node) = self.executable_node_on_qubit(q1) {
+                    execute_gate_list.push(node);
+                    self.front_layer.remove(&node);
+                }
+
+                self.advance_front_layer(&execute_gate_list);
+
+                let mut new_sequence = state.current_sequence.clone();
+                new_sequence.push([q0, q1]);
+
+                stack.push(
+                    StackState {
+                        mapper_state: self.save_state(),
+                        current_sequence: new_sequence,
+                        current_score: state.current_score + diff,
+                        layer: state.layer - 1
+                    }
+                )
+            }
+        }
+
+        self.apply_state(start_state);
 
         min_score(scores)
-    }
-
-    fn recursive_swap_search(
-    &mut self,
-    current_sequence: &mut Vec<[i32; 2]>,
-    depth: usize,
-    current_score: f64,
-    scores: &mut FxHashMap<Vec<[i32; 2]>, f64>,
-    ) {
-        if depth == 0 {
-            scores.insert(current_sequence.clone(), current_score);
-            return;
-        }
-
-        let swap_candidates = self.compute_swap_candidates();
-        let saved_state = self.save_state();
-
-        for &[q0, q1] in &swap_candidates {
-            let before = self.calculate_heuristic();
-            self.apply_swap([q0, q1]);
-            let after = self.calculate_heuristic();
-            let diff = after - before;
-
-            let mut execute_gate_list = Vec::new();
-            if let Some(node) = self.executable_node_on_qubit(q0) {
-                execute_gate_list.push(node);
-                self.front_layer.remove(&node);
-            }
-            if let Some(node) = self.executable_node_on_qubit(q1) {
-                execute_gate_list.push(node);
-                self.front_layer.remove(&node);
-            }
-
-            self.advance_front_layer(&execute_gate_list);
-
-            current_sequence.push([q0, q1]);
-            self.recursive_swap_search(current_sequence, depth - 1, current_score + diff, scores);
-            current_sequence.pop();
-
-            self.load_state(saved_state.clone()); // Restore state before trying next swap
-        }
     }
 
     fn compute_swap_candidates(&self) -> Vec<[i32; 2]> {

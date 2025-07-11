@@ -92,61 +92,18 @@ considering a node multiple times.
 
 ## Ideas
 
-- [ ] Track number of dag nodes
-- [ ] Track extended set range for circuits
-    - With a given limit of items in the extended set (e.g. 20), with small
-      circuits, we don't actually leverage the full set. However, it is
-      interesting to see that if we fill it up for every size (e.g. 930 qubits
-      sample), then the best result is still at a fairly small lookahead (30 in
-      that case). This indicates, that accounting for too many gates has
-      diminishing returns.
-        - When running the 930 qubit circuit with no limit on items in the
-          extended set, it contains ~1600 items per iteration. However, this
-          does not improve resuts. Now, the question is if we introduce a decay
-          in the heuristic (based on critical path), can we get it to scale
-          linearly
-- [ ] Track avg elements in extended set
-- [ ] Which elements to choose for the extended set might be relvant depending
-  on which heuristic to choose
 - [ ] How can we move that optimal point? Is it related to the weight we give
   the extended set?
-
-- [ ] Finding optimal parameters probably requires categorizing the circuits
-- [ ] Understand what elements are populated into the current extended set and
-  the implications
-    - It might not make sense to implement critical path on the current
-      extended set if it only accounts for nodes that can be executed
-      immediately afterwards
-- [ ] The inherent randomness in the SABRE algorithm can lead to one approach
-  seeming better than another one.
-- [ ] What actually happens, why do we always contain the same number of gates in
-  the extended set?
-  - Understand the extended set
-  - Implement a critical path / decay heuristic
-- [ ] Why is there still a dip?
-  - Understand what items are in the extended set and whether critical path can
-    be applied to that?
-- [ ] The extended set actually just contains all gates, that are routable assuming
-  the front can be executed. If I am not mistaken, accounting for the number of
-  gates in the extended set might be interesting. Also, what happens when we
-  create another front at the end of the extended set?
-    - Does the heuristic account for that and give more elements in the
-      extended set a benefit?
 - [ ] I don't want the algorithm to get stuck _ever_ cause it feels like the heuristic failed me in that case
-- [ ] Layered approach, take the extended set of the extended set with a weight of 0.25 etc.
-  - How does randomness behave here?
-  - Is it more random than the normal lookahead?
-- [ ] Decompose heuristics into separate module, since that will most likely stay the same
 - [ ] Comments, Naming, Types
 - [ ] Not getting stuck would also be a major improvement (liveness)
 - [ ] Is there still a use for the lookahead heuristic or can we focus on local changes in that case?
 - [ ] Results seem to always be divisible by the number of swaps at a time (tested on 10 qubits and 930)?
-- [ ] We seem to not get stuck when using the SABRELayout stage, but we also don't seem to get an improvement anywhere?
-  - Also the results do not seem random anymore
 - Before investigating the layout, take a look at the heuristic first
 - [ ] Properly understand the SABRELayout and what it means to have a reversible circuit
-- [ ] Heuristik ist egal, irgendwas ist total falsch
 - [ ] What if we used another coupling-map (like grid)
+- [ ] Zu viele SWAPs sind auch wieder schlecht, weil dann auf die 6 SWAPs optimiert wird, die eventuell ein bisschen falsch abbiegen
+- [ ] Only consider value after all the n swaps
 
 ##
 
