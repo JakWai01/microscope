@@ -6,7 +6,7 @@ use std::{
 use crate::{
     graph::dag::MicroDAG,
     routing::{
-        front_layer::{self, MicroFront},
+        front_layer::MicroFront,
         layout::MicroLayout,
         utils::{
             build_adjacency_list, build_coupling_neighbour_map, compute_all_pairs_shortest_paths,
@@ -169,7 +169,7 @@ struct RoutingState {
 struct StackState {
     mapper_state: RoutingState,
     current_sequence: Vec<[i32; 2]>,
-    current_score: f64,
+    // current_score: f64,
     layer: usize
 }
 
@@ -199,27 +199,28 @@ impl MultiSABRE {
         stack.push(StackState {
             mapper_state: self.save_state(),
             current_sequence: Vec::new(),
-            current_score: 0.0,
             layer: layers
         });
 
         while let Some(state) = stack.pop() {
             if state.layer == 0 {
-                scores.insert(state.current_sequence.clone(), state.current_score);
-                continue
+                self.apply_state(state.mapper_state.clone());
+
+                for &[q0, q1] in &state.current_sequence {
+                    self.apply_swap([q0, q1]);
+                }
+
+                let score = self.calculate_heuristic();
+                scores.insert(state.current_sequence.clone(), score);
+                continue;
             }
 
             let initial_state  = state.mapper_state.clone();
-            
             let swap_candidates = self.compute_swap_candidates();
 
             for &[q0, q1] in &swap_candidates {
                 self.apply_state(initial_state.clone());
-
-                let before = self.calculate_heuristic();
                 self.apply_swap([q0, q1]);
-                let after = self.calculate_heuristic();
-                let diff = after - before;
 
                 let mut execute_gate_list = Vec::new();
                 if let Some(node) = self.executable_node_on_qubit(q0) {
@@ -236,14 +237,11 @@ impl MultiSABRE {
                 let mut new_sequence = state.current_sequence.clone();
                 new_sequence.push([q0, q1]);
 
-                stack.push(
-                    StackState {
-                        mapper_state: self.save_state(),
-                        current_sequence: new_sequence,
-                        current_score: state.current_score + diff,
-                        layer: state.layer - 1
-                    }
-                )
+                stack.push(StackState {
+                    mapper_state: self.save_state(),
+                    current_sequence: new_sequence,
+                    layer: state.layer - 1
+                });
             }
         }
 
@@ -251,6 +249,8 @@ impl MultiSABRE {
 
         min_score(scores)
     }
+
+    
 
     fn compute_swap_candidates(&self) -> Vec<[i32; 2]> {
         let mut swap_candidates: Vec<[i32; 2]> = Vec::new();

@@ -60,7 +60,8 @@ def olsq(config):
     from olsq import OLSQ
     from olsq.device import qcdevice
 
-    lsqc_solver = OLSQ("swap", "transition") # alternatively 'transition'
+    # lsqc_solver = OLSQ("swap", "transition") # alternatively 'transition'
+    lsqc_solver = OLSQ("swap", "normal") # alternatively 'transition'
 
     connections = [edge for edge in coupling_map.get_edges()]
 
