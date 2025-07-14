@@ -209,10 +209,6 @@ impl MultiSABRE {
             if state.layer == 0 {
                 self.apply_state(state.mapper_state.clone());
 
-                for &[q0, q1] in &state.current_sequence {
-                    self.apply_swap([q0, q1]);
-                }
-
                 let score = self.calculate_heuristic(state.mapper_state.num_executable_gates);
                 scores.insert(state.current_sequence.clone(), score);
                 continue;
@@ -290,6 +286,7 @@ impl MultiSABRE {
             });
 
         (1. / num_executable_gates as f64) * (basic + 0.5 * lookahead)
+        // basic + 0.3 * lookahead
     }
 
     fn get_extended_set(
