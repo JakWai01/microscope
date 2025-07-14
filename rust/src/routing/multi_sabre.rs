@@ -163,6 +163,7 @@ struct RoutingState {
     required_predecessors: Vec<i32>,
     running_mapping: MicroLayout,
     gate_order: Vec<i32>,
+    num_executable_gates: usize
 }
 
 #[derive(Clone)]
@@ -174,12 +175,13 @@ struct StackState {
 }
 
 impl MultiSABRE {
-    fn save_state(&self) -> RoutingState {
+    fn save_state(&self, num_executable_gates: usize) -> RoutingState {
         RoutingState {
             front_layer: self.front_layer.clone(),
             required_predecessors: self.required_predecessors.clone(),
             running_mapping: self.running_mapping.clone(),
             gate_order: self.gate_order.clone(),
+            num_executable_gates 
         }
     }
 
@@ -191,18 +193,19 @@ impl MultiSABRE {
     }
 
     fn choose_best_swaps(&mut self, layers: usize) -> Vec<[i32; 2]> {
-        let start_state = self.save_state();
+        let start_state = self.save_state(0);
         
         let mut stack = Vec::new();
         let mut scores: FxHashMap<Vec<[i32; 2]>, f64> = FxHashMap::default();
 
         stack.push(StackState {
-            mapper_state: self.save_state(),
+            mapper_state: self.save_state(0),
             current_sequence: Vec::new(),
             layer: layers
         });
 
         while let Some(state) = stack.pop() {
+            // Shouldn't we also consider if swap_candidates.is_empty()?
             if state.layer == 0 {
                 self.apply_state(state.mapper_state.clone());
 
@@ -210,7 +213,7 @@ impl MultiSABRE {
                     self.apply_swap([q0, q1]);
                 }
 
-                let score = self.calculate_heuristic();
+                let score = self.calculate_heuristic(state.mapper_state.num_executable_gates);
                 scores.insert(state.current_sequence.clone(), score);
                 continue;
             }
@@ -238,7 +241,7 @@ impl MultiSABRE {
                 new_sequence.push([q0, q1]);
 
                 stack.push(StackState {
-                    mapper_state: self.save_state(),
+                    mapper_state: self.save_state(state.mapper_state.num_executable_gates + execute_gate_list.len()),
                     current_sequence: new_sequence,
                     layer: state.layer - 1
                 });
@@ -267,6 +270,7 @@ impl MultiSABRE {
 
     fn calculate_heuristic(
         &mut self,
+        num_executable_gates: usize
     ) -> f64 {
         let extended_set = self.get_extended_set();
 
@@ -285,7 +289,7 @@ impl MultiSABRE {
                 h_sum + self.distance[*a as usize][*b as usize] as f64
             });
 
-        basic + 0.5 * lookahead
+        (1. / num_executable_gates as f64) * (basic + 0.5 * lookahead)
     }
 
     fn get_extended_set(
@@ -515,7 +519,7 @@ fn min_score(scores: FxHashMap<Vec<[i32; 2]>, f64>) -> Vec<[i32; 2]> {
     let mut rng = rng();
 
     if best_swap_sequences.len() > 1 {
-        println!("Actually making a random choice");
+        println!("Actually making a random choice between: {:?}", scores);
     }
 
     best_swap_sequences.choose(&mut rng).unwrap().to_vec()
