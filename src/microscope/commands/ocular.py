@@ -67,8 +67,15 @@ def ocular(config):
     num_qubits = input_circuit.num_qubits
 
     # Generate coupling map
-    coupling_map = CouplingMap.from_line(input_circuit.num_qubits)
+    # coupling_map = CouplingMap.from_line(input_circuit.num_qubits)
 
+    import math
+    n = input_circuit.num_qubits
+    rows = math.isqrt(n)
+    cols = math.ceil(n / rows)
+
+    # Now create the grid-based coupling map
+    coupling_map = CouplingMap.from_grid(rows, cols)
     pm = PassManager(
         [
             Unroll3qOrMore(),
@@ -165,7 +172,7 @@ def ocular(config):
 
         # Run single SABRE execution
         # sabre_result = rust_ms.run(heuristic, extended_set_size)
-        sabre_result = rust_multi.run(2)
+        sabre_result = rust_multi.run(1)
 
         (
             out_map,
@@ -189,7 +196,7 @@ def ocular(config):
         transpiled_sabre_circuit_boosted = dag_to_circuit(transpiled_sabre_dag_boosted)
 
         # Print resulting circuit
-        transpiled_sabre_circuit_boosted.draw("mpl", fold=-1)
+        # transpiled_sabre_circuit_boosted.draw("mpl", fold=-1)
         # plt.show()
 
         # Initialize PassManager to check correctness of result
@@ -275,23 +282,23 @@ def process_results(test_results):
     result_table(rows, columns)
 
     # Plot result
-    _, ax = plt.subplots()
+    # _, ax = plt.subplots()
 
-    for heuristic, axis_data in data.items():
-        extended_set_size = axis_data[0]
-        swaps = axis_data[1]
+    # for heuristic, axis_data in data.items():
+    #     extended_set_size = axis_data[0]
+    #     swaps = axis_data[1]
 
-        ax.plot(extended_set_size, swaps, label=f"{heuristic}")
+    #     ax.plot(extended_set_size, swaps, label=f"{heuristic}")
 
-    ax.legend()
+    # ax.legend()
 
-    ax.set(
-        xlabel="Extended-Set Size",
-        ylabel="Swaps",
-        title="Extended-Set Size Scaling",
-        xlim=(0, 8),
-        xticks=range(0, 101, 10),
-    )
-    ax.grid()
+    # ax.set(
+    #     xlabel="Extended-Set Size",
+    #     ylabel="Swaps",
+    #     title="Extended-Set Size Scaling",
+    #     xlim=(0, 8),
+    #     xticks=range(0, 101, 10),
+    # )
+    # ax.grid()
 
-    plt.xlim((0, 100))
+    # plt.xlim((0, 100))

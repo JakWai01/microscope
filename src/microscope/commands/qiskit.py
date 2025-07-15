@@ -46,7 +46,7 @@ def qiskit(config):
             Unroll3qOrMore(),
             SabreLayout(coupling_map, skip_routing=True),
             ApplyLayout(),
-            # FullAncillaAllocation(coupling_map),
+            FullAncillaAllocation(coupling_map),
             RemoveBarriers(),
         ]
     )
@@ -61,7 +61,7 @@ def qiskit(config):
         )
 
         transpiled_qc = qiskit_pm.run(preprocessed_circuit)
-        transpiled_qc.draw("mpl", fold=-1)
+        # transpiled_qc.draw("mpl", fold=-1)
         transpiled_qc_dag = circuit_to_dag(transpiled_qc)
 
         if not cm.property_set.get("is_swap_mapped"):

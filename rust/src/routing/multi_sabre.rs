@@ -80,7 +80,7 @@ impl MultiSABRE {
         while !self.front_layer.is_empty() {
             let mut current_swaps: Vec<[i32; 2]> = Vec::new();
 
-            println!("Are we even in here?");
+            // println!("Are we even in here?");
             // while execute_gate_list.is_empty() && current_swaps.len() < self.num_qubits as usize * 10 {
             while execute_gate_list.is_empty() {
                 if current_swaps.len() > 10 * self.num_qubits as usize {
@@ -90,7 +90,7 @@ impl MultiSABRE {
                 let swaps = self.choose_best_swaps(layers as usize);
 
                 // We apparently never get here
-                println!("Chose swaps: {:?}", swaps);
+                // println!("Chose swaps: {:?}", swaps);
 
                 for swap in swaps {
                     let q0 = swap[0];
@@ -212,6 +212,11 @@ impl MultiSABRE {
             let initial_state  = state.mapper_state.clone();
             
             let swap_candidates = self.compute_swap_candidates();
+
+            if swap_candidates.is_empty() {
+                scores.insert(state.current_sequence.clone(), state.current_score);
+                continue
+            }
 
             for &[q0, q1] in &swap_candidates {
                 self.apply_state(initial_state.clone());
@@ -492,17 +497,15 @@ impl MultiSABRE {
 fn min_score(scores: FxHashMap<Vec<[i32; 2]>, f64>) -> Vec<[i32; 2]> {
     let mut best_swap_sequences = Vec::new();
 
+    // println!("Scores length: {:?}", scores.len());
     let mut iter = scores.iter();
 
-    let (min_swap_sequence, mut min_score) = iter
-        .next()
-        .map(|(swap_sequence, &score)| (swap_sequence, score))
-        .unwrap();
+    let (min_swap_sequence, mut min_score) = iter.next().unwrap(); 
 
     best_swap_sequences.push(min_swap_sequence);
 
     // TODO: Consider introducing an epsilon threshold here
-    for (swap_sequence, &score) in iter {
+    for (swap_sequence, score) in iter {
         if score < min_score {
             min_score = score;
             best_swap_sequences.clear();
@@ -514,9 +517,9 @@ fn min_score(scores: FxHashMap<Vec<[i32; 2]>, f64>) -> Vec<[i32; 2]> {
 
     let mut rng = rng();
 
-    if best_swap_sequences.len() > 1 {
-        println!("Actually making a random choice");
-    }
+    // if best_swap_sequences.len() > 1 {
+    //     println!("Actually making a random choice");
+    // }
 
     best_swap_sequences.choose(&mut rng).unwrap().to_vec()
 }
