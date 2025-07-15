@@ -34,6 +34,13 @@ def qiskit(config):
 
     # Generate coupling map
     coupling_map = CouplingMap.from_line(input_circuit.num_qubits)
+    # import math
+    # n = input_circuit.num_qubits
+    # rows = math.isqrt(n)
+    # cols = math.ceil(n / rows)
+
+    # # Now create the grid-based coupling map
+    # coupling_map = CouplingMap.from_grid(rows, cols)
 
     # Generate DAG from circuit
     input_dag = circuit_to_dag(input_circuit)
@@ -46,7 +53,7 @@ def qiskit(config):
             Unroll3qOrMore(),
             SabreLayout(coupling_map, skip_routing=True),
             ApplyLayout(),
-            # FullAncillaAllocation(coupling_map),
+            FullAncillaAllocation(coupling_map),
             RemoveBarriers(),
         ]
     )
@@ -61,7 +68,7 @@ def qiskit(config):
         )
 
         transpiled_qc = qiskit_pm.run(preprocessed_circuit)
-        transpiled_qc.draw("mpl", fold=-1)
+        # transpiled_qc.draw("mpl", fold=-1)
         transpiled_qc_dag = circuit_to_dag(transpiled_qc)
 
         if not cm.property_set.get("is_swap_mapped"):

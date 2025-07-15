@@ -80,7 +80,7 @@ impl MultiSABRE {
         while !self.front_layer.is_empty() {
             let mut current_swaps: Vec<[i32; 2]> = Vec::new();
 
-            println!("Are we even in here?");
+            // println!("Are we even in here?");
             // while execute_gate_list.is_empty() && current_swaps.len() < self.num_qubits as usize * 10 {
             while execute_gate_list.is_empty() {
                 if current_swaps.len() > 10 * self.num_qubits as usize {
@@ -90,7 +90,7 @@ impl MultiSABRE {
                 let swaps = self.choose_best_swaps(layers as usize);
 
                 // We apparently never get here
-                println!("Chose swaps: {:?}", swaps);
+                // println!("Chose swaps: {:?}", swaps);
 
                 for swap in swaps {
                     let q0 = swap[0];
@@ -174,8 +174,16 @@ struct StackState {
     layer: usize
 }
 
+#[derive(Clone)]
+struct StackState {
+    mapper_state: RoutingState,
+    current_sequence: Vec<[i32; 2]>,
+    current_score: f64,
+    layer: usize
+}
+
 impl MultiSABRE {
-    fn save_state(&self, num_executable_gates: usize) -> RoutingState {
+    fn save_state(&self) -> RoutingState {
         RoutingState {
             front_layer: self.front_layer.clone(),
             required_predecessors: self.required_predecessors.clone(),
@@ -193,33 +201,40 @@ impl MultiSABRE {
     }
 
     fn choose_best_swaps(&mut self, layers: usize) -> Vec<[i32; 2]> {
-        let start_state = self.save_state(0);
+        let start_state = self.save_state();
         
         let mut stack = Vec::new();
         let mut scores: FxHashMap<Vec<[i32; 2]>, f64> = FxHashMap::default();
 
         stack.push(StackState {
-            mapper_state: self.save_state(0),
+            mapper_state: self.save_state(),
             current_sequence: Vec::new(),
+            current_score: 0.0,
             layer: layers
         });
 
         while let Some(state) = stack.pop() {
-            // Shouldn't we also consider if swap_candidates.is_empty()?
             if state.layer == 0 {
-                self.apply_state(state.mapper_state.clone());
-
-                let score = self.calculate_heuristic(state.mapper_state.num_executable_gates);
-                scores.insert(state.current_sequence.clone(), score);
-                continue;
+                scores.insert(state.current_sequence.clone(), state.current_score);
+                continue
             }
 
             let initial_state  = state.mapper_state.clone();
+            
             let swap_candidates = self.compute_swap_candidates();
+
+            if swap_candidates.is_empty() {
+                scores.insert(state.current_sequence.clone(), state.current_score);
+                continue
+            }
 
             for &[q0, q1] in &swap_candidates {
                 self.apply_state(initial_state.clone());
+
+                let before = self.calculate_heuristic();
                 self.apply_swap([q0, q1]);
+                let after = self.calculate_heuristic();
+                let diff = after - before;
 
                 let mut execute_gate_list = Vec::new();
                 if let Some(node) = self.executable_node_on_qubit(q0) {
@@ -236,14 +251,16 @@ impl MultiSABRE {
                 let mut new_sequence = state.current_sequence.clone();
                 new_sequence.push([q0, q1]);
 
-                stack.push(StackState {
-                    mapper_state: self.save_state(state.mapper_state.num_executable_gates + execute_gate_list.len()),
-                    current_sequence: new_sequence,
-                    layer: state.layer - 1
-                });
+                stack.push(
+                    StackState {
+                        mapper_state: self.save_state(),
+                        current_sequence: new_sequence,
+                        current_score: state.current_score + diff,
+                        layer: state.layer - 1
+                    }
+                )
             }
         }
-
         self.apply_state(start_state);
 
         min_score(scores)
@@ -493,17 +510,15 @@ impl MultiSABRE {
 fn min_score(scores: FxHashMap<Vec<[i32; 2]>, f64>) -> Vec<[i32; 2]> {
     let mut best_swap_sequences = Vec::new();
 
+    // println!("Scores length: {:?}", scores.len());
     let mut iter = scores.iter();
 
-    let (min_swap_sequence, mut min_score) = iter
-        .next()
-        .map(|(swap_sequence, &score)| (swap_sequence, score))
-        .unwrap();
+    let (min_swap_sequence, mut min_score) = iter.next().unwrap(); 
 
     best_swap_sequences.push(min_swap_sequence);
 
     // TODO: Consider introducing an epsilon threshold here
-    for (swap_sequence, &score) in iter {
+    for (swap_sequence, score) in iter {
         if score < min_score {
             min_score = score;
             best_swap_sequences.clear();
@@ -514,10 +529,6 @@ fn min_score(scores: FxHashMap<Vec<[i32; 2]>, f64>) -> Vec<[i32; 2]> {
     }
 
     let mut rng = rng();
-
-    if best_swap_sequences.len() > 1 {
-        println!("Actually making a random choice between: {:?}", scores);
-    }
 
     best_swap_sequences.choose(&mut rng).unwrap().to_vec()
 }
