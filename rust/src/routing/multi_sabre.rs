@@ -163,16 +163,8 @@ struct RoutingState {
     required_predecessors: Vec<i32>,
     running_mapping: MicroLayout,
     gate_order: Vec<i32>,
-    num_executable_gates: usize
 }
 
-#[derive(Clone)]
-struct StackState {
-    mapper_state: RoutingState,
-    current_sequence: Vec<[i32; 2]>,
-    // current_score: f64,
-    layer: usize
-}
 
 #[derive(Clone)]
 struct StackState {
@@ -189,7 +181,6 @@ impl MultiSABRE {
             required_predecessors: self.required_predecessors.clone(),
             running_mapping: self.running_mapping.clone(),
             gate_order: self.gate_order.clone(),
-            num_executable_gates 
         }
     }
 
@@ -283,7 +274,6 @@ impl MultiSABRE {
 
     fn calculate_heuristic(
         &mut self,
-        num_executable_gates: usize
     ) -> f64 {
         let extended_set = self.get_extended_set();
 
@@ -302,8 +292,8 @@ impl MultiSABRE {
                 h_sum + self.distance[*a as usize][*b as usize] as f64
             });
 
-        (1. / num_executable_gates as f64) * (basic + 0.5 * lookahead)
-        // basic + 0.3 * lookahead
+        // (1. / num_executable_gates as f64) * (basic + 0.5 * lookahead)
+        basic + 0.5 * lookahead
     }
 
     fn get_extended_set(
