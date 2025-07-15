@@ -172,7 +172,7 @@ def ocular(config):
 
         # Run single SABRE execution
         # sabre_result = rust_ms.run(heuristic, extended_set_size)
-        sabre_result = rust_multi.run(2)
+        sabre_result = rust_multi.run(1)
 
         (
             out_map,

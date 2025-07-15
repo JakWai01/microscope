@@ -5,7 +5,6 @@ use crate::routing::utils::{
 };
 use crate::{graph::dag::MicroDAG, routing::utils::build_adjacency_list};
 use std::collections::{HashSet, VecDeque};
-use std::thread::current;
 
 use pyo3::{pyclass, pymethods, PyResult};
 

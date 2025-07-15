@@ -6,7 +6,7 @@ use std::{
 use crate::{
     graph::dag::MicroDAG,
     routing::{
-        front_layer::{self, MicroFront},
+        front_layer::MicroFront,
         layout::MicroLayout,
         utils::{
             build_adjacency_list, build_coupling_neighbour_map, compute_all_pairs_shortest_paths,
@@ -163,6 +163,15 @@ struct RoutingState {
     required_predecessors: Vec<i32>,
     running_mapping: MicroLayout,
     gate_order: Vec<i32>,
+    num_executable_gates: usize
+}
+
+#[derive(Clone)]
+struct StackState {
+    mapper_state: RoutingState,
+    current_sequence: Vec<[i32; 2]>,
+    // current_score: f64,
+    layer: usize
 }
 
 #[derive(Clone)]
@@ -180,6 +189,7 @@ impl MultiSABRE {
             required_predecessors: self.required_predecessors.clone(),
             running_mapping: self.running_mapping.clone(),
             gate_order: self.gate_order.clone(),
+            num_executable_gates 
         }
     }
 
@@ -251,11 +261,12 @@ impl MultiSABRE {
                 )
             }
         }
-
         self.apply_state(start_state);
 
         min_score(scores)
     }
+
+    
 
     fn compute_swap_candidates(&self) -> Vec<[i32; 2]> {
         let mut swap_candidates: Vec<[i32; 2]> = Vec::new();
@@ -272,6 +283,7 @@ impl MultiSABRE {
 
     fn calculate_heuristic(
         &mut self,
+        num_executable_gates: usize
     ) -> f64 {
         let extended_set = self.get_extended_set();
 
@@ -290,7 +302,8 @@ impl MultiSABRE {
                 h_sum + self.distance[*a as usize][*b as usize] as f64
             });
 
-        basic + 0.5 * lookahead
+        (1. / num_executable_gates as f64) * (basic + 0.5 * lookahead)
+        // basic + 0.3 * lookahead
     }
 
     fn get_extended_set(
@@ -516,10 +529,6 @@ fn min_score(scores: FxHashMap<Vec<[i32; 2]>, f64>) -> Vec<[i32; 2]> {
     }
 
     let mut rng = rng();
-
-    // if best_swap_sequences.len() > 1 {
-    //     println!("Actually making a random choice");
-    // }
 
     best_swap_sequences.choose(&mut rng).unwrap().to_vec()
 }
