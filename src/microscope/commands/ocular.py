@@ -67,15 +67,15 @@ def ocular(config):
     num_qubits = input_circuit.num_qubits
 
     # Generate coupling map
-    # coupling_map = CouplingMap.from_line(input_circuit.num_qubits)
+    coupling_map = CouplingMap.from_line(input_circuit.num_qubits)
 
-    import math
-    n = input_circuit.num_qubits
-    rows = math.isqrt(n)
-    cols = math.ceil(n / rows)
+    # import math
+    # n = input_circuit.num_qubits
+    # rows = math.isqrt(n)
+    # cols = math.ceil(n / rows)
 
-    # Now create the grid-based coupling map
-    coupling_map = CouplingMap.from_grid(rows, cols)
+    # # Now create the grid-based coupling map
+    # coupling_map = CouplingMap.from_grid(rows, cols)
     pm = PassManager(
         [
             Unroll3qOrMore(),
@@ -172,7 +172,7 @@ def ocular(config):
 
         # Run single SABRE execution
         # sabre_result = rust_ms.run(heuristic, extended_set_size)
-        sabre_result = rust_multi.run(1)
+        sabre_result = rust_multi.run(2)
 
         (
             out_map,

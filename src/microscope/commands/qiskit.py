@@ -34,6 +34,13 @@ def qiskit(config):
 
     # Generate coupling map
     coupling_map = CouplingMap.from_line(input_circuit.num_qubits)
+    # import math
+    # n = input_circuit.num_qubits
+    # rows = math.isqrt(n)
+    # cols = math.ceil(n / rows)
+
+    # # Now create the grid-based coupling map
+    # coupling_map = CouplingMap.from_grid(rows, cols)
 
     # Generate DAG from circuit
     input_dag = circuit_to_dag(input_circuit)
