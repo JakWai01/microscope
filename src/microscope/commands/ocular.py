@@ -7,13 +7,9 @@ from qiskit.transpiler.layout import Layout
 from qiskit.transpiler.passes import (
     CheckMap,
     Unroll3qOrMore,
-    SetLayout,
-    FullAncillaAllocation,
     ApplyLayout,
     RemoveBarriers,
     SabreLayout,
-    SabrePreLayout,
-    EnlargeWithAncilla
 )
 
 from collections import defaultdict
@@ -27,7 +23,6 @@ import matplotlib.pyplot as plt
 
 from commands.helper import (
     apply_sabre_result,
-    generate_initial_mapping,
     result_table,
 )
 
@@ -55,19 +50,14 @@ class BenchmarkSet:
 def ocular(config):
     # Parse config variables
     path = config["ocular"]["path"]
-    extended_set_size = config["ocular"]["extended-set-size"]
     layer = config["ocular"]["layer"]
 
-    # Create test test cases
-    # test_cases = BenchmarkSet(heuristics, trials, extended_set_size).get_test_cases()
     test_cases = [("lookahead", 20)]
     test_results = defaultdict(list)
 
-    # Parse circuit
     input_circuit = QuantumCircuit.from_qasm_file(path)
     num_qubits = input_circuit.num_qubits
 
-    # Generate coupling map
     coupling_map = CouplingMap.from_line(input_circuit.num_qubits)
 
     # import math
@@ -77,6 +67,7 @@ def ocular(config):
 
     # # Now create the grid-based coupling map
     # coupling_map = CouplingMap.from_grid(rows, cols)
+
     pm = PassManager(
         [
             Unroll3qOrMore(),
@@ -90,10 +81,8 @@ def ocular(config):
 
     preprocessed_dag = circuit_to_dag(preprocessed_circuit)
 
-    # Compute Program Communication
     interactions = defaultdict(set)
 
-    # Collect interactions from multi-qubit gates
     for node in preprocessed_dag.op_nodes():
         qubits = [q._index for q in node.qargs]
         if len(qubits) > 1:
@@ -102,11 +91,9 @@ def ocular(config):
                     interactions[qubits[i]].add(qubits[j])
                     interactions[qubits[j]].add(qubits[i])
 
-    # Compute degrees
     degrees = [len(neighbors) for neighbors in interactions.values()]
     num_qubits = len(preprocessed_circuit.qubits)
 
-    # If a qubit had no interactions, include it with degree 0
     all_degrees = degrees + [0] * (num_qubits - len(degrees))
     program_communication = round(sum(all_degrees) / (num_qubits * (num_qubits - 1)), 2)
 
@@ -123,7 +110,6 @@ def ocular(config):
     depth = preprocessed_dag.depth()
     parallelism = round((num_gates / depth - 1) * (1 / (num_qubits - 1)), 2)
 
-    # Generate initial layout
     canonical_register = preprocessed_dag.qregs["q"]
     current_layout = Layout.generate_trivial_layout(canonical_register)
     qubit_indices = {bit: idx for idx, bit in enumerate(canonical_register)}
@@ -134,7 +120,6 @@ def ocular(config):
         layout_mapping, len(preprocessed_dag.qubits), coupling_map.size()
     )
 
-    # Create DAG
     micro_dag = DAG().from_qiskit_dag(preprocessed_dag)
 
     num_dag_nodes = len(micro_dag)
@@ -157,12 +142,9 @@ def ocular(config):
     console = Console()
     console.print(table)
 
-    # Convert to Rust
     rust_dag = micro_dag.to_micro_dag()
 
-    # Loop through test cases
     for heuristic, extended_set_size in tqdm(test_cases):
-        # Initialize MicroSABRE struct
         rust_ms = microboost.MicroSABRE(
             rust_dag, initial_layout, coupling_map.get_edges(), num_qubits
         )
@@ -171,7 +153,6 @@ def ocular(config):
         #     rust_dag, initial_layout, coupling_map.get_edges(), num_qubits
         # )
 
-        # Run single SABRE execution
         sabre_result = rust_ms.run(heuristic, extended_set_size)
         # sabre_result = rust_multi.run(layer)
 
@@ -184,7 +165,6 @@ def ocular(config):
             max_lookahead_size,
         ) = sabre_result
 
-        # Insert SWAPs into original DAG
         transpiled_sabre_dag_boosted, _ = apply_sabre_result(
             preprocessed_dag.copy_empty_like(),
             preprocessed_dag,
@@ -193,18 +173,11 @@ def ocular(config):
             coupling_map,
         )
 
-        # Create final result circuit
         transpiled_sabre_circuit_boosted = dag_to_circuit(transpiled_sabre_dag_boosted)
 
-        # Print resulting circuit
-        # transpiled_sabre_circuit_boosted.draw("mpl", fold=-1)
-        # plt.show()
-
-        # Initialize PassManager to check correctness of result
         cm = CheckMap(coupling_map=coupling_map)
         pm = PassManager([cm])
 
-        # Run PassManager
         _ = pm.run(transpiled_sabre_circuit_boosted)
 
         if not cm.property_set.get("is_swap_mapped"):
@@ -212,7 +185,6 @@ def ocular(config):
                 "CheckMap identified invalid mapping from DAG to coupling_map"
             )
 
-        # Gather metrics
         depth = transpiled_sabre_circuit_boosted.depth()
         swaps = len(transpiled_sabre_dag_boosted.op_nodes(op=SwapGate))
 
