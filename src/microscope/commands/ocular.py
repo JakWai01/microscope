@@ -163,17 +163,17 @@ def ocular(config):
     # Loop through test cases
     for heuristic, extended_set_size in tqdm(test_cases):
         # Initialize MicroSABRE struct
-        # rust_ms = microboost.MicroSABRE(
-        #     rust_dag, initial_layout, coupling_map.get_edges(), num_qubits
-        # )
-
-        rust_multi = microboost.MultiSABRE(
+        rust_ms = microboost.MicroSABRE(
             rust_dag, initial_layout, coupling_map.get_edges(), num_qubits
         )
 
+        # rust_multi = microboost.MultiSABRE(
+        #     rust_dag, initial_layout, coupling_map.get_edges(), num_qubits
+        # )
+
         # Run single SABRE execution
-        # sabre_result = rust_ms.run(heuristic, extended_set_size)
-        sabre_result = rust_multi.run(layer)
+        sabre_result = rust_ms.run(heuristic, extended_set_size)
+        # sabre_result = rust_multi.run(layer)
 
         (
             out_map,
