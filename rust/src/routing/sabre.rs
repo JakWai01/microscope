@@ -184,91 +184,36 @@ impl MicroSABRE {
         )
     }
 
-    fn calculate_heuristic(&mut self, heuristic: &str, extended_set_size: i32) -> f64 {
-        match heuristic {
-            "basic" => self.h_basic("basic"),
-            "basic_ln_1p" => self.h_basic("ln_1p"),
-            "lookahead" => self.h_lookahead(0.5, extended_set_size, "basic", "basic"),
-            "lookahead_ln_1p_basic" => self.h_lookahead(0.5, extended_set_size, "ln_1p", "basic"),
-            "lookahead_basic_ln" => self.h_lookahead(0.5, extended_set_size, "basic", "ln"),
-            "lookahead_ln_1p_ln" => self.h_lookahead(0.5, extended_set_size, "ln_1p", "ln"),
-            "lookahead_basic_critical" => {
-                self.h_lookahead(0.5, extended_set_size, "basic", "critical")
-            }
-            _ => panic!("Unknown heuristic type: {}", heuristic),
-        }
-    }
-
-    fn h_lookahead(
+     fn calculate_heuristic(
         &mut self,
-        extended_set_weight: f64,
-        extended_set_size: i32,
-        critical_path_mode_basic: &str,
-        critical_path_mode_extended: &str,
     ) -> f64 {
-        // Compute heuristic for front layer
-        let h_basic_result = self.h_basic(critical_path_mode_basic);
+        let extended_set = self.get_extended_set();
 
-        // TODO: Remove this clone again to improve performance
-        // Determine extended set
-        let extended_set = self.get_extended_set(&self.front_layer.clone(), extended_set_size);
-        self.extended_set_size_sum += extended_set.len() as i32;
-        self.extended_set_size_counter += 1;
-
-        // Compute heuristic for extended set
-        let h_basic_result_extended = self.h_extended(&extended_set, critical_path_mode_extended);
-
-        // Compute overall heuristic result
-        h_basic_result + extended_set_weight * h_basic_result_extended
-    }
-
-    fn h_extended(&self, extended_set: &MicroFront, critical_path_mode: &str) -> f64 {
-        extended_set
-            .nodes
-            .iter()
-            .fold(0.0, |h_sum, (node_id, [a, b])| {
-                let distance = self.distance[*a as usize][*b as usize];
-                let num_successors = self.successor_map[*node_id as usize];
-                let critical_path = self.critical_path[*node_id as usize];
-
-                let penalty_factor = match critical_path_mode {
-                    "basic" => 1.0,
-                    "ln" => 1.0 / (1.0 + (num_successors as f64).ln()),
-                    "critical" => 1.0 / (1.0 + (critical_path as f64).ln()),
-                    _ => panic!("Invalid critical_path_mode for h_extended"),
-                };
-
-                h_sum + distance as f64 * penalty_factor
-            })
-    }
-
-    fn h_basic(&mut self, critical_path_mode: &str) -> f64 {
-        let h_basic_res = self
+        let basic = self
             .front_layer
             .nodes
             .iter()
-            .fold(0.0, |h_sum, (node_id, [a, b])| {
-                let distance = self.distance[*a as usize][*b as usize];
-                let num_successors = self.successor_map[*node_id as usize];
-
-                let penalty_factor = match critical_path_mode {
-                    "basic" => 1.0,
-                    "ln_1p" => 1.0 / (1.0 + (num_successors as f64).ln_1p()),
-                    _ => panic!("Invalid critical_path_mode for h_basic"),
-                };
-
-                h_sum + distance as f64 * penalty_factor
+            .fold(0.0, |h_sum, (_node_id, [a, b])| {
+                h_sum + self.distance[*a as usize][*b as usize] as f64
             });
 
-        self.front_set_size_sum += self.front_layer.len() as i32;
-        self.front_set_size_counter += 1;
+        let lookahead = extended_set
+            .nodes
+            .iter()
+            .fold(0.0, |h_sum, (_node_id, [a, b])| {
+                h_sum + self.distance[*a as usize][*b as usize] as f64
+            });
 
-        h_basic_res
+        // (1. / num_executable_gates as f64) * (basic + 0.5 * lookahead)
+        basic + 0.5 * lookahead
     }
 
-    // Providing a front so we can try an iterative approach
-    fn get_extended_set(&mut self, front_layer: &MicroFront, extended_set_size: i32) -> MicroFront {
-        let mut to_visit: Vec<i32> = front_layer.nodes.keys().copied().collect();
+    fn get_extended_set(
+        &mut self,
+    ) -> MicroFront {
+        let mut required_predecessors = self.required_predecessors.clone();
+
+        let mut to_visit: Vec<i32> = self.front_layer.nodes.keys().copied().collect();
         let mut i = 0;
 
         let mut extended_set: MicroFront = MicroFront::new(self.num_qubits);
@@ -280,15 +225,11 @@ impl MicroSABRE {
 
         let mut visited = vec![false; dag_size];
 
-        while i < to_visit.len() && extended_set.len() < extended_set_size as usize {
-            // while i < to_visit.len() {
+        while i < to_visit.len() && extended_set.len() < 20 as usize {
             visit_now.push(to_visit[i]);
             let mut j = 0;
 
             while j < visit_now.len() {
-                // if extended_set.len() > extended_set_size as usize {
-                //     break
-                // }
                 let node_id = visit_now[j];
 
                 if let Some(successors) = self.adjacency_list.get(&node_id) {
@@ -298,9 +239,9 @@ impl MicroSABRE {
                             visited[successor as usize] = true;
 
                             decremented[successor as usize] += 1;
-                            self.required_predecessors[successor as usize] -= 1;
+                            required_predecessors[successor as usize] -= 1;
 
-                            if self.required_predecessors[successor as usize] == 0 {
+                            if required_predecessors[successor as usize] == 0 {
                                 if succ.qubits.len() == 2 {
                                     let physical_q0 =
                                         self.layout.virtual_to_physical(succ.qubits[0]);
@@ -323,7 +264,7 @@ impl MicroSABRE {
         }
 
         for (index, amount) in decremented.iter().enumerate() {
-            self.required_predecessors[index] += amount;
+            required_predecessors[index] += amount;
         }
         extended_set
     }
@@ -335,11 +276,11 @@ impl MicroSABRE {
 
         for &(q0, q1) in &swap_candidates {
             // TODO: Isn't before always the after from the previous iteration?
-            let before = self.calculate_heuristic(heuristic, extended_set_size);
+            let before = self.calculate_heuristic();
 
             self.apply_swap([q0, q1]);
 
-            let after = self.calculate_heuristic(heuristic, extended_set_size);
+            let after = self.calculate_heuristic();
 
             self.apply_swap([q1, q0]);
 
