@@ -56,6 +56,7 @@ def ocular(config):
     # Parse config variables
     path = config["ocular"]["path"]
     extended_set_size = config["ocular"]["extended-set-size"]
+    layer = config["ocular"]["layer"]
 
     # Create test test cases
     # test_cases = BenchmarkSet(heuristics, trials, extended_set_size).get_test_cases()
@@ -172,7 +173,7 @@ def ocular(config):
 
         # Run single SABRE execution
         # sabre_result = rust_ms.run(heuristic, extended_set_size)
-        sabre_result = rust_multi.run(2)
+        sabre_result = rust_multi.run(layer)
 
         (
             out_map,

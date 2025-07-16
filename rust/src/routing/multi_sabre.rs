@@ -1,8 +1,4 @@
-use std::{
-    cmp::Ordering,
-    collections::{HashSet, VecDeque},
-};
-
+use std::collections::{HashSet, VecDeque};
 use crate::{
     graph::dag::MicroDAG,
     routing::{
@@ -16,12 +12,6 @@ use crate::{
 use pyo3::{pyclass, pymethods, PyResult};
 use rand::{rng, seq::IndexedRandom};
 use rustc_hash::FxHashMap;
-
-use rustworkx_core::shortest_path::dijkstra;
-use rustworkx_core::{
-    dictmap::{DictMap, InitWithHasher},
-    petgraph::prelude::{DiGraph, NodeIndex},
-};
 
 #[pyclass(module = "microboost.routing.mutlisabre")]
 pub struct MultiSABRE {
@@ -76,7 +66,6 @@ impl MultiSABRE {
 
         let mut execute_gate_list = Vec::new();
 
-        println!("Front layer len: {:?}", self.front_layer.len());
         while !self.front_layer.is_empty() {
             let mut current_swaps: Vec<[i32; 2]> = Vec::new();
 
@@ -429,72 +418,72 @@ impl MultiSABRE {
         }
     }
     
-    fn release_valve(&mut self, current_swaps: &mut Vec<[i32; 2]>) -> Vec<i32> {
-        let (&closest_node, &qubits) = {
-            self.front_layer
-                .nodes
-                .iter()
-                .min_by(|(_, qubits_a), (_, qubits_b)| {
-                    self.distance[qubits_a[0] as usize][qubits_a[1] as usize]
-                        .partial_cmp(&self.distance[qubits_b[0] as usize][qubits_b[1] as usize])
-                        .unwrap_or(Ordering::Equal)
-                })
-                .unwrap()
-        };
+    // fn release_valve(&mut self, current_swaps: &mut Vec<[i32; 2]>) -> Vec<i32> {
+    //     let (&closest_node, &qubits) = {
+    //         self.front_layer
+    //             .nodes
+    //             .iter()
+    //             .min_by(|(_, qubits_a), (_, qubits_b)| {
+    //                 self.distance[qubits_a[0] as usize][qubits_a[1] as usize]
+    //                     .partial_cmp(&self.distance[qubits_b[0] as usize][qubits_b[1] as usize])
+    //                     .unwrap_or(Ordering::Equal)
+    //             })
+    //             .unwrap()
+    //     };
 
-        let shortest_path = {
-            let mut shortest_paths: DictMap<NodeIndex, Vec<NodeIndex>> = DictMap::new();
-            (dijkstra(
-                &build_digraph_from_neighbors(&self.neighbour_map),
-                NodeIndex::new(qubits[0] as usize),
-                Some(NodeIndex::new(qubits[1] as usize)),
-                |_| Ok(1.),
-                Some(&mut shortest_paths),
-            ) as PyResult<Vec<Option<f64>>>)
-                .unwrap();
+    //     let shortest_path = {
+    //         let mut shortest_paths: DictMap<NodeIndex, Vec<NodeIndex>> = DictMap::new();
+    //         (dijkstra(
+    //             &build_digraph_from_neighbors(&self.neighbour_map),
+    //             NodeIndex::new(qubits[0] as usize),
+    //             Some(NodeIndex::new(qubits[1] as usize)),
+    //             |_| Ok(1.),
+    //             Some(&mut shortest_paths),
+    //         ) as PyResult<Vec<Option<f64>>>)
+    //             .unwrap();
 
-            shortest_paths
-                .get(&NodeIndex::new(qubits[1] as usize))
-                .unwrap()
-                .iter()
-                .map(|n| n.index())
-                .collect::<Vec<_>>()
-        };
+    //         shortest_paths
+    //             .get(&NodeIndex::new(qubits[1] as usize))
+    //             .unwrap()
+    //             .iter()
+    //             .map(|n| n.index())
+    //             .collect::<Vec<_>>()
+    //     };
 
-        let split: usize = shortest_path.len() / 2;
-        current_swaps.reserve(shortest_path.len() - 2);
-        for i in 0..split {
-            current_swaps.push([shortest_path[i] as i32, shortest_path[i + 1] as i32]);
-        }
-        for i in 0..split - 1 {
-            let end = shortest_path.len() - 1 - i;
-            current_swaps.push([shortest_path[end] as i32, shortest_path[end - 1] as i32]);
-        }
-        current_swaps.iter().for_each(|&swap| self.apply_swap(swap));
+    //     let split: usize = shortest_path.len() / 2;
+    //     current_swaps.reserve(shortest_path.len() - 2);
+    //     for i in 0..split {
+    //         current_swaps.push([shortest_path[i] as i32, shortest_path[i + 1] as i32]);
+    //     }
+    //     for i in 0..split - 1 {
+    //         let end = shortest_path.len() - 1 - i;
+    //         current_swaps.push([shortest_path[end] as i32, shortest_path[end - 1] as i32]);
+    //     }
+    //     current_swaps.iter().for_each(|&swap| self.apply_swap(swap));
 
-        if current_swaps.len() > 1 {
-            vec![closest_node]
-        } else {
-            // check if the closest node has neighbors that are now routable -- for that we get
-            // the other physical qubit that was swapped and check whether the node on it
-            // is now routable
-            let mut possible_other_qubit = current_swaps[0]
-                .iter()
-                // check if other nodes are in the front layer that are connected by this swap
-                .filter_map(|&swap_qubit| self.front_layer.qubits[swap_qubit as usize])
-                // remove the closest_node, which we know we already routed
-                .filter(|(node_index, _other_qubit)| *node_index != closest_node)
-                .map(|(_node_index, other_qubit)| other_qubit);
+    //     if current_swaps.len() > 1 {
+    //         vec![closest_node]
+    //     } else {
+    //         // check if the closest node has neighbors that are now routable -- for that we get
+    //         // the other physical qubit that was swapped and check whether the node on it
+    //         // is now routable
+    //         let mut possible_other_qubit = current_swaps[0]
+    //             .iter()
+    //             // check if other nodes are in the front layer that are connected by this swap
+    //             .filter_map(|&swap_qubit| self.front_layer.qubits[swap_qubit as usize])
+    //             // remove the closest_node, which we know we already routed
+    //             .filter(|(node_index, _other_qubit)| *node_index != closest_node)
+    //             .map(|(_node_index, other_qubit)| other_qubit);
 
-            // if there is indeed another candidate, check if that gate is routable
-            if let Some(other_qubit) = possible_other_qubit.next() {
-                if let Some(also_routed) = self.executable_node_on_qubit(other_qubit) {
-                    return vec![closest_node, also_routed];
-                }
-            }
-            vec![closest_node]
-        }
-    }
+    //         // if there is indeed another candidate, check if that gate is routable
+    //         if let Some(other_qubit) = possible_other_qubit.next() {
+    //             if let Some(also_routed) = self.executable_node_on_qubit(other_qubit) {
+    //                 return vec![closest_node, also_routed];
+    //             }
+    //         }
+    //         vec![closest_node]
+    //     }
+    // }
 }
 
 fn min_score(scores: FxHashMap<Vec<[i32; 2]>, f64>) -> Vec<[i32; 2]> {
@@ -512,9 +501,9 @@ fn min_score(scores: FxHashMap<Vec<[i32; 2]>, f64>) -> Vec<[i32; 2]> {
         if score < min_score {
             min_score = score;
             best_swap_sequences.clear();
-            best_swap_sequences.push(&swap_sequence);
+            best_swap_sequences.push(swap_sequence);
         } else if score == min_score {
-            best_swap_sequences.push(&swap_sequence);
+            best_swap_sequences.push(swap_sequence);
         }
     }
 
@@ -523,12 +512,12 @@ fn min_score(scores: FxHashMap<Vec<[i32; 2]>, f64>) -> Vec<[i32; 2]> {
     best_swap_sequences.choose(&mut rng).unwrap().to_vec()
 }
 
-fn build_digraph_from_neighbors(neighbor_map: &FxHashMap<i32, Vec<i32>>) -> DiGraph<(), ()> {
-    let edge_list: Vec<(u32, u32)> = neighbor_map
-        .iter()
-        .flat_map(|(&src, targets)| targets.iter().map(move |&dst| (src as u32, dst as u32)))
-        .collect();
-
-    // `from_edges` creates a graph where node indices are inferred from edge endpoints
-    DiGraph::<(), ()>::from_edges(edge_list)
-}
+// fn build_digraph_from_neighbors(neighbor_map: &FxHashMap<i32, Vec<i32>>) -> DiGraph<(), ()> {
+//     let edge_list: Vec<(u32, u32)> = neighbor_map
+//         .iter()
+//         .flat_map(|(&src, targets)| targets.iter().map(move |&dst| (src as u32, dst as u32)))
+//         .collect();
+// 
+//     // `from_edges` creates a graph where node indices are inferred from edge endpoints
+//     DiGraph::<(), ()>::from_edges(edge_list)
+// }
