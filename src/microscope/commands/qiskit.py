@@ -1,5 +1,3 @@
-from collections import defaultdict
-
 from qiskit import QuantumCircuit
 from qiskit.transpiler import CouplingMap, PassManager
 from qiskit.converters import circuit_to_dag
@@ -7,7 +5,6 @@ from qiskit.transpiler.passes import (
     SabreSwap,
     CheckMap,
     Unroll3qOrMore,
-    SetLayout,
     FullAncillaAllocation,
     ApplyLayout,
     RemoveBarriers,
@@ -16,42 +13,19 @@ from qiskit.transpiler.passes import (
 
 from qiskit.circuit.library.standard_gates import SwapGate
 
-from commands.helper import generate_initial_mapping
-
 def qiskit(config):
-    # Parse config variables
     path = config["ocular"]["path"]
-    heuristics = config["ocular"]["heuristics"]
-    trials = config["ocular"]["trials"]
-    extended_set_size = config["ocular"]["extended-set-size"]
 
     test_cases = [("lookahead", 20)]
-    test_results = defaultdict(list)
 
-    # Parse circuit
     input_circuit = QuantumCircuit.from_qasm_file(path)
-    num_qubits = input_circuit.num_qubits
 
-    # Generate coupling map
     coupling_map = CouplingMap.from_line(input_circuit.num_qubits)
-    # import math
-    # n = input_circuit.num_qubits
-    # rows = math.isqrt(n)
-    # cols = math.ceil(n / rows)
-
-    # # Now create the grid-based coupling map
-    # coupling_map = CouplingMap.from_grid(rows, cols)
-
-    # Generate DAG from circuit
-    input_dag = circuit_to_dag(input_circuit)
-
-    # Preprocess circuit
-    preprocessing_layout = generate_initial_mapping(input_dag)
-
+    
     pm = PassManager(
         [
             Unroll3qOrMore(),
-            SabreLayout(coupling_map, skip_routing=True),
+            SabreLayout(coupling_map, skip_routing=True, seed=42),
             ApplyLayout(),
             FullAncillaAllocation(coupling_map),
             RemoveBarriers(),
@@ -68,7 +42,6 @@ def qiskit(config):
         )
 
         transpiled_qc = qiskit_pm.run(preprocessed_circuit)
-        # transpiled_qc.draw("mpl", fold=-1)
         transpiled_qc_dag = circuit_to_dag(transpiled_qc)
 
         if not cm.property_set.get("is_swap_mapped"):

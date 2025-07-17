@@ -14,22 +14,17 @@ from qiskit.transpiler.passes import (
 
 from collections import defaultdict
 from graph.dag import DAG
-from tqdm import tqdm
 
-from rich.console import Console
-from rich.table import Table
-
-import matplotlib.pyplot as plt
+from rich.console import Console # type: ignore
+from rich.table import Table # type: ignore
 
 from commands.helper import (
     apply_sabre_result,
     result_table,
 )
 
-import microboost
+import microboost # type: ignore
 
-
-# We want a class that manages all the benchmark parameters and generates runs for us
 class BenchmarkSet:
     def __init__(self, heuristics, trials, extended_set_size):
         self.heuristics = heuristics
@@ -46,11 +41,17 @@ class BenchmarkSet:
 
         return test_cases
 
+def coupling_line(n):
+    return CouplingMap.from_line(n)
+
+def coupling_grid(n):
+    import math
+    rows = math.isqrt(n)
+    cols = math.ceil(n / rows)
+    return CouplingMap.from_grid(rows, cols)
 
 def ocular(config):
-    # Parse config variables
     path = config["ocular"]["path"]
-    layer = config["ocular"]["layer"]
 
     test_cases = [("lookahead", 20)]
     test_results = defaultdict(list)
@@ -58,20 +59,12 @@ def ocular(config):
     input_circuit = QuantumCircuit.from_qasm_file(path)
     num_qubits = input_circuit.num_qubits
 
-    coupling_map = CouplingMap.from_line(input_circuit.num_qubits)
-
-    # import math
-    # n = input_circuit.num_qubits
-    # rows = math.isqrt(n)
-    # cols = math.ceil(n / rows)
-
-    # # Now create the grid-based coupling map
-    # coupling_map = CouplingMap.from_grid(rows, cols)
+    coupling_map = coupling_line(input_circuit.num_qubits) 
 
     pm = PassManager(
         [
             Unroll3qOrMore(),
-            SabreLayout(coupling_map, skip_routing=True),
+            SabreLayout(coupling_map, skip_routing=True, seed=42),
             ApplyLayout(),
             RemoveBarriers(),
         ]
@@ -129,11 +122,11 @@ def ocular(config):
     table.add_column("Metric")
     table.add_column("Value")
 
-    table.add_row(
-        *["Program Communication", str(program_communication)], style="bright_green"
-    )
-    table.add_row(*["Critical Depth", str(critical_depth)], style="bright_green")
-    table.add_row(*["Paralellism", str(parallelism)], style="bright_green")
+    # table.add_row(
+    #     *["Program Communication", str(program_communication)], style="bright_green"
+    # )
+    # table.add_row(*["Critical Depth", str(critical_depth)], style="bright_green")
+    # table.add_row(*["Parallelism", str(parallelism)], style="bright_green")
     table.add_row(
         *["Critical Path Length", str(longest_path_len)], style="bright_green"
     )
@@ -144,17 +137,12 @@ def ocular(config):
 
     rust_dag = micro_dag.to_micro_dag()
 
-    for heuristic, extended_set_size in tqdm(test_cases):
+    for heuristic, extended_set_size in test_cases:
         rust_ms = microboost.MicroSABRE(
             rust_dag, initial_layout, coupling_map.get_edges(), num_qubits
         )
 
-        # rust_multi = microboost.MultiSABRE(
-        #     rust_dag, initial_layout, coupling_map.get_edges(), num_qubits
-        # )
-
-        sabre_result = rust_ms.run(heuristic, extended_set_size)
-        # sabre_result = rust_multi.run(layer)
+        sabre_result = rust_ms.run()
 
         transpiled_sabre_dag_boosted, _ = apply_sabre_result(
             preprocessed_dag.copy_empty_like(),

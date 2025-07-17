@@ -84,8 +84,6 @@ impl MicroSABRE {
 
     fn run(
         &mut self,
-        heuristic: &str,
-        extended_set_size: i32,
     ) -> (
         FxHashMap<i32, Vec<[i32; 2]>>,
         Vec<i32>,
@@ -105,7 +103,7 @@ impl MicroSABRE {
             let mut current_swaps: Vec<[i32; 2]> = Vec::new();
 
             while execute_gate_list.is_empty() && current_swaps.len() <= 10000{
-                let best_swap = self.choose_best_swap(heuristic, extended_set_size);
+                let best_swap = self.choose_best_swap();
 
                 let physical_q0 = best_swap.0;
                 let physical_q1 = best_swap.1;
@@ -232,7 +230,7 @@ impl MicroSABRE {
         extended_set
     }
 
-    fn choose_best_swap(&mut self, heuristic: &str, extended_set_size: i32) -> (i32, i32) {
+    fn choose_best_swap(&mut self) -> (i32, i32) {
         let mut scores: FxHashMap<(i32, i32), f64> = FxHashMap::default();
 
         let swap_candidates: Vec<(i32, i32)> = self.compute_swap_candidates();
