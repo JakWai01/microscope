@@ -1,12 +1,12 @@
 ocular:
   files:
-    - examples/adder_n4.qasm
+    # - examples/adder_n4.qasm
     - examples/adder_n10_shortened.qasm
-    - examples/adder_n10_medium.qasm
-    - examples/adder_n10.qasm
-    - examples/adder_n28.qasm
-    - examples/adder_n64.qasm
-    - /home/jakob/Documents/hamiltonians/ham_heis_graph_2D_grid_nonpbc_qubitnodes_Lx_5_Ly_186_h_0_5.qasm
-    - /home/jakob/Documents/hamiltonians/ham_BH_D_1_d_4_bh_graph_1D_grid_nonpbc_qubitnodes_Lx_12_U_40_enc_unary_d_4.qasm
-    - /home/jakob/Documents/hamiltonians/ham_heis_graph_2D_grid_pbc_qubitnodes_Lx_5_Ly_186_h_3.qasm
+    # - examples/adder_n10_medium.qasm
+    # - examples/adder_n10.qasm
+    # - examples/adder_n28.qasm
+    # - examples/adder_n64.qasm
+    # - /home/jakob/Documents/hamiltonians/ham_heis_graph_2D_grid_nonpbc_qubitnodes_Lx_5_Ly_186_h_0_5.qasm
+    # - /home/jakob/Documents/hamiltonians/ham_BH_D_1_d_4_bh_graph_1D_grid_nonpbc_qubitnodes_Lx_12_U_40_enc_unary_d_4.qasm
+    # - /home/jakob/Documents/hamiltonians/ham_heis_graph_2D_grid_pbc_qubitnodes_Lx_5_Ly_186_h_3.qasm
   depth: 1

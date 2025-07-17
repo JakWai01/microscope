@@ -97,7 +97,7 @@ impl MicroSABRE {
             let mut current_swaps: Vec<[i32; 2]> = Vec::new();
 
             while execute_gate_list.is_empty() && current_swaps.len() <= 10000 {
-                let swaps = self.choose_best_swaps(2);
+                let swaps = self.choose_best_swaps(7);
 
                 for swap in swaps {
                     let q0 = swap[0];
@@ -247,27 +247,6 @@ impl MicroSABRE {
             required_predecessors[index] += amount;
         }
         extended_set
-    }
-
-    fn choose_best_swap(&mut self) -> Vec<[i32; 2]> {
-        let mut scores: FxHashMap<Vec<[i32; 2]>, f64> = FxHashMap::default();
-
-        let swap_candidates: Vec<[i32; 2]> = self.compute_swap_candidates();
-
-        for &[q0, q1] in &swap_candidates {
-            // TODO: Isn't before always the after from the previous iteration?
-            let before = self.calculate_heuristic();
-
-            self.apply_swap([q0, q1]);
-
-            let after = self.calculate_heuristic();
-
-            self.apply_swap([q1, q0]);
-
-            scores.insert(vec![[q0, q1]], after - before);
-        }
-
-        min_score(scores)
     }
 
     fn choose_best_swaps(&mut self, depth: usize) -> Vec<[i32; 2]> {
