@@ -32,11 +32,8 @@ pub struct MicroSABRE {
     layout: MicroLayout,
     num_qubits: i32,
     extended_set_max: f64,
-    successor_map: Vec<usize>,
-    recent_swaps: VecDeque<(i32, i32)>,
     random_choices: i32,
     total_choices: i32,
-    critical_path: Vec<usize>,
     extended_set_size_sum: i32,
     extended_set_size_counter: i32,
     front_set_size_sum: i32,
@@ -52,7 +49,6 @@ impl MicroSABRE {
         coupling_map: Vec<Vec<i32>>,
         num_qubits: i32,
     ) -> PyResult<Self> {
-        let (successor_map, critical_path) = get_successor_map_and_critical_paths(&dag);
 
         Ok(Self {
             required_predecessors: vec![0; dag.nodes.len()],
@@ -65,16 +61,13 @@ impl MicroSABRE {
             gate_order: Vec::new(),
             front_layer: MicroFront::new(num_qubits),
             initial_mapping: initial_layout.clone(),
-            successor_map: successor_map,
             initial_dag: dag,
             neighbour_map: build_coupling_neighbour_map(&coupling_map),
             initial_coupling_map: coupling_map,
             num_qubits,
             extended_set_max: 0.0,
-            recent_swaps: VecDeque::with_capacity(5),
             random_choices: 0,
             total_choices: 0,
-            critical_path: critical_path,
             front_set_size_sum: 0,
             front_set_size_counter: 0,
             extended_set_size_sum: 0,
@@ -131,10 +124,6 @@ impl MicroSABRE {
 
             while execute_gate_list.is_empty() && current_swaps.len() <= 10000{
                 let best_swap = self.choose_best_swap(heuristic, extended_set_size);
-                if self.recent_swaps.len() == self.recent_swaps.capacity() {
-                    self.recent_swaps.pop_back();
-                }
-                self.recent_swaps.push_front(best_swap);
 
                 let physical_q0 = best_swap.0;
                 let physical_q1 = best_swap.1;
@@ -168,10 +157,6 @@ impl MicroSABRE {
             }
             self.advance_front_layer(&execute_gate_list);
             execute_gate_list.clear();
-
-            // Clearing recent swaps since we just want to prevent that swaps are reversed in a
-            // single iteration. In general, there can't be two same swaps in a single pass
-            self.recent_swaps.clear();
         }
 
         (
