@@ -97,7 +97,7 @@ impl MicroSABRE {
             let mut current_swaps: Vec<[i32; 2]> = Vec::new();
 
             while execute_gate_list.is_empty() && current_swaps.len() <= 10000 {
-                let swaps = self.choose_best_swap();
+                let swaps = self.choose_best_swaps(2);
 
                 for swap in swaps {
                     let q0 = swap[0];
@@ -114,7 +114,6 @@ impl MicroSABRE {
                         execute_gate_list.push(node);
                     }
                     
-                    // If this swap made gates executable, execute them
                     if !execute_gate_list.is_empty() {
                         let node_id = self.dag.get(execute_gate_list[0]).unwrap().id;
                         self.out_map

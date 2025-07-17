@@ -105,10 +105,11 @@ considering a node multiple times.
 - [ ] Zu viele SWAPs sind auch wieder schlecht, weil dann auf die 6 SWAPs optimiert wird, die eventuell ein bisschen falsch abbiegen
 - [ ] Only consider value after all the n swaps
 
-##
 
-![Heuristics](./assets/heuristics_10k.png)
+## Roadmap
 
+1. Get the quality of qiskit SABRE results
+2. Always get equal or better results when looking at multiple SWAPs
 
 ## Optimal Solutions (using OLSQ)
 
