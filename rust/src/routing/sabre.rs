@@ -271,7 +271,7 @@ impl MicroSABRE {
                 continue
             }
 
-            let state = self.create_snapshot();
+            let state = item.state.clone();
 
             let swap_candidates = self.compute_swap_candidates();
 
