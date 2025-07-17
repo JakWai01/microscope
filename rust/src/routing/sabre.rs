@@ -99,18 +99,44 @@ impl MicroSABRE {
             while execute_gate_list.is_empty() && current_swaps.len() <= 10000 {
                 let swaps = self.choose_best_swap();
 
-                let q0 = swaps[0][0];
-                let q1 = swaps[0][1];
+                for swap in swaps {
+                    let q0 = swap[0];
+                    let q1 = swap[1];
 
-                current_swaps.push([q0, q1]);
-                self.apply_swap([q0, q1]);
+                    current_swaps.push([q0, q1]);
+                    self.apply_swap([q0, q1]);
 
-                if let Some(node) = self.executable_node_on_qubit(q0) {
-                    execute_gate_list.push(node);
-                }
+                    if let Some(node) = self.executable_node_on_qubit(q0) {
+                        execute_gate_list.push(node);
+                    }
 
-                if let Some(node) = self.executable_node_on_qubit(q1) {
-                    execute_gate_list.push(node);
+                    if let Some(node) = self.executable_node_on_qubit(q1) {
+                        execute_gate_list.push(node);
+                    }
+                    
+                    // If this swap made gates executable, execute them
+                    if !execute_gate_list.is_empty() {
+                        let node_id = self.dag.get(execute_gate_list[0]).unwrap().id;
+                        self.out_map
+                            .entry(node_id)
+                            .or_default()
+                            .extend(current_swaps.clone());
+
+                        for &node in &execute_gate_list {
+                            self.front_layer.remove(&node);
+                        }
+
+                        self.advance_front_layer(&execute_gate_list);
+
+                        if self.front_layer.is_empty() {
+                            return (
+                                std::mem::take(&mut self.out_map),
+                                std::mem::take(&mut self.gate_order),
+                            )
+                        }
+                        execute_gate_list.clear();
+                        current_swaps.clear();
+                    }
                 }
             }
 
@@ -121,19 +147,20 @@ impl MicroSABRE {
                     .for_each(|swap| self.apply_swap(swap));
                 let force_routed = self.release_valve(&mut current_swaps);
                 execute_gate_list.extend(force_routed);
+                
+                let node_id = self.dag.get(execute_gate_list[0]).unwrap().id;
+                self.out_map
+                    .entry(node_id)
+                    .or_default()
+                    .extend(current_swaps);
+
+                for &node in &execute_gate_list {
+                    self.front_layer.remove(&node);
+                }
+                self.advance_front_layer(&execute_gate_list);
+                execute_gate_list.clear();
             }
 
-            let node_id = self.dag.get(execute_gate_list[0]).unwrap().id;
-            self.out_map
-                .entry(node_id)
-                .or_default()
-                .extend(current_swaps);
-
-            for &node in &execute_gate_list {
-                self.front_layer.remove(&node);
-            }
-            self.advance_front_layer(&execute_gate_list);
-            execute_gate_list.clear();
         }
 
         (
