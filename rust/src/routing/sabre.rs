@@ -31,13 +31,6 @@ pub struct MicroSABRE {
     neighbour_map: FxHashMap<i32, Vec<i32>>,
     layout: MicroLayout,
     num_qubits: i32,
-    extended_set_max: f64,
-    random_choices: i32,
-    total_choices: i32,
-    extended_set_size_sum: i32,
-    extended_set_size_counter: i32,
-    front_set_size_sum: i32,
-    front_set_size_counter: i32,
 }
 
 #[pymethods]
@@ -65,13 +58,6 @@ impl MicroSABRE {
             neighbour_map: build_coupling_neighbour_map(&coupling_map),
             initial_coupling_map: coupling_map,
             num_qubits,
-            extended_set_max: 0.0,
-            random_choices: 0,
-            total_choices: 0,
-            front_set_size_sum: 0,
-            front_set_size_counter: 0,
-            extended_set_size_sum: 0,
-            extended_set_size_counter: 0,
         })
     }
 
@@ -103,10 +89,6 @@ impl MicroSABRE {
     ) -> (
         FxHashMap<i32, Vec<[i32; 2]>>,
         Vec<i32>,
-        f64,
-        f64,
-        f64,
-        f64,
     ) {
         self.clear_data_structures();
         self.dag
@@ -162,10 +144,6 @@ impl MicroSABRE {
         (
             std::mem::take(&mut self.out_map),
             std::mem::take(&mut self.gate_order),
-            self.random_choices as f64 / self.total_choices as f64,
-            self.front_set_size_sum as f64 / self.front_set_size_counter as f64,
-            self.extended_set_size_sum as f64 / self.extended_set_size_counter as f64,
-            self.extended_set_max as f64,
         )
     }
 
@@ -272,13 +250,7 @@ impl MicroSABRE {
             scores.insert((q0, q1), after - before);
         }
 
-        let (best_swap, random) = min_score(scores);
-
-        // Calculate fraction of random choices
-        if random {
-            self.random_choices += 1;
-        }
-        self.total_choices += 1;
+        let (best_swap, _) = min_score(scores);
 
         best_swap
     }

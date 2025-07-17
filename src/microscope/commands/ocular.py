@@ -156,19 +156,10 @@ def ocular(config):
         sabre_result = rust_ms.run(heuristic, extended_set_size)
         # sabre_result = rust_multi.run(layer)
 
-        (
-            out_map,
-            gate_order,
-            randomness,
-            avg_front_size,
-            avg_lookahead_size,
-            max_lookahead_size,
-        ) = sabre_result
-
         transpiled_sabre_dag_boosted, _ = apply_sabre_result(
             preprocessed_dag.copy_empty_like(),
             preprocessed_dag,
-            (out_map, gate_order),
+            sabre_result,
             preprocessed_dag.qubits,
             coupling_map,
         )
@@ -192,10 +183,6 @@ def ocular(config):
             (
                 depth,
                 swaps,
-                randomness,
-                avg_front_size,
-                avg_lookahead_size,
-                max_lookahead_size,
             )
         )
 
@@ -211,28 +198,16 @@ def process_results(test_results):
         "Extended Set Size",
         "Swaps",
         "Depth",
-        "Randomness",
-        "Front Size",
-        "Extended Set Size",
-        "Max Elements in Extended Set",
     ]
 
     for key, results in test_results.items():
-        total_depth = sum(d for d, s, r, f, e, m in results)
-        total_swaps = sum(s for d, s, r, f, e, m in results)
-        total_randomness = sum(r for d, s, r, f, e, m in results)
-        total_front_size = sum(f for d, s, r, f, e, m in results)
-        total_lookahead_size = sum(e for d, s, r, f, e, m in results)
-        total_max_size = sum(m for d, s, r, f, e, m in results)
+        total_depth = sum(d for d, s in results)
+        total_swaps = sum(s for d, s in results)
 
         count = len(results)
 
         avg_swaps = total_swaps / count
         avg_depth = total_depth / count
-        avg_randomness = total_randomness / count
-        avg_front_size = total_front_size / count
-        avg_lookahead_size = total_lookahead_size / count
-        avg_total_max_size = total_max_size / count
 
         heuristic = key[0]
         extended_set_size = key[1]
@@ -243,10 +218,6 @@ def process_results(test_results):
                 str(extended_set_size),
                 str(avg_swaps),
                 str(avg_depth),
-                str(round(avg_randomness, 2)),
-                str(round(avg_front_size, 2)),
-                str(round(avg_lookahead_size, 2)),
-                str(round(avg_total_max_size, 2)),
             ]
         )
         data[heuristic][0].append(extended_set_size)
