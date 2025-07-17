@@ -56,130 +56,137 @@ def coupling_grid(n):
 
 
 def ocular(config):
-    path = config["ocular"]["path"]
+    files = config["ocular"]["files"]
 
-    test_cases = [("lookahead", 20)]
-    test_results = defaultdict(list)
+    for file in files:
+        print(file)
 
-    input_circuit = QuantumCircuit.from_qasm_file(path)
-    num_qubits = input_circuit.num_qubits
+        test_cases = [("lookahead", 20)]
+        test_results = defaultdict(list)
 
-    coupling_map = coupling_line(input_circuit.num_qubits)
+        input_circuit = QuantumCircuit.from_qasm_file(file)
+        num_qubits = input_circuit.num_qubits
 
-    pm = PassManager(
-        [
-            Unroll3qOrMore(),
-            SabreLayout(coupling_map, skip_routing=True, seed=42),
-            ApplyLayout(),
-            RemoveBarriers(),
-        ]
-    )
+        coupling_map = coupling_line(input_circuit.num_qubits)
 
-    preprocessed_circuit = pm.run(input_circuit)
-
-    preprocessed_dag = circuit_to_dag(preprocessed_circuit)
-
-    interactions = defaultdict(set)
-
-    for node in preprocessed_dag.op_nodes():
-        qubits = [q._index for q in node.qargs]
-        if len(qubits) > 1:
-            for i in range(len(qubits)):
-                for j in range(i + 1, len(qubits)):
-                    interactions[qubits[i]].add(qubits[j])
-                    interactions[qubits[j]].add(qubits[i])
-
-    degrees = [len(neighbors) for neighbors in interactions.values()]
-    num_qubits = len(preprocessed_circuit.qubits)
-
-    all_degrees = degrees + [0] * (num_qubits - len(degrees))
-    program_communication = round(sum(all_degrees) / (num_qubits * (num_qubits - 1)), 2)
-
-    # Compute critical depth
-    ops_longest_path = preprocessed_dag.count_ops_longest_path()
-    longest_path_len = sum(ops_longest_path.values())
-    # num_cx_longest_path = ops_longest_path["cx"]
-    # num_cx = preprocessed_dag.count_ops()["cx"]
-    # critical_depth = round(num_cx_longest_path / num_cx, 2)
-    critical_depth = 0
-
-    # Compute Parallelism
-    num_gates = sum(preprocessed_dag.count_ops().values())
-    depth = preprocessed_dag.depth()
-    parallelism = round((num_gates / depth - 1) * (1 / (num_qubits - 1)), 2)
-
-    canonical_register = preprocessed_dag.qregs["q"]
-    current_layout = Layout.generate_trivial_layout(canonical_register)
-    qubit_indices = {bit: idx for idx, bit in enumerate(canonical_register)}
-    layout_mapping = {
-        qubit_indices[k]: v for k, v in current_layout.get_virtual_bits().items()
-    }
-    initial_layout = microboost.MicroLayout(
-        layout_mapping, len(preprocessed_dag.qubits), coupling_map.size()
-    )
-
-    micro_dag = DAG().from_qiskit_dag(preprocessed_dag)
-
-    num_dag_nodes = len(micro_dag)
-
-    table = Table(title="Circuit Metrics")
-
-    table.add_column("Metric")
-    table.add_column("Value")
-
-    # table.add_row(
-    #     *["Program Communication", str(program_communication)], style="bright_green"
-    # )
-    # table.add_row(*["Critical Depth", str(critical_depth)], style="bright_green")
-    # table.add_row(*["Parallelism", str(parallelism)], style="bright_green")
-    table.add_row(
-        *["Critical Path Length", str(longest_path_len)], style="bright_green"
-    )
-    table.add_row(*["DAG Nodes", str(num_dag_nodes)], style="bright_green")
-
-    console = Console()
-    console.print(table)
-
-    rust_dag = micro_dag.to_micro_dag()
-
-    for heuristic, extended_set_size in test_cases:
-        rust_ms = microboost.MicroSABRE(
-            rust_dag, initial_layout, coupling_map.get_edges(), num_qubits
+        pm = PassManager(
+            [
+                Unroll3qOrMore(),
+                SabreLayout(coupling_map, skip_routing=True, seed=42),
+                ApplyLayout(),
+                RemoveBarriers(),
+            ]
         )
 
-        sabre_result = rust_ms.run()
+        preprocessed_circuit = pm.run(input_circuit)
 
-        transpiled_sabre_dag_boosted, _ = apply_sabre_result(
-            preprocessed_dag.copy_empty_like(),
-            preprocessed_dag,
-            sabre_result,
-            preprocessed_dag.qubits,
-            coupling_map,
+        preprocessed_dag = circuit_to_dag(preprocessed_circuit)
+
+        interactions = defaultdict(set)
+
+        for node in preprocessed_dag.op_nodes():
+            qubits = [q._index for q in node.qargs]
+            if len(qubits) > 1:
+                for i in range(len(qubits)):
+                    for j in range(i + 1, len(qubits)):
+                        interactions[qubits[i]].add(qubits[j])
+                        interactions[qubits[j]].add(qubits[i])
+
+        degrees = [len(neighbors) for neighbors in interactions.values()]
+        num_qubits = len(preprocessed_circuit.qubits)
+
+        all_degrees = degrees + [0] * (num_qubits - len(degrees))
+        program_communication = round(
+            sum(all_degrees) / (num_qubits * (num_qubits - 1)), 2
         )
 
-        transpiled_sabre_circuit_boosted = dag_to_circuit(transpiled_sabre_dag_boosted)
+        # Compute critical depth
+        ops_longest_path = preprocessed_dag.count_ops_longest_path()
+        longest_path_len = sum(ops_longest_path.values())
+        # num_cx_longest_path = ops_longest_path["cx"]
+        # num_cx = preprocessed_dag.count_ops()["cx"]
+        # critical_depth = round(num_cx_longest_path / num_cx, 2)
+        critical_depth = 0
 
-        cm = CheckMap(coupling_map=coupling_map)
-        pm = PassManager([cm])
+        # Compute Parallelism
+        num_gates = sum(preprocessed_dag.count_ops().values())
+        depth = preprocessed_dag.depth()
+        parallelism = round((num_gates / depth - 1) * (1 / (num_qubits - 1)), 2)
 
-        _ = pm.run(transpiled_sabre_circuit_boosted)
+        canonical_register = preprocessed_dag.qregs["q"]
+        current_layout = Layout.generate_trivial_layout(canonical_register)
+        qubit_indices = {bit: idx for idx, bit in enumerate(canonical_register)}
+        layout_mapping = {
+            qubit_indices[k]: v for k, v in current_layout.get_virtual_bits().items()
+        }
+        initial_layout = microboost.MicroLayout(
+            layout_mapping, len(preprocessed_dag.qubits), coupling_map.size()
+        )
 
-        if not cm.property_set.get("is_swap_mapped"):
-            raise ValueError(
-                "CheckMap identified invalid mapping from DAG to coupling_map"
+        micro_dag = DAG().from_qiskit_dag(preprocessed_dag)
+
+        num_dag_nodes = len(micro_dag)
+
+        table = Table(title="Circuit Metrics")
+
+        table.add_column("Metric")
+        table.add_column("Value")
+
+        # table.add_row(
+        #     *["Program Communication", str(program_communication)], style="bright_green"
+        # )
+        # table.add_row(*["Critical Depth", str(critical_depth)], style="bright_green")
+        # table.add_row(*["Parallelism", str(parallelism)], style="bright_green")
+        table.add_row(
+            *["Critical Path Length", str(longest_path_len)], style="bright_green"
+        )
+        table.add_row(*["DAG Nodes", str(num_dag_nodes)], style="bright_green")
+
+        console = Console()
+        console.print(table)
+
+        rust_dag = micro_dag.to_micro_dag()
+
+        for heuristic, extended_set_size in test_cases:
+            rust_ms = microboost.MicroSABRE(
+                rust_dag, initial_layout, coupling_map.get_edges(), num_qubits
             )
 
-        depth = transpiled_sabre_circuit_boosted.depth()
-        swaps = len(transpiled_sabre_dag_boosted.op_nodes(op=SwapGate))
+            sabre_result = rust_ms.run()
 
-        test_results[(heuristic, extended_set_size)].append(
-            (
-                depth,
-                swaps,
+            transpiled_sabre_dag_boosted, _ = apply_sabre_result(
+                preprocessed_dag.copy_empty_like(),
+                preprocessed_dag,
+                sabre_result,
+                preprocessed_dag.qubits,
+                coupling_map,
             )
-        )
 
-    process_results(test_results)
+            transpiled_sabre_circuit_boosted = dag_to_circuit(
+                transpiled_sabre_dag_boosted
+            )
+
+            cm = CheckMap(coupling_map=coupling_map)
+            pm = PassManager([cm])
+
+            _ = pm.run(transpiled_sabre_circuit_boosted)
+
+            if not cm.property_set.get("is_swap_mapped"):
+                raise ValueError(
+                    "CheckMap identified invalid mapping from DAG to coupling_map"
+                )
+
+            depth = transpiled_sabre_circuit_boosted.depth()
+            swaps = len(transpiled_sabre_dag_boosted.op_nodes(op=SwapGate))
+
+            test_results[(heuristic, extended_set_size)].append(
+                (
+                    depth,
+                    swaps,
+                )
+            )
+
+        process_results(test_results)
 
 
 def process_results(test_results):
