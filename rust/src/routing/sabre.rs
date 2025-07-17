@@ -97,19 +97,19 @@ impl MicroSABRE {
             let mut current_swaps: Vec<[i32; 2]> = Vec::new();
 
             while execute_gate_list.is_empty() && current_swaps.len() <= 10000 {
-                let best_swap = self.choose_best_swap();
+                let swaps = self.choose_best_swap();
 
-                let physical_q0 = best_swap[0][0];
-                let physical_q1 = best_swap[0][1];
+                let q0 = swaps[0][0];
+                let q1 = swaps[0][1];
 
-                current_swaps.push([best_swap[0][0], best_swap[0][1]]);
-                self.apply_swap([physical_q0, physical_q1]);
+                current_swaps.push([q0, q1]);
+                self.apply_swap([q0, q1]);
 
-                if let Some(node) = self.executable_node_on_qubit(physical_q0) {
+                if let Some(node) = self.executable_node_on_qubit(q0) {
                     execute_gate_list.push(node);
                 }
 
-                if let Some(node) = self.executable_node_on_qubit(physical_q1) {
+                if let Some(node) = self.executable_node_on_qubit(q1) {
                     execute_gate_list.push(node);
                 }
             }
