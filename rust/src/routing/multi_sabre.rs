@@ -1,4 +1,3 @@
-use std::collections::{HashSet, VecDeque};
 use crate::{
     graph::dag::MicroDAG,
     routing::{
@@ -12,6 +11,7 @@ use crate::{
 use pyo3::{pyclass, pymethods, PyResult};
 use rand::{rng, seq::IndexedRandom};
 use rustc_hash::FxHashMap;
+use std::collections::{HashSet, VecDeque};
 
 #[pyclass(module = "microboost.routing.mutlisabre")]
 pub struct MultiSABRE {
@@ -94,7 +94,7 @@ impl MultiSABRE {
                     if let Some(node) = self.executable_node_on_qubit(q1) {
                         execute_gate_list.push(node);
                     }
-                    
+
                     // TODO: I can probably improve this part
                     if !execute_gate_list.is_empty() {
                         for &node in &execute_gate_list {
@@ -154,13 +154,12 @@ struct RoutingState {
     gate_order: Vec<i32>,
 }
 
-
 #[derive(Clone)]
 struct StackState {
     mapper_state: RoutingState,
     current_sequence: Vec<[i32; 2]>,
     current_score: f64,
-    layer: usize
+    layer: usize,
 }
 
 impl MultiSABRE {
@@ -182,7 +181,7 @@ impl MultiSABRE {
 
     fn choose_best_swaps(&mut self, layers: usize) -> Vec<[i32; 2]> {
         let start_state = self.save_state();
-        
+
         let mut stack = Vec::new();
         let mut scores: FxHashMap<Vec<[i32; 2]>, f64> = FxHashMap::default();
 
@@ -190,22 +189,22 @@ impl MultiSABRE {
             mapper_state: self.save_state(),
             current_sequence: Vec::new(),
             current_score: 0.0,
-            layer: layers
+            layer: layers,
         });
 
         while let Some(state) = stack.pop() {
             if state.layer == 0 {
                 scores.insert(state.current_sequence.clone(), state.current_score);
-                continue
+                continue;
             }
 
-            let initial_state  = state.mapper_state.clone();
-            
+            let initial_state = state.mapper_state.clone();
+
             let swap_candidates = self.compute_swap_candidates();
 
             if swap_candidates.is_empty() {
                 scores.insert(state.current_sequence.clone(), state.current_score);
-                continue
+                continue;
             }
 
             for &[q0, q1] in &swap_candidates {
@@ -231,22 +230,18 @@ impl MultiSABRE {
                 let mut new_sequence = state.current_sequence.clone();
                 new_sequence.push([q0, q1]);
 
-                stack.push(
-                    StackState {
-                        mapper_state: self.save_state(),
-                        current_sequence: new_sequence,
-                        current_score: state.current_score + diff,
-                        layer: state.layer - 1
-                    }
-                )
+                stack.push(StackState {
+                    mapper_state: self.save_state(),
+                    current_sequence: new_sequence,
+                    current_score: state.current_score + diff,
+                    layer: state.layer - 1,
+                })
             }
         }
         self.apply_state(start_state);
 
         min_score(scores)
     }
-
-    
 
     fn compute_swap_candidates(&self) -> Vec<[i32; 2]> {
         let mut swap_candidates: Vec<[i32; 2]> = Vec::new();
@@ -261,9 +256,7 @@ impl MultiSABRE {
         swap_candidates
     }
 
-    fn calculate_heuristic(
-        &mut self,
-    ) -> f64 {
+    fn calculate_heuristic(&mut self) -> f64 {
         let extended_set = self.get_extended_set();
 
         let basic = self
@@ -285,9 +278,7 @@ impl MultiSABRE {
         basic + 0.5 * lookahead
     }
 
-    fn get_extended_set(
-        &mut self,
-    ) -> MicroFront {
+    fn get_extended_set(&mut self) -> MicroFront {
         let mut required_predecessors = self.required_predecessors.clone();
 
         let mut to_visit: Vec<i32> = self.front_layer.nodes.keys().copied().collect();
@@ -381,7 +372,7 @@ impl MultiSABRE {
 
     /// Advances front layer by looking at successors of the nodes that were just
     /// executed. Successors are added to the front layer if they do NOT have any
-    /// required predecessors AND can't be routed without inserting any SWAPs 
+    /// required predecessors AND can't be routed without inserting any SWAPs
     fn advance_front_layer(&mut self, nodes: &Vec<i32>) {
         let mut node_queue: VecDeque<i32> = VecDeque::from(nodes.clone());
 
@@ -395,7 +386,7 @@ impl MultiSABRE {
                 if self.distance[physical_q0 as usize][physical_q1 as usize] != 1 {
                     self.front_layer
                         .insert(node_index, [physical_q0, physical_q1]);
-                
+
                     continue;
                 }
             }
@@ -417,7 +408,7 @@ impl MultiSABRE {
             }
         }
     }
-    
+
     // fn release_valve(&mut self, current_swaps: &mut Vec<[i32; 2]>) -> Vec<i32> {
     //     let (&closest_node, &qubits) = {
     //         self.front_layer
@@ -492,7 +483,7 @@ fn min_score(scores: FxHashMap<Vec<[i32; 2]>, f64>) -> Vec<[i32; 2]> {
     // println!("Scores length: {:?}", scores.len());
     let mut iter = scores.iter();
 
-    let (min_swap_sequence, mut min_score) = iter.next().unwrap(); 
+    let (min_swap_sequence, mut min_score) = iter.next().unwrap();
 
     best_swap_sequences.push(min_swap_sequence);
 
@@ -517,7 +508,7 @@ fn min_score(scores: FxHashMap<Vec<[i32; 2]>, f64>) -> Vec<[i32; 2]> {
 //         .iter()
 //         .flat_map(|(&src, targets)| targets.iter().map(move |&dst| (src as u32, dst as u32)))
 //         .collect();
-// 
+//
 //     // `from_edges` creates a graph where node indices are inferred from edge endpoints
 //     DiGraph::<(), ()>::from_edges(edge_list)
 // }

@@ -15,15 +15,16 @@ from qiskit.transpiler.passes import (
 from collections import defaultdict
 from graph.dag import DAG
 
-from rich.console import Console # type: ignore
-from rich.table import Table # type: ignore
+from rich.console import Console  # type: ignore
+from rich.table import Table  # type: ignore
 
 from commands.helper import (
     apply_sabre_result,
     result_table,
 )
 
-import microboost # type: ignore
+import microboost  # type: ignore
+
 
 class BenchmarkSet:
     def __init__(self, heuristics, trials, extended_set_size):
@@ -41,14 +42,18 @@ class BenchmarkSet:
 
         return test_cases
 
+
 def coupling_line(n):
     return CouplingMap.from_line(n)
 
+
 def coupling_grid(n):
     import math
+
     rows = math.isqrt(n)
     cols = math.ceil(n / rows)
     return CouplingMap.from_grid(rows, cols)
+
 
 def ocular(config):
     path = config["ocular"]["path"]
@@ -59,7 +64,7 @@ def ocular(config):
     input_circuit = QuantumCircuit.from_qasm_file(path)
     num_qubits = input_circuit.num_qubits
 
-    coupling_map = coupling_line(input_circuit.num_qubits) 
+    coupling_map = coupling_line(input_circuit.num_qubits)
 
     pm = PassManager(
         [

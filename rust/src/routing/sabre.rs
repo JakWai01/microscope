@@ -6,7 +6,6 @@ use crate::routing::utils::{
 use crate::{graph::dag::MicroDAG, routing::utils::build_adjacency_list};
 use std::cmp::Ordering;
 use std::collections::{HashSet, VecDeque};
-use std::mem::swap;
 
 use pyo3::{pyclass, pymethods, PyResult};
 
@@ -43,7 +42,6 @@ impl MicroSABRE {
         coupling_map: Vec<Vec<i32>>,
         num_qubits: i32,
     ) -> PyResult<Self> {
-
         Ok(Self {
             required_predecessors: vec![0; dag.nodes.len()],
             adjacency_list: build_adjacency_list(&dag),
@@ -83,12 +81,7 @@ impl MicroSABRE {
         self.coupling_map = self.initial_coupling_map.clone();
     }
 
-    fn run(
-        &mut self,
-    ) -> (
-        FxHashMap<i32, Vec<[i32; 2]>>,
-        Vec<i32>,
-    ) {
+    fn run(&mut self) -> (FxHashMap<i32, Vec<[i32; 2]>>, Vec<i32>) {
         self.clear_data_structures();
         self.dag
             .edges()
@@ -103,7 +96,7 @@ impl MicroSABRE {
         while !self.front_layer.is_empty() {
             let mut current_swaps: Vec<[i32; 2]> = Vec::new();
 
-            while execute_gate_list.is_empty() && current_swaps.len() <= 10000{
+            while execute_gate_list.is_empty() && current_swaps.len() <= 10000 {
                 let best_swap = self.choose_best_swap();
 
                 let physical_q0 = best_swap[0][0];
@@ -120,9 +113,12 @@ impl MicroSABRE {
                     execute_gate_list.push(node);
                 }
             }
-            
+
             if execute_gate_list.is_empty() {
-                current_swaps.drain(..).rev().for_each(|swap| self.apply_swap(swap));
+                current_swaps
+                    .drain(..)
+                    .rev()
+                    .for_each(|swap| self.apply_swap(swap));
                 let force_routed = self.release_valve(&mut current_swaps);
                 execute_gate_list.extend(force_routed);
             }
@@ -146,9 +142,7 @@ impl MicroSABRE {
         )
     }
 
-     fn calculate_heuristic(
-        &mut self,
-    ) -> f64 {
+    fn calculate_heuristic(&mut self) -> f64 {
         let extended_set = self.get_extended_set();
 
         let basic = self
@@ -170,9 +164,7 @@ impl MicroSABRE {
         basic + 0.5 * lookahead
     }
 
-    fn get_extended_set(
-        &mut self,
-    ) -> MicroFront {
+    fn get_extended_set(&mut self) -> MicroFront {
         let mut required_predecessors = self.required_predecessors.clone();
 
         let mut to_visit: Vec<i32> = self.front_layer.nodes.keys().copied().collect();
@@ -262,13 +254,13 @@ impl MicroSABRE {
             state: self.create_snapshot(),
             swap_sequence: Vec::new(),
             score: 0.0,
-            current_depth: depth
-        }); 
+            current_depth: depth,
+        });
 
         while let Some(item) = stack.pop() {
             if item.current_depth == 0 {
                 scores.insert(item.swap_sequence.clone(), item.score);
-                continue
+                continue;
             }
 
             let state = item.state.clone();
@@ -277,7 +269,7 @@ impl MicroSABRE {
 
             if swap_candidates.is_empty() {
                 scores.insert(item.swap_sequence.clone(), item.score);
-                continue
+                continue;
             }
 
             for &[q0, q1] in &swap_candidates {
@@ -297,20 +289,23 @@ impl MicroSABRE {
                     execute_gate_list.push(node);
                     self.front_layer.remove(&node);
                 }
-                
+
                 self.advance_front_layer(&execute_gate_list);
 
                 let mut swap_sequence = item.swap_sequence.clone();
                 swap_sequence.push([q0, q1]);
 
-                stack.push(
-                    StackItem { state: self.create_snapshot(), swap_sequence: swap_sequence, score: item.score + score, current_depth: item.current_depth - 1}
-                )
+                stack.push(StackItem {
+                    state: self.create_snapshot(),
+                    swap_sequence: swap_sequence,
+                    score: item.score + score,
+                    current_depth: item.current_depth - 1,
+                })
             }
         }
 
         self.load_snapshot(initial_state);
-        
+
         min_score(scores)
     }
 
@@ -366,7 +361,7 @@ struct StackItem {
     state: State,
     swap_sequence: Vec<[i32; 2]>,
     score: f64,
-    current_depth: usize
+    current_depth: usize,
 }
 
 impl MicroSABRE {

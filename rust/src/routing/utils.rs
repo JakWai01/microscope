@@ -58,7 +58,7 @@ pub fn min_score(scores: FxHashMap<Vec<[i32; 2]>, f64>) -> Vec<[i32; 2]> {
 
     let mut iter = scores.iter();
 
-    let (min_swap_sequence, mut min_score) = iter.next().unwrap(); 
+    let (min_swap_sequence, mut min_score) = iter.next().unwrap();
 
     best_swap_sequences.push(min_swap_sequence);
 

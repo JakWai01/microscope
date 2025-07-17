@@ -8,10 +8,11 @@ from qiskit.transpiler.passes import (
     FullAncillaAllocation,
     ApplyLayout,
     RemoveBarriers,
-    SabreLayout
+    SabreLayout,
 )
 
 from qiskit.circuit.library.standard_gates import SwapGate
+
 
 def qiskit(config):
     path = config["ocular"]["path"]
@@ -21,7 +22,7 @@ def qiskit(config):
     input_circuit = QuantumCircuit.from_qasm_file(path)
 
     coupling_map = CouplingMap.from_line(input_circuit.num_qubits)
-    
+
     pm = PassManager(
         [
             Unroll3qOrMore(),
@@ -33,7 +34,7 @@ def qiskit(config):
     )
 
     preprocessed_circuit = pm.run(input_circuit)
-    
+
     for heuristic, _ in test_cases:
         cm = CheckMap(coupling_map=coupling_map)
 
@@ -45,8 +46,10 @@ def qiskit(config):
         transpiled_qc_dag = circuit_to_dag(transpiled_qc)
 
         if not cm.property_set.get("is_swap_mapped"):
-            raise ValueError("CheckMap identified invalid mapping from DAG to coupling_map")
-        
+            raise ValueError(
+                "CheckMap identified invalid mapping from DAG to coupling_map"
+            )
+
         depth = transpiled_qc.depth()
         num_swaps = len(transpiled_qc_dag.op_nodes(op=SwapGate))
 
