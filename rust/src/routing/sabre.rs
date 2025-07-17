@@ -6,6 +6,7 @@ use crate::routing::utils::{
 use crate::{graph::dag::MicroDAG, routing::utils::build_adjacency_list};
 use std::cmp::Ordering;
 use std::collections::{HashSet, VecDeque};
+use std::mem::swap;
 
 use pyo3::{pyclass, pymethods, PyResult};
 
@@ -105,10 +106,10 @@ impl MicroSABRE {
             while execute_gate_list.is_empty() && current_swaps.len() <= 10000{
                 let best_swap = self.choose_best_swap();
 
-                let physical_q0 = best_swap.0;
-                let physical_q1 = best_swap.1;
+                let physical_q0 = best_swap[0][0];
+                let physical_q1 = best_swap[0][1];
 
-                current_swaps.push([best_swap.0, best_swap.1]);
+                current_swaps.push([best_swap[0][0], best_swap[0][1]]);
                 self.apply_swap([physical_q0, physical_q1]);
 
                 if let Some(node) = self.executable_node_on_qubit(physical_q0) {
@@ -230,12 +231,12 @@ impl MicroSABRE {
         extended_set
     }
 
-    fn choose_best_swap(&mut self) -> (i32, i32) {
-        let mut scores: FxHashMap<(i32, i32), f64> = FxHashMap::default();
+    fn choose_best_swap(&mut self) -> Vec<[i32; 2]> {
+        let mut scores: FxHashMap<Vec<[i32; 2]>, f64> = FxHashMap::default();
 
-        let swap_candidates: Vec<(i32, i32)> = self.compute_swap_candidates();
+        let swap_candidates: Vec<[i32; 2]> = self.compute_swap_candidates();
 
-        for &(q0, q1) in &swap_candidates {
+        for &[q0, q1] in &swap_candidates {
             // TODO: Isn't before always the after from the previous iteration?
             let before = self.calculate_heuristic();
 
@@ -245,21 +246,81 @@ impl MicroSABRE {
 
             self.apply_swap([q1, q0]);
 
-            scores.insert((q0, q1), after - before);
+            scores.insert(vec![[q0, q1]], after - before);
         }
 
-        let (best_swap, _) = min_score(scores);
-
-        best_swap
+        min_score(scores)
     }
 
-    fn compute_swap_candidates(&self) -> Vec<(i32, i32)> {
-        let mut swap_candidates: Vec<(i32, i32)> = Vec::new();
+    fn choose_best_swaps(&mut self, depth: usize) -> Vec<[i32; 2]> {
+        let initial_state = self.create_snapshot();
+
+        let mut stack = Vec::new();
+        let mut scores: FxHashMap<Vec<[i32; 2]>, f64> = FxHashMap::default();
+
+        stack.push(StackItem {
+            state: self.create_snapshot(),
+            swap_sequence: Vec::new(),
+            score: 0.0,
+            current_depth: depth
+        }); 
+
+        while let Some(item) = stack.pop() {
+            if item.current_depth == 0 {
+                scores.insert(item.swap_sequence.clone(), item.score);
+                continue
+            }
+
+            let state = self.create_snapshot();
+
+            let swap_candidates = self.compute_swap_candidates();
+
+            if swap_candidates.is_empty() {
+                scores.insert(item.swap_sequence.clone(), item.score);
+                continue
+            }
+
+            for &[q0, q1] in &swap_candidates {
+                self.load_snapshot(state.clone());
+
+                self.apply_swap([q0, q1]);
+
+                let score = self.calculate_heuristic();
+
+                let mut execute_gate_list = Vec::new();
+
+                if let Some(node) = self.executable_node_on_qubit(q0) {
+                    execute_gate_list.push(node);
+                    self.front_layer.remove(&node);
+                }
+                if let Some(node) = self.executable_node_on_qubit(q1) {
+                    execute_gate_list.push(node);
+                    self.front_layer.remove(&node);
+                }
+                
+                self.advance_front_layer(&execute_gate_list);
+
+                let mut swap_sequence = item.swap_sequence.clone();
+                swap_sequence.push([q0, q1]);
+
+                stack.push(
+                    StackItem { state: self.create_snapshot(), swap_sequence: swap_sequence, score: item.score + score, current_depth: item.current_depth - 1}
+                )
+            }
+        }
+
+        self.load_snapshot(initial_state);
+        
+        min_score(scores)
+    }
+
+    fn compute_swap_candidates(&self) -> Vec<[i32; 2]> {
+        let mut swap_candidates: Vec<[i32; 2]> = Vec::new();
 
         for &phys in self.front_layer.nodes.values().flatten() {
             for neighbour in self.neighbour_map[&phys].iter() {
                 if neighbour > &phys || !self.front_layer.is_active(*neighbour) {
-                    swap_candidates.push((phys, *neighbour))
+                    swap_candidates.push([phys, *neighbour])
                 }
             }
         }
@@ -292,7 +353,39 @@ impl MicroSABRE {
     }
 }
 
+#[derive(Clone)]
+struct State {
+    front_layer: MicroFront,
+    required_predecessors: Vec<i32>,
+    layout: MicroLayout,
+    gate_order: Vec<i32>,
+}
+
+#[derive(Clone)]
+struct StackItem {
+    state: State,
+    swap_sequence: Vec<[i32; 2]>,
+    score: f64,
+    current_depth: usize
+}
+
 impl MicroSABRE {
+    fn create_snapshot(&self) -> State {
+        State {
+            front_layer: self.front_layer.clone(),
+            required_predecessors: self.required_predecessors.clone(),
+            layout: self.layout.clone(),
+            gate_order: self.gate_order.clone(),
+        }
+    }
+
+    fn load_snapshot(&mut self, state: State) {
+        self.front_layer = state.front_layer;
+        self.required_predecessors = state.required_predecessors;
+        self.layout = state.layout;
+        self.gate_order = state.gate_order;
+    }
+
     fn advance_front_layer(&mut self, nodes: &Vec<i32>) {
         let mut node_queue: VecDeque<i32> = VecDeque::from(nodes.clone());
 
