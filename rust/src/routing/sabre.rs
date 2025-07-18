@@ -211,6 +211,12 @@ impl MicroSABRE {
         extended_set
     }
 
+    // TODO: Optimality - depth = 7 always solves 7 SWAP circuit
+    // 1) Do I really check all cases?
+    // 2) Does the best solution has the best score?
+    // 3) Prioritize fewer SWAPs
+    // 4) Can we find a global heuristic?
+    // 5) Can we introduce a factor that prioritizes swap_sequences that execute more gates
     fn choose_best_swaps(&mut self, depth: usize) -> Vec<[i32; 2]> {
         let initial_state = self.create_snapshot();
 
