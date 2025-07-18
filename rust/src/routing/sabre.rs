@@ -3,14 +3,17 @@ use crate::routing::layout::MicroLayout;
 use crate::routing::utils::{
     build_coupling_neighbour_map, compute_all_pairs_shortest_paths, min_score,
 };
+
 use crate::{graph::dag::MicroDAG, routing::utils::build_adjacency_list};
+
 use std::cmp::Ordering;
+
 use std::collections::{HashSet, VecDeque};
-use std::sync::Arc;
 
 use pyo3::{pyclass, pymethods, PyResult};
 
 use rustc_hash::FxHashMap;
+
 use rustworkx_core::dictmap::{DictMap, InitWithHasher};
 use rustworkx_core::petgraph::csr::IndexType;
 use rustworkx_core::petgraph::graph::{DiGraph, NodeIndex};

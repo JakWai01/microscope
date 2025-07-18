@@ -76,16 +76,3 @@ pub fn min_score(scores: FxHashMap<Vec<[i32; 2]>, f64>) -> Vec<[i32; 2]> {
 
     best_swap_sequences.choose(&mut rng).unwrap().to_vec()
 }
-
-// pub fn min_score(scores: FxHashMap<(i32, i32), f64>) -> (i32, i32) {
-//     scores
-//         .into_iter()
-//         .min_by(|a, b| {
-//             a.1
-//                 .partial_cmp(&b.1)
-//                 .unwrap_or(std::cmp::Ordering::Equal)
-//                 .then_with(|| a.0.cmp(&b.0)) // Optional: tie-break using swap tuple
-//         })
-//         .map(|(swap, _)| swap)
-//         .unwrap()
-// }
