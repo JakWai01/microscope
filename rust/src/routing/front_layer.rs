@@ -9,7 +9,7 @@ pub struct MicroFront {
 }
 
 impl MicroFront {
-    pub fn new(num_qubits: i32) -> Self {
+    pub fn new(num_qubits: usize) -> Self {
         Self {
             nodes: IndexMap::with_capacity(num_qubits as usize / 2),
             qubits: vec![None; num_qubits as usize],

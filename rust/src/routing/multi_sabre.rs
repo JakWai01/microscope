@@ -24,7 +24,7 @@ pub struct MultiSABRE {
     running_mapping: MicroLayout,
     front_layer: MicroFront,
     neighbour_map: FxHashMap<i32, Vec<i32>>,
-    num_qubits: i32,
+    num_qubits: usize,
 }
 
 #[pymethods]
@@ -34,7 +34,7 @@ impl MultiSABRE {
         dag: MicroDAG,
         initial_mapping: MicroLayout,
         coupling_map: Vec<Vec<i32>>,
-        num_qubits: i32,
+        num_qubits: usize,
     ) -> PyResult<Self> {
         Ok(Self {
             required_predecessors: vec![0; dag.nodes.len()],

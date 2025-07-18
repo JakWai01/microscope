@@ -6,6 +6,7 @@ use crate::routing::utils::{
 use crate::{graph::dag::MicroDAG, routing::utils::build_adjacency_list};
 use std::cmp::Ordering;
 use std::collections::{HashSet, VecDeque};
+use std::sync::Arc;
 
 use pyo3::{pyclass, pymethods, PyResult};
 
@@ -18,19 +19,15 @@ use rustworkx_core::shortest_path::dijkstra;
 #[pyclass(module = "microboost.routing.sabre")]
 pub struct MicroSABRE {
     dag: MicroDAG,
-    coupling_map: Vec<Vec<i32>>,
     out_map: FxHashMap<i32, Vec<[i32; 2]>>,
     gate_order: Vec<i32>,
     front_layer: MicroFront,
     required_predecessors: Vec<i32>,
     adjacency_list: FxHashMap<i32, Vec<i32>>,
     distance: Vec<Vec<i32>>,
-    initial_mapping: MicroLayout,
-    initial_dag: MicroDAG,
-    initial_coupling_map: Vec<Vec<i32>>,
     neighbour_map: FxHashMap<i32, Vec<i32>>,
     layout: MicroLayout,
-    num_qubits: i32,
+    num_qubits: usize,
 }
 
 #[pymethods]
@@ -40,7 +37,7 @@ impl MicroSABRE {
         dag: MicroDAG,
         initial_layout: MicroLayout,
         coupling_map: Vec<Vec<i32>>,
-        num_qubits: i32,
+        num_qubits: usize,
     ) -> PyResult<Self> {
         Ok(Self {
             required_predecessors: vec![0; dag.nodes.len()],
@@ -48,41 +45,20 @@ impl MicroSABRE {
             dag: dag.clone(),
             layout: initial_layout.clone(),
             distance: compute_all_pairs_shortest_paths(&coupling_map),
-            coupling_map: coupling_map.clone(),
             out_map: FxHashMap::default(),
             gate_order: Vec::new(),
             front_layer: MicroFront::new(num_qubits),
-            initial_mapping: initial_layout.clone(),
-            initial_dag: dag,
             neighbour_map: build_coupling_neighbour_map(&coupling_map),
-            initial_coupling_map: coupling_map,
             num_qubits,
         })
     }
 
-    // Maybe it would make sense to also maintain an extended set and apply swaps there
     fn apply_swap(&mut self, swap: [i32; 2]) {
         self.front_layer.apply_swap(swap);
         self.layout.swap_physical(swap);
     }
 
-    fn clear_data_structures(&mut self) {
-        // In theory, this should always be zero in the end (so we could skip it - only if everything goes well)
-        self.required_predecessors = vec![0; self.dag.nodes.len()];
-        self.adjacency_list = build_adjacency_list(&self.dag);
-
-        self.layout = self.initial_mapping.clone();
-
-        self.out_map.clear();
-        self.gate_order.clear();
-        self.front_layer = MicroFront::new(self.num_qubits);
-
-        self.dag = self.initial_dag.clone();
-        self.coupling_map = self.initial_coupling_map.clone();
-    }
-
     fn run(&mut self, depth: usize) -> (FxHashMap<i32, Vec<[i32; 2]>>, Vec<i32>) {
-        self.clear_data_structures();
         self.dag
             .edges()
             .unwrap()
@@ -92,14 +68,19 @@ impl MicroSABRE {
         self.advance_front_layer(&initial_front);
 
         let mut execute_gate_list: Vec<i32> = Vec::new();
+        let mut insertion_queue: VecDeque<[i32; 2]> = VecDeque::new();
 
         while !self.front_layer.is_empty() {
             let mut current_swaps: Vec<[i32; 2]> = Vec::new();
 
-            while execute_gate_list.is_empty() && current_swaps.len() <= 10000 {
-                let swaps = self.choose_best_swaps(depth);
+            while execute_gate_list.is_empty() && current_swaps.len() < 10 * self.num_qubits {
+                if insertion_queue.is_empty() {
+                    for swap in self.choose_best_swaps(depth) {
+                        insertion_queue.push_back(swap);
+                    }
+                }
 
-                for swap in swaps {
+                if let Some(swap) = insertion_queue.pop_front() {
                     let q0 = swap[0];
                     let q1 = swap[1];
 
@@ -113,30 +94,7 @@ impl MicroSABRE {
                     if let Some(node) = self.executable_node_on_qubit(q1) {
                         execute_gate_list.push(node);
                     }
-                    
-                    if !execute_gate_list.is_empty() {
-                        let node_id = self.dag.get(execute_gate_list[0]).unwrap().id;
-                        self.out_map
-                            .entry(node_id)
-                            .or_default()
-                            .extend(current_swaps.clone());
-
-                        for &node in &execute_gate_list {
-                            self.front_layer.remove(&node);
-                        }
-
-                        self.advance_front_layer(&execute_gate_list);
-
-                        if self.front_layer.is_empty() {
-                            return (
-                                std::mem::take(&mut self.out_map),
-                                std::mem::take(&mut self.gate_order),
-                            )
-                        }
-                        execute_gate_list.clear();
-                        current_swaps.clear();
-                    }
-                }
+                } 
             }
 
             if execute_gate_list.is_empty() {
@@ -146,20 +104,21 @@ impl MicroSABRE {
                     .for_each(|swap| self.apply_swap(swap));
                 let force_routed = self.release_valve(&mut current_swaps);
                 execute_gate_list.extend(force_routed);
-                
-                let node_id = self.dag.get(execute_gate_list[0]).unwrap().id;
-                self.out_map
-                    .entry(node_id)
-                    .or_default()
-                    .extend(current_swaps);
-
-                for &node in &execute_gate_list {
-                    self.front_layer.remove(&node);
-                }
-                self.advance_front_layer(&execute_gate_list);
-                execute_gate_list.clear();
             }
 
+            let node_id = self.dag.get(execute_gate_list[0]).unwrap().id;
+            self.out_map
+                .entry(node_id)
+                .or_default()
+                .extend(current_swaps.clone());
+
+            for &node in &execute_gate_list {
+                self.front_layer.remove(&node);
+            }
+
+            self.advance_front_layer(&execute_gate_list);
+
+            execute_gate_list.clear();
         }
 
         (
@@ -260,10 +219,12 @@ impl MicroSABRE {
             swap_sequence: Vec::new(),
             score: 0.0,
             current_depth: depth,
+            executed_gates: 0
         });
 
         while let Some(item) = stack.pop() {
             if item.current_depth == 0 {
+                // I'd like to try something like item.score / (1. + 0.5 * item.executed_gates as f64)
                 scores.insert(item.swap_sequence.clone(), item.score);
                 continue;
             }
@@ -273,7 +234,7 @@ impl MicroSABRE {
             let swap_candidates = self.compute_swap_candidates();
 
             if swap_candidates.is_empty() {
-                scores.insert(item.swap_sequence.clone(), item.score);
+                scores.insert(item.swap_sequence.clone(),  item.score);
                 continue;
             }
 
@@ -305,6 +266,7 @@ impl MicroSABRE {
                     swap_sequence: swap_sequence,
                     score: item.score + score,
                     current_depth: item.current_depth - 1,
+                    executed_gates: item.executed_gates + execute_gate_list.len()
                 })
             }
         }
@@ -367,6 +329,7 @@ struct StackItem {
     swap_sequence: Vec<[i32; 2]>,
     score: f64,
     current_depth: usize,
+    executed_gates: usize,
 }
 
 impl MicroSABRE {

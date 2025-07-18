@@ -17,6 +17,7 @@ from graph.dag import DAG
 
 from rich.console import Console  # type: ignore
 from rich.table import Table  # type: ignore
+import matplotlib.pyplot as plt # type: ignore
 
 from commands.helper import (
     apply_sabre_result,
@@ -167,6 +168,8 @@ def ocular(config):
                 transpiled_sabre_dag_boosted
             )
 
+            # transpiled_sabre_circuit_boosted.draw(output="mpl", fold=-1)
+
             cm = CheckMap(coupling_map=coupling_map)
             pm = PassManager([cm])
 
@@ -247,3 +250,4 @@ def process_results(test_results):
     # ax.grid()
 
     # plt.xlim((0, 100))
+    plt.show()
