@@ -57,6 +57,7 @@ def coupling_grid(n):
 
 def ocular(config):
     files = config["ocular"]["files"]
+    algorithmic_depth = config["ocular"]["depth"]
 
     for file in files:
         print(file)
@@ -152,7 +153,7 @@ def ocular(config):
                 rust_dag, initial_layout, coupling_map.get_edges(), num_qubits
             )
 
-            sabre_result = rust_ms.run()
+            sabre_result = rust_ms.run(algorithmic_depth)
 
             transpiled_sabre_dag_boosted, _ = apply_sabre_result(
                 preprocessed_dag.copy_empty_like(),

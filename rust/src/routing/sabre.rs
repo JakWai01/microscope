@@ -81,7 +81,7 @@ impl MicroSABRE {
         self.coupling_map = self.initial_coupling_map.clone();
     }
 
-    fn run(&mut self) -> (FxHashMap<i32, Vec<[i32; 2]>>, Vec<i32>) {
+    fn run(&mut self, depth: usize) -> (FxHashMap<i32, Vec<[i32; 2]>>, Vec<i32>) {
         self.clear_data_structures();
         self.dag
             .edges()
@@ -97,7 +97,7 @@ impl MicroSABRE {
             let mut current_swaps: Vec<[i32; 2]> = Vec::new();
 
             while execute_gate_list.is_empty() && current_swaps.len() <= 10000 {
-                let swaps = self.choose_best_swaps(7);
+                let swaps = self.choose_best_swaps(depth);
 
                 for swap in swaps {
                     let q0 = swap[0];
