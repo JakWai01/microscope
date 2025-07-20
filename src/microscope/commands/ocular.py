@@ -11,6 +11,7 @@ from qiskit.transpiler.passes import (
     RemoveBarriers,
     SabreLayout,
     SabreSwap,
+    FullAncillaAllocation
 )
 
 from collections import defaultdict
@@ -76,6 +77,7 @@ def ocular(config):
             [
                 Unroll3qOrMore(),
                 SabreLayout(coupling_map, skip_routing=True, seed=42),
+                FullAncillaAllocation(coupling_map=coupling_map),
                 ApplyLayout(),
                 RemoveBarriers(),
             ]

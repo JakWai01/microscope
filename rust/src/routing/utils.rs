@@ -54,7 +54,7 @@ pub fn build_coupling_neighbour_map(coupling_map: &Vec<Vec<i32>>) -> FxHashMap<i
 }
 
 pub fn min_score(
-    scores: FxHashMap<Vec<[i32; 2]>, f64>,
+    scores: FxHashMap<Vec<[i32; 2]>, (f64, usize)>,
     epsilon: f64,
 ) -> Vec<[i32; 2]> {
     let mut best_swap_sequences = Vec::new();
@@ -63,9 +63,9 @@ pub fn min_score(
 
     let (min_swap_sequence, mut min_score) = iter.next().unwrap();
     best_swap_sequences.push(min_swap_sequence);
-
+    
     for (swap_sequence, score) in iter {
-        let diff = score - min_score;
+        let diff = score.0 - min_score.0;
 
         if diff < -epsilon {
             min_score = score;
@@ -78,5 +78,40 @@ pub fn min_score(
 
     let mut rng = rand::rng(); // replace with your `rng()` function if needed
 
+    best_swap_sequences.choose(&mut rng).unwrap().to_vec()
+}
+
+pub fn best_progress_sequence(
+    scores: FxHashMap<Vec<[i32; 2]>, (f64, usize)>, // score + executed_gates
+    epsilon: f64,
+) -> Vec<[i32; 2]> {
+    let mut best_swap_sequences = Vec::new();
+    let mut iter = scores.iter();
+
+    let (first_seq, &(first_score, first_executed)) = iter.next().unwrap();
+    let mut max_exec = first_executed;
+    let mut best_score = first_score;
+
+    best_swap_sequences.push(first_seq);
+
+    for (swap_sequence, &(score, executed)) in iter {
+        if executed > max_exec {
+            max_exec = executed;
+            best_score = score;
+            best_swap_sequences.clear();
+            best_swap_sequences.push(swap_sequence);
+        } else if executed == max_exec {
+            let diff = score - best_score;
+            if diff < -epsilon {
+                best_score = score;
+                best_swap_sequences.clear();
+                best_swap_sequences.push(swap_sequence);
+            } else if diff.abs() <= epsilon {
+                best_swap_sequences.push(swap_sequence);
+            }
+        }
+    }
+
+    let mut rng = rand::rng();
     best_swap_sequences.choose(&mut rng).unwrap().to_vec()
 }

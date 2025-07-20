@@ -1,7 +1,7 @@
 use crate::routing::front_layer::MicroFront;
 use crate::routing::layout::MicroLayout;
 use crate::routing::utils::{
-    build_coupling_neighbour_map, compute_all_pairs_shortest_paths, min_score,
+    best_progress_sequence, build_coupling_neighbour_map, compute_all_pairs_shortest_paths, min_score
 };
 
 use crate::{graph::dag::MicroDAG, routing::utils::build_adjacency_list};
@@ -31,6 +31,7 @@ pub struct MicroSABRE {
     neighbour_map: FxHashMap<i32, Vec<i32>>,
     layout: MicroLayout,
     num_qubits: usize,
+    last_swap_on_qubit: FxHashMap<i32, [i32; 2]>
 }
 
 #[pymethods]
@@ -53,6 +54,7 @@ impl MicroSABRE {
             front_layer: MicroFront::new(num_qubits),
             neighbour_map: build_coupling_neighbour_map(&coupling_map),
             num_qubits,
+            last_swap_on_qubit: FxHashMap::default(),
         })
     }
 
@@ -222,7 +224,7 @@ impl MicroSABRE {
         let initial_state = self.create_snapshot();
 
         let mut stack = Vec::new();
-        let mut scores: FxHashMap<Vec<[i32; 2]>, f64> = FxHashMap::default();
+        let mut scores: FxHashMap<Vec<[i32; 2]>, (f64, usize)> = FxHashMap::default();
 
         stack.push(StackItem {
             state: self.create_snapshot(),
@@ -234,17 +236,24 @@ impl MicroSABRE {
 
         while let Some(item) = stack.pop() {
             if item.current_depth == 0 {
-                // I'd like to try something like item.score / (1. + 0.5 * item.executed_gates as f64)
-                scores.insert(item.swap_sequence.clone(), item.score);
+                scores.insert(item.swap_sequence.clone(), (item.score, item.executed_gates));
+                continue;
+            }
+            
+            let state = item.state.clone();
+            
+            // Load state for front layer check, otherwise it checks for the old front layer
+            self.load_snapshot(state.clone());
+            if self.front_layer.is_empty() {
+                scores.insert(item.swap_sequence.clone(), (item.score, item.executed_gates));
                 continue;
             }
 
-            let state = item.state.clone();
 
             let swap_candidates = self.compute_swap_candidates();
 
             if swap_candidates.is_empty() {
-                scores.insert(item.swap_sequence.clone(),  item.score);
+                scores.insert(item.swap_sequence.clone(), (item.score, item.executed_gates));
                 continue;
             }
 
@@ -254,7 +263,7 @@ impl MicroSABRE {
                 let before = self.calculate_heuristic();
 
                 self.apply_swap([q0, q1]);
-
+                            
                 let after = self.calculate_heuristic();
                 
                 let score = after - before;
@@ -270,10 +279,28 @@ impl MicroSABRE {
                     self.front_layer.remove(&node);
                 }
 
-                self.advance_front_layer(&execute_gate_list);
+                // if execute_gate_list.is_empty() && item.current_depth == 1 {
+                //     continue; // This swap didn't help at the end of the sequence
+                // }
 
                 let mut swap_sequence = item.swap_sequence.clone();
+
+                // Instead of last we need last on qubits
+                if let Some(last_swap) = self.last_swap_on_qubit.get(&q0) {
+                    if last_swap == &[q1, q0] || last_swap == &[q0, q1] {
+                        continue;
+                    }
+                }
+
+                self.last_swap_on_qubit.insert(q0, [q0, q1]);
+                self.last_swap_on_qubit.insert(q1, [q0, q1]);
+
                 swap_sequence.push([q0, q1]);
+                
+                
+                self.advance_front_layer(&execute_gate_list);
+
+
 
                 stack.push(StackItem {
                     state: self.create_snapshot(),
@@ -287,7 +314,7 @@ impl MicroSABRE {
 
         self.load_snapshot(initial_state);
 
-        min_score(scores, 1e-10)
+        best_progress_sequence(scores, 1e-10)
     }
 
     fn compute_swap_candidates(&self) -> Vec<[i32; 2]> {
@@ -335,6 +362,7 @@ struct State {
     required_predecessors: Vec<i32>,
     layout: MicroLayout,
     gate_order: Vec<i32>,
+    last_swap_on_qubit: FxHashMap<i32, [i32; 2]>
 }
 
 #[derive(Clone)]
@@ -353,6 +381,7 @@ impl MicroSABRE {
             required_predecessors: self.required_predecessors.clone(),
             layout: self.layout.clone(),
             gate_order: self.gate_order.clone(),
+            last_swap_on_qubit: self.last_swap_on_qubit.clone(),
         }
     }
 
@@ -361,6 +390,7 @@ impl MicroSABRE {
         self.required_predecessors = state.required_predecessors;
         self.layout = state.layout;
         self.gate_order = state.gate_order;
+        self.last_swap_on_qubit = state.last_swap_on_qubit;
     }
 
     fn advance_front_layer(&mut self, nodes: &Vec<i32>) {
