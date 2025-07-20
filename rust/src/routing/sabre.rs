@@ -250,9 +250,13 @@ impl MicroSABRE {
             for &[q0, q1] in &swap_candidates {
                 self.load_snapshot(state.clone());
 
+                let before = self.calculate_heuristic();
+
                 self.apply_swap([q0, q1]);
 
-                let score = self.calculate_heuristic();
+                let after = self.calculate_heuristic();
+                
+                let score = after - before;
 
                 let mut execute_gate_list = Vec::new();
 

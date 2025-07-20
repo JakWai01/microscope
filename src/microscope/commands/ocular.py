@@ -10,6 +10,7 @@ from qiskit.transpiler.passes import (
     ApplyLayout,
     RemoveBarriers,
     SabreLayout,
+    SabreSwap,
 )
 
 from collections import defaultdict
@@ -156,6 +157,21 @@ def ocular(config):
 
             sabre_result = rust_ms.run(algorithmic_depth)
 
+            # Qiskit Reference
+            cm = CheckMap(coupling_map=coupling_map)
+
+            qiskit_pm = PassManager(
+                [SabreSwap(coupling_map, heuristic=heuristic, trials=1), cm]
+            )
+            transpiled_qc = qiskit_pm.run(preprocessed_circuit)
+            transpiled_qc_dag = circuit_to_dag(transpiled_qc)
+
+            if not cm.property_set.get("is_swap_mapped"):
+                raise ValueError("CheckMap identified invalid mapping from DAG to coupling_map in qiskit implementation") 
+
+            qiskit_depth = transpiled_qc.depth()
+            qiskit_swaps = len(transpiled_qc_dag.op_nodes(op=SwapGate))
+
             transpiled_sabre_dag_boosted, _ = apply_sabre_result(
                 preprocessed_dag.copy_empty_like(),
                 preprocessed_dag,
@@ -187,6 +203,8 @@ def ocular(config):
                 (
                     depth,
                     swaps,
+                    qiskit_depth,
+                    qiskit_swaps
                 )
             )
 
@@ -202,16 +220,22 @@ def process_results(test_results):
         "Extended Set Size",
         "Swaps",
         "Depth",
+        "Qiskit Swaps",
+        "Qiskit Depth"
     ]
 
     for key, results in test_results.items():
-        total_depth = sum(d for d, s in results)
-        total_swaps = sum(s for d, s in results)
+        total_depth = sum(d for d, s, q_d, q_s in results)
+        total_swaps = sum(s for d, s, q_d, q_s in results)
+        total_qiskit_depth = sum(q_d for d, s, q_d, q_s in results)
+        total_qiskit_swaps = sum(q_s for d, s, q_d, q_s in results)
 
         count = len(results)
 
         avg_swaps = total_swaps / count
         avg_depth = total_depth / count
+        avg_q_swaps = total_qiskit_swaps / count
+        avg_q_depth = total_qiskit_depth / count
 
         heuristic = key[0]
         extended_set_size = key[1]
@@ -222,6 +246,8 @@ def process_results(test_results):
                 str(extended_set_size),
                 str(avg_swaps),
                 str(avg_depth),
+                str(avg_q_swaps),
+                str(avg_q_depth),
             ]
         )
         data[heuristic][0].append(extended_set_size)
