@@ -149,7 +149,8 @@ impl MicroSABRE {
             });
 
         // (1. / num_executable_gates as f64) * (basic + 0.5 * lookahead)
-        basic + 0.5 * lookahead
+        // basic + 0.5 * lookahead
+        basic + (0.5 / extended_set.len() as f64) * lookahead
     }
 
     fn get_extended_set(&mut self) -> MicroFront {
@@ -286,7 +287,7 @@ impl MicroSABRE {
 
         self.load_snapshot(initial_state);
 
-        min_score(scores)
+        min_score(scores, 1e-10)
     }
 
     fn compute_swap_candidates(&self) -> Vec<[i32; 2]> {
