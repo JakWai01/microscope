@@ -1,3 +1,5 @@
+use std::{cmp::Reverse, collections::BinaryHeap};
+
 use rand::seq::IndexedRandom;
 use rustc_hash::FxHashMap;
 
@@ -116,4 +118,36 @@ pub fn best_progress_sequence(
 
     let mut rng = rand::rng();
     best_swap_sequences.choose(&mut rng).unwrap().to_vec()
+}
+
+pub fn top_n_progress_sequences(
+    scores: FxHashMap<Vec<[i32; 2]>, (f64, usize)>,
+    top_n: usize,
+) -> Vec<Vec<[i32; 2]>> {
+    // Define a heap entry: executed gates DESC, score ASC, swap length ASC
+    let mut heap = BinaryHeap::new();
+
+    for (swap_sequence, &(score, executed)) in scores.iter() {
+        let len = swap_sequence.len();
+
+        // Reverse values to simulate a min-heap
+        heap.push(Reverse((
+            executed,                  // Maximize this
+            -(score as i64),           // Minimize score (converted to i64 for total ordering)
+            len as i64,                // Prefer shorter sequences
+            swap_sequence.clone(),
+        )));
+    }
+
+    // Extract top-n sorted sequences
+    let mut results = Vec::new();
+    for _ in 0..top_n {
+        if let Some(Reverse((_, _, _, seq))) = heap.pop() {
+            results.push(seq);
+        } else {
+            break;
+        }
+    }
+
+    results
 }

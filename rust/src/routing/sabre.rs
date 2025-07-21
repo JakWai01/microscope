@@ -1,7 +1,7 @@
 use crate::routing::front_layer::MicroFront;
 use crate::routing::layout::MicroLayout;
 use crate::routing::utils::{
-    best_progress_sequence, min_score, build_coupling_neighbour_map, compute_all_pairs_shortest_paths,
+    best_progress_sequence, build_coupling_neighbour_map, compute_all_pairs_shortest_paths, min_score, top_n_progress_sequences
 };
 
 use crate::{graph::dag::MicroDAG, routing::utils::build_adjacency_list};
@@ -9,6 +9,7 @@ use crate::{graph::dag::MicroDAG, routing::utils::build_adjacency_list};
 use std::cmp::Ordering;
 
 use std::collections::{HashSet, VecDeque};
+use std::thread::current;
 
 use pyo3::{pyclass, pymethods, PyResult};
 
@@ -220,98 +221,124 @@ impl MicroSABRE {
     // 3) Prioritize fewer SWAPs
     // 4) Can we find a global heuristic?
     // 5) Can we introduce a factor that prioritizes swap_sequences that execute more gates
-    fn choose_best_swaps(&mut self, depth: usize) -> Vec<[i32; 2]> {
+    fn choose_best_swaps(&mut self, k: usize) -> Vec<[i32; 2]> {
         let initial_state = self.create_snapshot();
 
-        let mut stack = Vec::new();
+        let mut queue = VecDeque::new();
         let mut scores: FxHashMap<Vec<[i32; 2]>, (f64, usize)> = FxHashMap::default();
+        let mut global_beam_scores: Vec<StackItem> = Vec::new();
 
-        stack.push(StackItem {
+        queue.push_back(StackItem {
             state: self.create_snapshot(),
             swap_sequence: Vec::new(),
             score: 0.0,
-            current_depth: depth,
+            current_depth: k,
             executed_gates: 0,
         });
 
-        while let Some(item) = stack.pop() {
-            if item.current_depth == 0 {
-                // let total_score = - (item.executed_gates as f64) + 0.4 * item.swap_sequence.len() as f64 + 0.1 * item.score;
-                scores.insert(
-                    item.swap_sequence.clone(),
-                    (item.score, item.executed_gates),
-                );
-                continue;
-            }
+        let mut current_depth = 0;
+        
+        
+        while current_depth < k {
+            let mut beam_scores: Vec<StackItem> = Vec::new();
 
-            let state = item.state.clone();
+            while let Some(item) = queue.pop_front() {
+                // if item.current_depth == k {
+                //     // let total_score = - (item.executed_gates as f64) + 0.4 * item.swap_sequence.len() as f64 + 0.1 * item.score;
+                //     beam_scores.push(item);
+                //     continue;
+                // }
 
-            self.load_snapshot(state.clone());
-            if self.front_layer.is_empty() {
-                // let total_score = - (item.executed_gates as f64) + 0.4 * item.swap_sequence.len() as f64 + 0.1 * item.score;
-                scores.insert(
-                    item.swap_sequence.clone(),
-                    (item.score, item.executed_gates),
-                );
-                continue;
-            }
+                let state = item.state.clone();
 
-            let swap_candidates = self.compute_swap_candidates();
-
-            if swap_candidates.is_empty() {
-                // let total_score = - (item.executed_gates as f64) + 0.4 * item.swap_sequence.len() as f64 + 0.1 * item.score;
-                scores.insert(
-                    item.swap_sequence.clone(),
-                    (item.score, item.executed_gates),
-                );
-                continue;
-            }
-
-            for &[q0, q1] in &swap_candidates {
                 self.load_snapshot(state.clone());
-
-                let before = self.calculate_heuristic();
-
-                self.apply_swap([q0, q1]);
-
-                let after = self.calculate_heuristic();
-
-                let score = after - before;
-
-                let mut execute_gate_list = Vec::new();
-
-                if let Some(node) = self.executable_node_on_qubit(q0) {
-                    execute_gate_list.push(node);
-                    self.front_layer.remove(&node);
-                }
-                if let Some(node) = self.executable_node_on_qubit(q1) {
-                    execute_gate_list.push(node);
-                    self.front_layer.remove(&node);
+                if self.front_layer.is_empty() {
+                    // let total_score = - (item.executed_gates as f64) + 0.4 * item.swap_sequence.len() as f64 + 0.1 * item.score;
+                    beam_scores.push(item);
+                    continue;
                 }
 
-                let mut swap_sequence = item.swap_sequence.clone();
+                let swap_candidates = self.compute_swap_candidates();
 
-                if let Some(last_swap) = self.last_swap_on_qubit.get(&q0) {
-                    if last_swap == &[q1, q0] || last_swap == &[q0, q1] {
-                        continue;
+                if swap_candidates.is_empty() {
+                    // let total_score = - (item.executed_gates as f64) + 0.4 * item.swap_sequence.len() as f64 + 0.1 * item.score;
+                    beam_scores.push(item);
+                    continue;
+                }
+
+                for &[q0, q1] in &swap_candidates {
+                    self.load_snapshot(state.clone());
+
+                    let before = self.calculate_heuristic();
+
+                    self.apply_swap([q0, q1]);
+
+                    let after = self.calculate_heuristic();
+
+                    let score = after - before;
+
+                    let mut execute_gate_list = Vec::new();
+
+                    if let Some(node) = self.executable_node_on_qubit(q0) {
+                        execute_gate_list.push(node);
+                        self.front_layer.remove(&node);
                     }
+                    if let Some(node) = self.executable_node_on_qubit(q1) {
+                        execute_gate_list.push(node);
+                        self.front_layer.remove(&node);
+                    }
+
+                    let mut swap_sequence = item.swap_sequence.clone();
+
+                    if let Some(last_swap) = self.last_swap_on_qubit.get(&q0) {
+                        if last_swap == &[q1, q0] || last_swap == &[q0, q1] {
+                            continue;
+                        }
+                    }
+
+                    self.last_swap_on_qubit.insert(q0, [q0, q1]);
+                    self.last_swap_on_qubit.insert(q1, [q0, q1]);
+
+                    swap_sequence.push([q0, q1]);
+
+                    self.advance_front_layer(&execute_gate_list);
+
+                    beam_scores.push(StackItem {
+                        state: self.create_snapshot(),
+                        swap_sequence: swap_sequence,
+                        score: item.score + score,
+                        current_depth: item.current_depth + 1,
+                        executed_gates: item.executed_gates + execute_gate_list.len(),
+                    })
                 }
-
-                self.last_swap_on_qubit.insert(q0, [q0, q1]);
-                self.last_swap_on_qubit.insert(q1, [q0, q1]);
-
-                swap_sequence.push([q0, q1]);
-
-                self.advance_front_layer(&execute_gate_list);
-
-                stack.push(StackItem {
-                    state: self.create_snapshot(),
-                    swap_sequence: swap_sequence,
-                    score: item.score + score,
-                    current_depth: item.current_depth - 1,
-                    executed_gates: item.executed_gates + execute_gate_list.len(),
-                })
             }
+
+            beam_scores.sort_by(|a, b| {
+                let a_total = a.executed_gates as f64 - 0.3 * a.swap_sequence.len() as f64 + 0.1 * a.score;
+                let b_total = b.executed_gates as f64 - 0.3 * b.swap_sequence.len() as f64 + 0.1 * b.score;
+
+                match (a_total.is_nan(), b_total.is_nan()) {
+                    (true, true) => Ordering::Equal,
+                    (true, false) => Ordering::Greater, // NaN is worse → push to back
+                    (false, true) => Ordering::Less,
+                    (false, false) => a_total.partial_cmp(&b_total).unwrap(), // ascending
+                }
+            });
+            let best_n: Vec<StackItem> = beam_scores.into_iter().take(5).collect();
+            queue.extend(best_n.clone());
+
+            current_depth += 1;
+
+            if current_depth == k {
+                global_beam_scores = best_n;
+            }
+        }
+
+        for item in global_beam_scores {
+            scores.insert(
+                item.swap_sequence.clone(),
+                (item.score, item.executed_gates),
+            );
         }
 
         self.load_snapshot(initial_state);
