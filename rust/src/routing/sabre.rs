@@ -1,7 +1,7 @@
 use crate::routing::front_layer::MicroFront;
 use crate::routing::layout::MicroLayout;
 use crate::routing::utils::{
-    best_progress_sequence, build_coupling_neighbour_map, compute_all_pairs_shortest_paths,
+    best_progress_sequence, min_score, build_coupling_neighbour_map, compute_all_pairs_shortest_paths,
 };
 
 use crate::{graph::dag::MicroDAG, routing::utils::build_adjacency_list};
@@ -236,6 +236,7 @@ impl MicroSABRE {
 
         while let Some(item) = stack.pop() {
             if item.current_depth == 0 {
+                // let total_score = - (item.executed_gates as f64) + 0.4 * item.swap_sequence.len() as f64 + 0.1 * item.score;
                 scores.insert(
                     item.swap_sequence.clone(),
                     (item.score, item.executed_gates),
@@ -247,6 +248,7 @@ impl MicroSABRE {
 
             self.load_snapshot(state.clone());
             if self.front_layer.is_empty() {
+                // let total_score = - (item.executed_gates as f64) + 0.4 * item.swap_sequence.len() as f64 + 0.1 * item.score;
                 scores.insert(
                     item.swap_sequence.clone(),
                     (item.score, item.executed_gates),
@@ -257,6 +259,7 @@ impl MicroSABRE {
             let swap_candidates = self.compute_swap_candidates();
 
             if swap_candidates.is_empty() {
+                // let total_score = - (item.executed_gates as f64) + 0.4 * item.swap_sequence.len() as f64 + 0.1 * item.score;
                 scores.insert(
                     item.swap_sequence.clone(),
                     (item.score, item.executed_gates),
