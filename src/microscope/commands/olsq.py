@@ -8,7 +8,7 @@ from qiskit.transpiler.passes import (
 )
 from qiskit.qasm2 import dumps
 from olsq import OLSQ
-from olsq.device import qcdevice # type: ignore
+from olsq.device import qcdevice  # type: ignore
 
 
 def olsq(config):
@@ -30,7 +30,6 @@ def olsq(config):
 
     preprocessed_circuit = pm.run(input_circuit)
 
-
     basis_gates = ["cx", "u3"]  # or ['cx', 'u1', 'u2', 'u3'] depending on OLSQ
 
     decomposed_qc = transpile(
@@ -39,7 +38,6 @@ def olsq(config):
 
     with open("flattened.qasm", "w") as f:
         f.write(dumps(decomposed_qc))
-
 
     lsqc_solver = OLSQ("swap", "transition")  # alternatively 'normal'
 

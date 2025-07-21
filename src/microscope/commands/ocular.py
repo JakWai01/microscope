@@ -10,7 +10,7 @@ from qiskit.transpiler.passes import (
     RemoveBarriers,
     SabreLayout,
     SabreSwap,
-    FullAncillaAllocation
+    FullAncillaAllocation,
 )
 
 from collections import defaultdict
@@ -18,7 +18,7 @@ from graph.dag import DAG
 
 from rich.console import Console  # type: ignore
 from rich.table import Table  # type: ignore
-import matplotlib.pyplot as plt # type: ignore
+import matplotlib.pyplot as plt  # type: ignore
 
 from commands.helper import (
     apply_sabre_result,
@@ -96,26 +96,12 @@ def ocular(config):
                         interactions[qubits[i]].add(qubits[j])
                         interactions[qubits[j]].add(qubits[i])
 
-        degrees = [len(neighbors) for neighbors in interactions.values()]
         num_qubits = len(preprocessed_circuit.qubits)
 
-        all_degrees = degrees + [0] * (num_qubits - len(degrees))
-        program_communication = round(
-            sum(all_degrees) / (num_qubits * (num_qubits - 1)), 2
-        )
-
-        # Compute critical depth
         ops_longest_path = preprocessed_dag.count_ops_longest_path()
         longest_path_len = sum(ops_longest_path.values())
-        # num_cx_longest_path = ops_longest_path["cx"]
-        # num_cx = preprocessed_dag.count_ops()["cx"]
-        # critical_depth = round(num_cx_longest_path / num_cx, 2)
-        critical_depth = 0
 
-        # Compute Parallelism
-        num_gates = sum(preprocessed_dag.count_ops().values())
         depth = preprocessed_dag.depth()
-        parallelism = round((num_gates / depth - 1) * (1 / (num_qubits - 1)), 2)
 
         canonical_register = preprocessed_dag.qregs["q"]
         current_layout = Layout.generate_trivial_layout(canonical_register)
@@ -136,11 +122,6 @@ def ocular(config):
         table.add_column("Metric")
         table.add_column("Value")
 
-        # table.add_row(
-        #     *["Program Communication", str(program_communication)], style="bright_green"
-        # )
-        # table.add_row(*["Critical Depth", str(critical_depth)], style="bright_green")
-        # table.add_row(*["Parallelism", str(parallelism)], style="bright_green")
         table.add_row(
             *["Critical Path Length", str(longest_path_len)], style="bright_green"
         )
@@ -158,7 +139,6 @@ def ocular(config):
 
             sabre_result = rust_ms.run(algorithmic_depth)
 
-            # Qiskit Reference
             cm = CheckMap(coupling_map=coupling_map)
 
             qiskit_pm = PassManager(
@@ -168,7 +148,9 @@ def ocular(config):
             transpiled_qc_dag = circuit_to_dag(transpiled_qc)
 
             if not cm.property_set.get("is_swap_mapped"):
-                raise ValueError("CheckMap identified invalid mapping from DAG to coupling_map in qiskit implementation") 
+                raise ValueError(
+                    "CheckMap identified invalid mapping from DAG to coupling_map in qiskit implementation"
+                )
 
             qiskit_depth = transpiled_qc.depth()
             qiskit_swaps = len(transpiled_qc_dag.op_nodes(op=SwapGate))
@@ -201,12 +183,7 @@ def ocular(config):
             swaps = len(transpiled_sabre_dag_boosted.op_nodes(op=SwapGate))
 
             test_results[(heuristic, extended_set_size)].append(
-                (
-                    depth,
-                    swaps,
-                    qiskit_depth,
-                    qiskit_swaps
-                )
+                (depth, swaps, qiskit_depth, qiskit_swaps)
             )
 
         process_results(test_results)
@@ -222,14 +199,14 @@ def process_results(test_results):
         "Swaps",
         "Depth",
         "Qiskit Swaps",
-        "Qiskit Depth"
+        "Qiskit Depth",
     ]
 
     for key, results in test_results.items():
-        total_depth = sum(d for d, s, q_d, q_s in results)
-        total_swaps = sum(s for d, s, q_d, q_s in results)
-        total_qiskit_depth = sum(q_d for d, s, q_d, q_s in results)
-        total_qiskit_swaps = sum(q_s for d, s, q_d, q_s in results)
+        total_depth = sum(d for d, _, _, _ in results)
+        total_swaps = sum(s for _, s, _, _ in results)
+        total_qiskit_depth = sum(q_d for _, _, q_d, _ in results)
+        total_qiskit_swaps = sum(q_s for _, _, _, q_s in results)
 
         count = len(results)
 
@@ -256,25 +233,4 @@ def process_results(test_results):
 
     result_table(rows, columns)
 
-    # Plot result
-    # _, ax = plt.subplots()
-
-    # for heuristic, axis_data in data.items():
-    #     extended_set_size = axis_data[0]
-    #     swaps = axis_data[1]
-
-    #     ax.plot(extended_set_size, swaps, label=f"{heuristic}")
-
-    # ax.legend()
-
-    # ax.set(
-    #     xlabel="Extended-Set Size",
-    #     ylabel="Swaps",
-    #     title="Extended-Set Size Scaling",
-    #     xlim=(0, 8),
-    #     xticks=range(0, 101, 10),
-    # )
-    # ax.grid()
-
-    # plt.xlim((0, 100))
     plt.show()

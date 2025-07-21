@@ -53,17 +53,14 @@ pub fn build_coupling_neighbour_map(coupling_map: &Vec<Vec<i32>>) -> FxHashMap<i
     neighbour_map
 }
 
-pub fn min_score(
-    scores: FxHashMap<Vec<[i32; 2]>, (f64, usize)>,
-    epsilon: f64,
-) -> Vec<[i32; 2]> {
+pub fn min_score(scores: FxHashMap<Vec<[i32; 2]>, (f64, usize)>, epsilon: f64) -> Vec<[i32; 2]> {
     let mut best_swap_sequences = Vec::new();
 
     let mut iter = scores.iter();
 
     let (min_swap_sequence, mut min_score) = iter.next().unwrap();
     best_swap_sequences.push(min_swap_sequence);
-    
+
     for (swap_sequence, score) in iter {
         let diff = score.0 - min_score.0;
 

@@ -1,7 +1,7 @@
 use crate::routing::front_layer::MicroFront;
 use crate::routing::layout::MicroLayout;
 use crate::routing::utils::{
-    best_progress_sequence, build_coupling_neighbour_map, compute_all_pairs_shortest_paths 
+    best_progress_sequence, build_coupling_neighbour_map, compute_all_pairs_shortest_paths,
 };
 
 use crate::{graph::dag::MicroDAG, routing::utils::build_adjacency_list};
@@ -31,7 +31,7 @@ pub struct MicroSABRE {
     neighbour_map: FxHashMap<i32, Vec<i32>>,
     layout: MicroLayout,
     num_qubits: usize,
-    last_swap_on_qubit: FxHashMap<i32, [i32; 2]>
+    last_swap_on_qubit: FxHashMap<i32, [i32; 2]>,
 }
 
 #[pymethods]
@@ -99,7 +99,7 @@ impl MicroSABRE {
                     if let Some(node) = self.executable_node_on_qubit(q1) {
                         execute_gate_list.push(node);
                     }
-                } 
+                }
             }
 
             if execute_gate_list.is_empty() {
@@ -231,28 +231,36 @@ impl MicroSABRE {
             swap_sequence: Vec::new(),
             score: 0.0,
             current_depth: depth,
-            executed_gates: 0
+            executed_gates: 0,
         });
 
         while let Some(item) = stack.pop() {
             if item.current_depth == 0 {
-                scores.insert(item.swap_sequence.clone(), (item.score, item.executed_gates));
-                continue;
-            }
-            
-            let state = item.state.clone();
-            
-            self.load_snapshot(state.clone());
-            if self.front_layer.is_empty() {
-                scores.insert(item.swap_sequence.clone(), (item.score, item.executed_gates));
+                scores.insert(
+                    item.swap_sequence.clone(),
+                    (item.score, item.executed_gates),
+                );
                 continue;
             }
 
+            let state = item.state.clone();
+
+            self.load_snapshot(state.clone());
+            if self.front_layer.is_empty() {
+                scores.insert(
+                    item.swap_sequence.clone(),
+                    (item.score, item.executed_gates),
+                );
+                continue;
+            }
 
             let swap_candidates = self.compute_swap_candidates();
 
             if swap_candidates.is_empty() {
-                scores.insert(item.swap_sequence.clone(), (item.score, item.executed_gates));
+                scores.insert(
+                    item.swap_sequence.clone(),
+                    (item.score, item.executed_gates),
+                );
                 continue;
             }
 
@@ -262,9 +270,9 @@ impl MicroSABRE {
                 let before = self.calculate_heuristic();
 
                 self.apply_swap([q0, q1]);
-                            
+
                 let after = self.calculate_heuristic();
-                
+
                 let score = after - before;
 
                 let mut execute_gate_list = Vec::new();
@@ -290,7 +298,7 @@ impl MicroSABRE {
                 self.last_swap_on_qubit.insert(q1, [q0, q1]);
 
                 swap_sequence.push([q0, q1]);
-                
+
                 self.advance_front_layer(&execute_gate_list);
 
                 stack.push(StackItem {
@@ -298,7 +306,7 @@ impl MicroSABRE {
                     swap_sequence: swap_sequence,
                     score: item.score + score,
                     current_depth: item.current_depth - 1,
-                    executed_gates: item.executed_gates + execute_gate_list.len()
+                    executed_gates: item.executed_gates + execute_gate_list.len(),
                 })
             }
         }
@@ -353,7 +361,7 @@ struct State {
     required_predecessors: Vec<i32>,
     layout: MicroLayout,
     gate_order: Vec<i32>,
-    last_swap_on_qubit: FxHashMap<i32, [i32; 2]>
+    last_swap_on_qubit: FxHashMap<i32, [i32; 2]>,
 }
 
 #[derive(Clone)]

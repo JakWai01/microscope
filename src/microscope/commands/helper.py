@@ -9,11 +9,11 @@ from qiskit.transpiler.passes import (
     RemoveBarriers,
 )
 
-from rich.console import Console # type: ignore
-from rich.table import Table # type: ignore
+from rich.console import Console  # type: ignore
+from rich.table import Table  # type: ignore
 from qiskit.converters import circuit_to_dag
 
-import matplotlib.pyplot as plt # type: ignore
+import matplotlib.pyplot as plt  # type: ignore
 from qiskit.circuit.library.standard_gates import SwapGate
 
 from graph.dag import DAG

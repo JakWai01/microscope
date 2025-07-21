@@ -1,5 +1,5 @@
 import click
-import matplotlib.pyplot as plt # type: ignore
+import matplotlib.pyplot as plt  # type: ignore
 
 from commands.ocular import ocular
 from commands.olsq import olsq
