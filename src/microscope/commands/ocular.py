@@ -1,7 +1,6 @@
 from qiskit import QuantumCircuit
 from qiskit.converters import circuit_to_dag, dag_to_circuit
 from qiskit.circuit.library.standard_gates import SwapGate
-from qiskit.dagcircuit import DAGOpNode
 from qiskit.transpiler import PassManager, CouplingMap
 from qiskit.transpiler.layout import Layout
 from qiskit.transpiler.passes import (

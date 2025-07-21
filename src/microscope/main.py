@@ -1,8 +1,7 @@
 import click
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt # type: ignore
 
 from commands.ocular import ocular
-from commands.qiskit import qiskit
 from commands.olsq import olsq
 
 import time
@@ -12,8 +11,6 @@ import yaml
 @click.command()
 @click.argument("command", nargs=1)
 def main(command: str):
-    # Ignore deprecation warnings
-
     config = parse_config()
 
     t0 = time.perf_counter()
@@ -21,8 +18,6 @@ def main(command: str):
     match command:
         case "ocular":
             ocular(config)
-        case "qiskit":
-            qiskit(config)
         case "olsq":
             olsq(config)
         case _:

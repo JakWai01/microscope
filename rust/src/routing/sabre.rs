@@ -1,7 +1,7 @@
 use crate::routing::front_layer::MicroFront;
 use crate::routing::layout::MicroLayout;
 use crate::routing::utils::{
-    best_progress_sequence, build_coupling_neighbour_map, compute_all_pairs_shortest_paths, min_score
+    best_progress_sequence, build_coupling_neighbour_map, compute_all_pairs_shortest_paths 
 };
 
 use crate::{graph::dag::MicroDAG, routing::utils::build_adjacency_list};
@@ -242,7 +242,6 @@ impl MicroSABRE {
             
             let state = item.state.clone();
             
-            // Load state for front layer check, otherwise it checks for the old front layer
             self.load_snapshot(state.clone());
             if self.front_layer.is_empty() {
                 scores.insert(item.swap_sequence.clone(), (item.score, item.executed_gates));
@@ -279,13 +278,8 @@ impl MicroSABRE {
                     self.front_layer.remove(&node);
                 }
 
-                // if execute_gate_list.is_empty() && item.current_depth == 1 {
-                //     continue; // This swap didn't help at the end of the sequence
-                // }
-
                 let mut swap_sequence = item.swap_sequence.clone();
 
-                // Instead of last we need last on qubits
                 if let Some(last_swap) = self.last_swap_on_qubit.get(&q0) {
                     if last_swap == &[q1, q0] || last_swap == &[q0, q1] {
                         continue;
@@ -297,10 +291,7 @@ impl MicroSABRE {
 
                 swap_sequence.push([q0, q1]);
                 
-                
                 self.advance_front_layer(&execute_gate_list);
-
-
 
                 stack.push(StackItem {
                     state: self.create_snapshot(),

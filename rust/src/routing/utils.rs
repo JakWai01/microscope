@@ -1,4 +1,4 @@
-use rand::{rng, seq::IndexedRandom};
+use rand::seq::IndexedRandom;
 use rustc_hash::FxHashMap;
 
 use crate::MicroDAG;
@@ -76,13 +76,13 @@ pub fn min_score(
         }
     }
 
-    let mut rng = rand::rng(); // replace with your `rng()` function if needed
+    let mut rng = rand::rng();
 
     best_swap_sequences.choose(&mut rng).unwrap().to_vec()
 }
 
 pub fn best_progress_sequence(
-    scores: FxHashMap<Vec<[i32; 2]>, (f64, usize)>, // score + executed_gates
+    scores: FxHashMap<Vec<[i32; 2]>, (f64, usize)>,
     epsilon: f64,
 ) -> Vec<[i32; 2]> {
     let mut best_swap_sequences = Vec::new();
