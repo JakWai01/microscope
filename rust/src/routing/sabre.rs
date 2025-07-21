@@ -232,7 +232,7 @@ impl MicroSABRE {
             state: self.create_snapshot(),
             swap_sequence: Vec::new(),
             score: 0.0,
-            current_depth: k,
+            current_depth: 0,
             executed_gates: 0,
         });
 
