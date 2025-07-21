@@ -88,22 +88,27 @@ pub fn best_progress_sequence(
     let (first_seq, &(first_score, first_executed)) = iter.next().unwrap();
     let mut max_exec = first_executed;
     let mut best_score = first_score;
+    let mut min_len = first_seq.len();
 
     best_swap_sequences.push(first_seq);
 
     for (swap_sequence, &(score, executed)) in iter {
+        let len = swap_sequence.len();
+
         if executed > max_exec {
             max_exec = executed;
             best_score = score;
+            min_len = len;
             best_swap_sequences.clear();
             best_swap_sequences.push(swap_sequence);
         } else if executed == max_exec {
             let diff = score - best_score;
-            if diff < -epsilon {
+            if diff < -epsilon || (diff.abs() <= epsilon && len < min_len) {
                 best_score = score;
+                min_len = len;
                 best_swap_sequences.clear();
                 best_swap_sequences.push(swap_sequence);
-            } else if diff.abs() <= epsilon {
+            } else if diff.abs() <= epsilon && len == min_len {
                 best_swap_sequences.push(swap_sequence);
             }
         }
