@@ -152,7 +152,13 @@ impl MicroSABRE {
 
         // (1. / num_executable_gates as f64) * (basic + 0.5 * lookahead)
         // basic + 0.5 * lookahead
-        basic + (0.5 / extended_set.len() as f64) * lookahead
+
+        let mut extended_set_len = extended_set.len();
+        if extended_set_len == 0 {
+            extended_set_len = 1
+        }
+
+        basic + (0.5 / extended_set_len as f64) * lookahead
     }
 
     fn get_extended_set(&mut self) -> MicroFront {
@@ -302,21 +308,23 @@ impl MicroSABRE {
 
                 swap_sequence.push([q0, q1]);
 
-                self.advance_front_layer(&execute_gate_list);
+                let advanced_gates = self.advance_front_layer(&execute_gate_list);
 
                 stack.push(StackItem {
                     state: self.create_snapshot(),
                     swap_sequence: swap_sequence,
                     score: item.score + score,
                     current_depth: item.current_depth - 1,
-                    executed_gates: item.executed_gates + execute_gate_list.len(),
+                    executed_gates: item.executed_gates + advanced_gates as usize,
                 })
             }
         }
 
         self.load_snapshot(initial_state);
 
+        // println!("Scores: {:?}", scores);
         best_progress_sequence(scores, 1e-10)
+        // min_score(scores, 1e-10)
     }
 
     fn compute_swap_candidates(&self) -> Vec<[i32; 2]> {
@@ -394,9 +402,12 @@ impl MicroSABRE {
         self.gate_order = state.gate_order;
         self.last_swap_on_qubit = state.last_swap_on_qubit;
     }
-
-    fn advance_front_layer(&mut self, nodes: &Vec<i32>) {
+    
+    // TODO: Return number of advanced (executed) gates
+    fn advance_front_layer(&mut self, nodes: &Vec<i32>) -> i32 {
         let mut node_queue: VecDeque<i32> = VecDeque::from(nodes.clone());
+
+        let mut executed_gates_counter = 0;
 
         while let Some(node_index) = node_queue.pop_front() {
             let node = self.dag.get(node_index).unwrap();
@@ -412,8 +423,10 @@ impl MicroSABRE {
                 }
             }
 
+            // Execute node
             if !self.gate_order.contains(&node.id) {
                 self.gate_order.push(node.id);
+                executed_gates_counter += 1;
             }
 
             if let Some(successors) = self.adjacency_list.get(&node_index) {
@@ -427,6 +440,8 @@ impl MicroSABRE {
                 }
             }
         }
+
+        return executed_gates_counter
     }
 
     fn release_valve(&mut self, current_swaps: &mut Vec<[i32; 2]>) -> Vec<i32> {
