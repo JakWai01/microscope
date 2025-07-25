@@ -86,6 +86,7 @@ impl MicroSABRE {
                 }
 
                 if let Some(swap) = insertion_queue.pop_front() {
+                    // println!("Inserting swap: {:?}", swap);
                     let q0 = swap[0];
                     let q1 = swap[1];
 
@@ -297,19 +298,20 @@ impl MicroSABRE {
 
                 let mut swap_sequence = item.swap_sequence.clone();
 
-                if let Some(last_swap) = self.last_swap_on_qubit.get(&q0) {
-                    if last_swap == &[q1, q0] || last_swap == &[q0, q1] {
-                        continue;
-                    }
-                }
+                // if let Some(last_swap) = self.last_swap_on_qubit.get(&q0) {
+                //     if last_swap == &[q1, q0] || last_swap == &[q0, q1] {
+                //         continue;
+                //     }
+                // }
 
-                self.last_swap_on_qubit.insert(q0, [q0, q1]);
-                self.last_swap_on_qubit.insert(q1, [q0, q1]);
+                // self.last_swap_on_qubit.insert(q0, [q0, q1]);
+                // self.last_swap_on_qubit.insert(q1, [q0, q1]);
 
                 swap_sequence.push([q0, q1]);
 
                 let advanced_gates = self.advance_front_layer(&execute_gate_list);
 
+                // println!("SWAP: {} {} advances {} gates - SWAP sequence: {:?}", q0, q1, advanced_gates, swap_sequence);
                 stack.push(StackItem {
                     state: self.create_snapshot(),
                     swap_sequence: swap_sequence,
