@@ -145,6 +145,8 @@ def ocular(config):
                 [SabreSwap(coupling_map, heuristic=heuristic, trials=1), cm]
             )
             transpiled_qc = qiskit_pm.run(preprocessed_circuit)
+
+            # transpiled_qc.draw(output="mpl", fold=-1)
             transpiled_qc_dag = circuit_to_dag(transpiled_qc)
 
             if not cm.property_set.get("is_swap_mapped"):

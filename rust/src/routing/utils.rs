@@ -1,3 +1,5 @@
+use std::mem::swap;
+
 use rand::seq::IndexedRandom;
 use rustc_hash::FxHashMap;
 
@@ -92,6 +94,7 @@ pub fn best_progress_sequence(
 
     best_swap_sequences.push(first_seq);
 
+    // So in the end, the sequence that executes the most gates AND has the fewest swaps AND the best score
     for (swap_sequence, &(score, executed)) in iter {
         let len = swap_sequence.len();
 
@@ -101,14 +104,32 @@ pub fn best_progress_sequence(
             min_len = len;
             best_swap_sequences.clear();
             best_swap_sequences.push(swap_sequence);
+            // println!("Executed decides!");
         } else if executed == max_exec {
             let diff = score - best_score;
-            if diff < -epsilon || (diff.abs() <= epsilon && len < min_len) {
+            // if diff < -epsilon || (diff.abs() <= epsilon && len < min_len) {
+            //     best_score = score;
+            //     min_len = len;
+            //     best_swap_sequences.clear();
+            //     best_swap_sequences.push(swap_sequence);
+            //     // println!("Length decides!");
+            // } else if diff.abs() <= epsilon && len == min_len {
+            //     best_swap_sequences.push(swap_sequence);
+            //     // println!("Score decides!");
+            // }
+            if len < min_len {
+                println!("This case should never happen");
+                println!("Best score {:?} Score {:?}", best_score, score);
                 best_score = score;
                 min_len = len;
                 best_swap_sequences.clear();
                 best_swap_sequences.push(swap_sequence);
-            } else if diff.abs() <= epsilon && len == min_len {
+            } else if len == min_len && diff < -epsilon {
+                best_score = score;
+                min_len = len;
+                best_swap_sequences.clear();
+                best_swap_sequences.push(swap_sequence);
+            } else if len == min_len && diff.abs() <= epsilon {
                 best_swap_sequences.push(swap_sequence);
             }
         }

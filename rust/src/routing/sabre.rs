@@ -282,7 +282,7 @@ impl MicroSABRE {
 
                 let after = self.calculate_heuristic();
 
-                let score = after - before;
+                let score: f64 = after - before;
 
                 let mut execute_gate_list = Vec::new();
 
