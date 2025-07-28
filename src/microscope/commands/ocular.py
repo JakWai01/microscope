@@ -11,6 +11,7 @@ from qiskit.transpiler.passes import (
     SabreLayout,
     SabreSwap,
     FullAncillaAllocation,
+    SetLayout
 )
 
 from collections import defaultdict
@@ -23,6 +24,7 @@ import matplotlib.pyplot as plt  # type: ignore
 from commands.helper import (
     apply_sabre_result,
     result_table,
+    generate_initial_mapping
 )
 
 import microboost  # type: ignore
@@ -236,3 +238,82 @@ def process_results(test_results):
     result_table(rows, columns)
 
     plt.show()
+
+def benchpress_adapter(circuit, backend, k):
+    num_qubits = circuit.num_qubits
+
+    coupling_map = backend._coupling_map
+
+    pm = PassManager(
+        [
+            Unroll3qOrMore(),
+            SabreLayout(coupling_map, skip_routing=True, seed=42),
+            FullAncillaAllocation(coupling_map=coupling_map),
+            ApplyLayout(),
+            RemoveBarriers(),
+        ]
+    )
+
+    # # Generate DAG from circuit
+    # input_dag = circuit_to_dag(circuit)
+
+    # # Preprocess circuit
+    # preprocessing_layout = generate_initial_mapping(input_dag)
+
+    # pm = PassManager(
+    #     [
+    #         Unroll3qOrMore(),
+    #         SetLayout(preprocessing_layout),
+    #         FullAncillaAllocation(coupling_map),
+    #         ApplyLayout(),
+    #         RemoveBarriers(),
+    #     ]
+    # )
+
+    preprocessed_circuit = pm.run(circuit)
+
+    preprocessed_dag = circuit_to_dag(preprocessed_circuit)
+
+    interactions = defaultdict(set)
+
+    for node in preprocessed_dag.op_nodes():
+        qubits = [q._index for q in node.qargs]
+        if len(qubits) > 1:
+            for i in range(len(qubits)):
+                for j in range(i + 1, len(qubits)):
+                    interactions[qubits[i]].add(qubits[j])
+                    interactions[qubits[j]].add(qubits[i])
+
+    num_qubits = len(preprocessed_circuit.qubits)
+
+    canonical_register = preprocessed_dag.qregs["q"]
+    current_layout = Layout.generate_trivial_layout(canonical_register)
+    qubit_indices = {bit: idx for idx, bit in enumerate(canonical_register)}
+    layout_mapping = {
+        qubit_indices[k]: v for k, v in current_layout.get_virtual_bits().items()
+    }
+    initial_layout = microboost.MicroLayout(
+        layout_mapping, len(preprocessed_dag.qubits), coupling_map.size()
+    )
+
+    micro_dag = DAG().from_qiskit_dag(preprocessed_dag)
+
+    rust_dag = micro_dag.to_micro_dag()
+
+    rust_ms = microboost.MicroSABRE(
+        rust_dag, initial_layout, coupling_map.get_edges(), num_qubits
+    )
+
+    sabre_result = rust_ms.run(k)
+
+    transpiled_sabre_dag_boosted, _ = apply_sabre_result(
+        preprocessed_dag.copy_empty_like(),
+        preprocessed_dag,
+        sabre_result,
+        preprocessed_dag.qubits,
+        coupling_map,
+    )
+
+    return dag_to_circuit(
+        transpiled_sabre_dag_boosted
+    )
