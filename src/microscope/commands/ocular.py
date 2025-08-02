@@ -246,42 +246,42 @@ def benchpress_adapter(circuit, backend, k):
 
     preprocessed_dag = circuit_to_dag(preprocessed_circuit)
 
-    qiskit_pm = PassManager(
-        [SabreSwap(coupling_map, heuristic="lookahead", trials=1)]
+    # qiskit_pm = PassManager(
+    #     [SabreSwap(coupling_map, heuristic="lookahead", trials=1)]
+    # )
+    # transpiled_qc = qiskit_pm.run(preprocessed_circuit)
+
+    num_qubits = len(preprocessed_circuit.qubits)
+
+    canonical_register = preprocessed_dag.qregs["q"]
+    current_layout = Layout.generate_trivial_layout(canonical_register)
+    qubit_indices = {bit: idx for idx, bit in enumerate(canonical_register)}
+    layout_mapping = {
+        qubit_indices[k]: v for k, v in current_layout.get_virtual_bits().items()
+    }
+    initial_layout = microboost.MicroLayout(
+        layout_mapping, len(preprocessed_dag.qubits), coupling_map.size()
     )
-    transpiled_qc = qiskit_pm.run(preprocessed_circuit)
 
-    # num_qubits = len(preprocessed_circuit.qubits)
+    micro_dag = DAG().from_qiskit_dag(preprocessed_dag)
 
-    # canonical_register = preprocessed_dag.qregs["q"]
-    # current_layout = Layout.generate_trivial_layout(canonical_register)
-    # qubit_indices = {bit: idx for idx, bit in enumerate(canonical_register)}
-    # layout_mapping = {
-    #     qubit_indices[k]: v for k, v in current_layout.get_virtual_bits().items()
-    # }
-    # initial_layout = microboost.MicroLayout(
-    #     layout_mapping, len(preprocessed_dag.qubits), coupling_map.size()
-    # )
+    rust_dag = micro_dag.to_micro_dag()
 
-    # micro_dag = DAG().from_qiskit_dag(preprocessed_dag)
+    rust_ms = microboost.MicroSABRE(
+        rust_dag, initial_layout, coupling_map.get_edges(), num_qubits
+    )
 
-    # rust_dag = micro_dag.to_micro_dag()
+    sabre_result = rust_ms.run(k)
 
-    # rust_ms = microboost.MicroSABRE(
-    #     rust_dag, initial_layout, coupling_map.get_edges(), num_qubits
-    # )
+    transpiled_sabre_dag_boosted, _ = apply_sabre_result(
+        preprocessed_dag.copy_empty_like(),
+        preprocessed_dag,
+        sabre_result,
+        preprocessed_dag.qubits,
+        coupling_map,
+    )
 
-    # sabre_result = rust_ms.run(k)
-
-    # transpiled_sabre_dag_boosted, _ = apply_sabre_result(
-    #     preprocessed_dag.copy_empty_like(),
-    #     preprocessed_dag,
-    #     sabre_result,
-    #     preprocessed_dag.qubits,
-    #     coupling_map,
-    # )
-
-    # return dag_to_circuit(
-    #     transpiled_sabre_dag_boosted
-    # )
-    return transpiled_qc
+    return dag_to_circuit(
+        transpiled_sabre_dag_boosted
+    )
+    # return transpiled_qc

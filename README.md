@@ -12,12 +12,12 @@ defined in the DAG have to be respected.
 The following circuit resembles a 4-qubit adder that is given as an input
 circuit.
 
-![Input Circuit](./assets/input_circuit.png)
+![Input Circuit](./assets/img/input_circuit.png)
 
 The circuit below shows the result when transpiling the circuit using the SABRE
 algorithm based on a trivial initial mapping.
 
-![Output Circuit Transpiled using SABRE](./assets/sabre_circuit.png)
+![Output Circuit Transpiled using SABRE](./assets/img/sabre_circuit.png)
 
 ## Constraints
 
@@ -40,11 +40,11 @@ following assumptions:
 The examples are taken from
 [here](https://github.com/pnnl/QASMBench/blob/master/large/adder_n28/adder_n28.qasm).
 
-![Qiskit vs Micro](./assets/comparison.png)
+![Qiskit vs Micro](./assets/img/comparison.png)
 
-![Extended Set Scaling](./assets/es_scaling_64.png)
+![Extended Set Scaling](./assets/img/es_scaling_64.png)
 
-![930 Qubit Hamiltonian Scaling](./assets/930_hamiltonian.png)
+![930 Qubit Hamiltonian Scaling](./assets/img/930_hamiltonian.png)
 
 ## MicroSABRE
 
@@ -92,24 +92,16 @@ considering a node multiple times.
 
 ## Ideas
 
-- [ ] How can we move that optimal point? Is it related to the weight we give
-  the extended set?
-- [ ] I don't want the algorithm to get stuck _ever_ cause it feels like the heuristic failed me in that case
 - [ ] Comments, Naming, Types
-- [ ] Not getting stuck would also be a major improvement (liveness)
 - [ ] Is there still a use for the lookahead heuristic or can we focus on local changes in that case?
-- [ ] Results seem to always be divisible by the number of swaps at a time (tested on 10 qubits and 930)?
-- Before investigating the layout, take a look at the heuristic first
 - [ ] Properly understand the SABRELayout and what it means to have a reversible circuit
-- [ ] What if we used another coupling-map (like grid)
-- [ ] Zu viele SWAPs sind auch wieder schlecht, weil dann auf die 6 SWAPs optimiert wird, die eventuell ein bisschen falsch abbiegen
-- [ ] Only consider value after all the n swaps
+- [ ] Do we converge eventually?
+- [ ] Consider tweaking the heuristic
+   - Number of branches in weighting
+   - score / num_swaps
+   - decay
+- [ ] Matt Treinish Quantum Computing Slides
 
-
-## Roadmap
-
-1. Get the quality of qiskit SABRE results
-2. Always get equal or better results when looking at multiple SWAPs
 
 ## Optimal Solutions (using OLSQ)
 
