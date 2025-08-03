@@ -1,9 +1,11 @@
 import json
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 
-# with open("../../assets/benchmark/0001_output.json.json") as f:
-# with open("../../assets/benchmark/0003_output_ocular_k2.json.json") as f:
+# Set seaborn styling
+sns.set(style="whitegrid", context="talk", font_scale=1.2)
+
 with open("../../assets/benchmark/0002_output_qiskit.json.json") as f:
     data = json.load(f)
 
@@ -23,37 +25,42 @@ for bench in data.get("benchmarks", []):
         "runtime": stats.get("total", None)
     })
 
-df = pd.DataFrame(records)
-
-df = df.dropna()
-
-# Filter out all values with swap_count == 0. Since we are optimizing for SWAPs,
-# other circuits (like e.g. all-to-all topology) are not relvant to us
+df = pd.DataFrame(records).dropna()
 df = df[df["swap_count"] > 0]
 
-name_width = df['name'].str.len().max()
-print(df.to_string(formatters={'name': '{{:<{}}}'.format(name_width).format}))
-
-df_linear = df[df["topology"] == "linear"].copy()
-df_heavyhex = df[df["topology"] == "heavy-hex"].copy()
-df_square = df[df["topology"] == "square"].copy()
-
+# Set up for nice plots
 topologies = ["square", "heavy-hex", "linear"]
-fig, axs = plt.subplots(nrows=len(topologies), ncols=1, figsize=(14, 12), sharex=False, sharey=False)
+colors = sns.color_palette("colorblind", n_colors=3)
+markers = ["o", "s", "D"]
 
-for i, topo in enumerate(topologies):
+fig, axs = plt.subplots(nrows=3, ncols=1, figsize=(12, 10), sharex=True)
+
+for i, (topo, color, marker) in enumerate(zip(topologies, colors, markers)):
     df_topo = df[df["topology"] == topo]
 
     ax = axs[i]
-    x = df_topo["num_qubits"]
-    y = df_topo["swap_count"]
+    ax.scatter(
+        df_topo["num_qubits"],
+        df_topo["swap_count"],
+        s=60,
+        alpha=0.8,
+        color=color,
+        edgecolor="black",
+        linewidth=0.5,
+        marker=marker,
+        label=topo
+    )
 
-    ax.scatter(x, y, s=40, alpha=0.7, label="swap_count")
-    ax.grid(True, which="both", ls='--', lw=0.5)
+    ax.set_yscale("log")
+    ax.set_ylabel("SWAP Count", fontsize=14)
+    ax.set_title(f"{topo.capitalize()} Topology", fontsize=16, weight="bold")
+    ax.grid(True, which="both", linestyle="--", linewidth=0.5)
+    ax.tick_params(axis='both', which='major', labelsize=12)
 
-    ax.set_ylabel(topo)
+axs[-1].set_xlabel("Qubit Count", fontsize=14)
+plt.tight_layout(pad=2.0)
 
-    ax.set_xlabel("Qubit count")
+# Optional: save to file
+# plt.savefig("swap_vs_qubits_topologies.pdf", bbox_inches="tight")
 
-plt.tight_layout(rect=[0, 0.03, 1, 0.96])
 plt.show()
