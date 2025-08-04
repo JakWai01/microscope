@@ -1,5 +1,3 @@
-use std::mem::swap;
-
 use rand::seq::IndexedRandom;
 use rustc_hash::FxHashMap;
 
@@ -94,7 +92,6 @@ pub fn best_progress_sequence(
 
     best_swap_sequences.push(first_seq);
 
-    // So in the end, the sequence that executes the most gates AND has the fewest swaps AND the best score
     for (swap_sequence, &(score, executed)) in iter {
         let len = swap_sequence.len();
 
