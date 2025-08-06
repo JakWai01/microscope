@@ -30,12 +30,14 @@ df = df[df["swap_count"] > 0]
 
 # Set up for nice plots
 topologies = ["square", "heavy-hex", "linear"]
-colors = sns.color_palette("colorblind", n_colors=3)
+# colors = sns.color_palette("colorblind", n_colors=3)
 markers = ["o", "s", "D"]
 
+sns.set()
 fig, axs = plt.subplots(nrows=3, ncols=1, figsize=(12, 10), sharex=True)
+cmap = sns.color_palette("crest", n_colors=3)
 
-for i, (topo, color, marker) in enumerate(zip(topologies, colors, markers)):
+for i, (topo, cmap, marker) in enumerate(zip(topologies, cmap, markers)):
     df_topo = df[df["topology"] == topo]
 
     ax = axs[i]
@@ -44,7 +46,7 @@ for i, (topo, color, marker) in enumerate(zip(topologies, colors, markers)):
         df_topo["swap_count"],
         s=60,
         alpha=0.8,
-        color=color,
+        color=cmap,
         edgecolor="black",
         linewidth=0.5,
         marker=marker,
