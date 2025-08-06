@@ -70,6 +70,10 @@ def ocular(config):
         test_results = defaultdict(list)
 
         input_circuit = QuantumCircuit.from_qasm_file(file)
+
+        # i = input_circuit.draw(output="latex_source", fold=-1)
+        # print(i)
+
         num_qubits = input_circuit.num_qubits
 
         coupling_map = coupling_line(input_circuit.num_qubits)
@@ -161,7 +165,8 @@ def ocular(config):
                 transpiled_sabre_dag_boosted
             )
 
-            # transpiled_sabre_circuit_boosted.draw(output="mpl", fold=-1)
+            # o = transpiled_sabre_circuit_boosted.draw(output="latex_source", fold=-1)
+            # print(o)
 
             cm = CheckMap(coupling_map=coupling_map)
             pm = PassManager([cm])
