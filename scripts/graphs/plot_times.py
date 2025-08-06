@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 
-with open("../../assets/benchmark/0001_output.json.json", 'rb') as fd:
+with open("../../assets/benchmark/0003_output_ocular_k2.json.json", 'rb') as fd:
     data = orjson.loads(fd.read())
 
 benchmarks = data["benchmarks"]
@@ -23,7 +23,7 @@ for benchmark in benchmarks:
     preview_times[benchmark["name"]] = benchmark["stats"]["mean"]
 
 
-with open("../../assets/benchmark/0003_output_ocular_k2.json.json", 'rb') as fd:
+with open("../../assets/benchmark/0002_output_qiskit.json.json", 'rb') as fd:
     data = orjson.loads(fd.read())
 
 

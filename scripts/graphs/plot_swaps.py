@@ -10,7 +10,7 @@ with open("/home/jakob/Documents/Projects/microscope/assets/benchmark/0003_outpu
     data = orjson.loads(fd.read())
 
 benchmarks = data["benchmarks"]
-preview_times = {}
+preview_swaps = {}
 qubit_counts = {}
 skip_names = set()
 count = 0
@@ -22,35 +22,35 @@ for benchmark in benchmarks:
         skip_names.add(benchmark["name"])
         continue
     try:
-        preview_times[benchmark["name"]] = benchmark["extra_info"]["output_gate_count_2q"]
+        preview_swaps[benchmark["name"]] = benchmark["extra_info"]["output_circuit_operations"]["swap"]
     except KeyError:
         skip_names.add(benchmark["name"])
         continue
 
 
-with open("/home/jakob/Documents/Projects/microscope/assets/benchmark/0001_output.json.json", 'rb') as fd: 
+with open("/home/jakob/Documents/Projects/microscope/assets/benchmark/0002_output_qiskit.json.json", 'rb') as fd: 
     data = orjson.loads(fd.read())
 
 
 benchmarks = data["benchmarks"]
-release_times = {}
+release_swaps = {}
 for benchmark in benchmarks:
     if benchmark["name"] in skip_names:
         continue
-    release_times[benchmark["name"]] = benchmark["extra_info"]["output_gate_count_2q"]
+    release_swaps[benchmark["name"]] = benchmark["extra_info"]["output_circuit_operations"]["swap"]
 
     _sanity_check = benchmark["extra_info"]["input_num_qubits"]
-    if benchmark["stats"]["mean"] < preview_times[benchmark["name"]]:
-        print(f"Benchmark: {benchmark['name']} is slower")
-        print(benchmark)
+    if release_swaps[benchmark["name"]] < preview_swaps[benchmark["name"]]:
         count += 1
 
-names = list(preview_times)
-preview_data = [preview_times[name] for name in names]
-release_data = [release_times[name] for name in names]
+names = list(preview_swaps)
+preview_data = [preview_swaps[name] for name in names]
+release_data = [release_swaps[name] for name in names]
 
+print(len(skip_names))
 print(len(names))
-print(f"There are {count} outliers")
+print(f"There are {count} release results better than the preview")
+print(f"There are {len(names) - count} preview results equal or better than the release")
 ratios = []
 for i in range(len(preview_data)):
     if preview_data[i]:
@@ -58,7 +58,7 @@ for i in range(len(preview_data)):
     else:
         ratios.append(release_data[i])
 #ratios = [release_data[i] / preview_data[i] for i in range(len(preview_data))]
-df = pd.DataFrame({"benchmark": names, "Qiskit 2.1.0rc1": preview_data, "Qiskit 2.0.2": release_data, "2q gate ratio (2.1.0rc1 / 2.0.2)": ratios})
+df = pd.DataFrame({"benchmark": names, "k=2": preview_data, "Qiskit": release_data, "swap ratio (k=2 / qiskit)": ratios})
 #print(df)
 sns.set()
 fig, ax1 = plt.subplots()
@@ -71,20 +71,20 @@ sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
 ax1.scatter(preview_data, release_data, c=c, cmap=cmap, s=5)
 line = np.linspace(min(release_data), max(release_data))
 ax1.plot(line, line, linewidth=0.5, color='red')
-ax1.set_ylabel(f"Qiskit 2.0.2 2q gates")
-ax1.set_xlabel(f"Qiskit 2.1.0rc1 2q gates")
+ax1.set_ylabel(f"Qiskit swaps")
+ax1.set_xlabel(f"k=2 swaps")
 ax1.set_yscale('log')
 ax1.set_xscale('log')
-ax1.set_title(f"Qiskit 2.0.2 vs 2.1.0rc1 running benchpress transpile benchmarks")
+ax1.set_title(f"Qiskit vs k=2 running benchpress transpile benchmarks")
 plt.colorbar(sm, ax=ax1, label='Number of Qubits')
 plt.tight_layout()
-plt.savefig("/tmp/test_gates.png", dpi=900)
+plt.savefig("/tmp/test_swaps.png", dpi=900)
 
 fig, ax1 = plt.subplots()
 ax1.semilogy(list(range(len(names))), ratios)
-ax1.set_ylabel("2q gate count ratio 2.1.0rc1 / 2.0.2")
-ax1.set_title("Qiskit 2.1.0rc1 vs 2.0.2 gate count ratio for benchpress transpile benchmarks")
+ax1.set_ylabel("swap ratio k=2 / Qiskit")
+ax1.set_title("k=2 vs Qiskit swap count ratio for benchpress transpile benchmarks")
 plt.tight_layout()
-plt.savefig("/tmp/ratio_gates.png")
+plt.savefig("/tmp/ratio_swaps.png")
 import statistics
 print(statistics.geometric_mean(ratios))
