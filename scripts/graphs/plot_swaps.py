@@ -22,7 +22,8 @@ for benchmark in benchmarks:
         skip_names.add(benchmark["name"])
         continue
     try:
-        preview_swaps[benchmark["name"]] = benchmark["extra_info"]["output_circuit_operations"]["swap"]
+        if benchmark["params"]["circ_and_topo"][1] == "square":
+            preview_swaps[benchmark["name"]] = benchmark["extra_info"]["output_circuit_operations"]["swap"]
     except KeyError:
         skip_names.add(benchmark["name"])
         continue
@@ -37,7 +38,11 @@ release_swaps = {}
 for benchmark in benchmarks:
     if benchmark["name"] in skip_names:
         continue
-    release_swaps[benchmark["name"]] = benchmark["extra_info"]["output_circuit_operations"]["swap"]
+
+    if benchmark["params"]["circ_and_topo"][1] == "square":
+        release_swaps[benchmark["name"]] = benchmark["extra_info"]["output_circuit_operations"]["swap"]
+    else:
+        continue
 
     _sanity_check = benchmark["extra_info"]["input_num_qubits"]
     if release_swaps[benchmark["name"]] < preview_swaps[benchmark["name"]]:
