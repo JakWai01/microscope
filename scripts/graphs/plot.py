@@ -1,28 +1,29 @@
-import json
+import orjson
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
 # Set seaborn styling
-sns.set(style="whitegrid", context="talk", font_scale=1.2)
+# sns.set(style="whitegrid", context="talk", font_scale=1.2)
 
-with open("../../assets/benchmark/0002_output_qiskit.json.json") as f:
-    data = json.load(f)
+with open("../../assets/benchmark/0002_output_qiskit.json.json", 'rb') as f:
+    data = orjson.loads(f.read())
 
 records = []
+
 for bench in data.get("benchmarks", []):
-    name = bench.get("name", "")
-    params = bench.get("params", "")
-    topo = params.get("circ_and_topo")[1]
-    info = bench.get("extra_info", {})
-    stats = bench.get("stats", {})
+    name = bench["name"]
+    params = bench["params"]
+    topo = params["circ_and_topo"][1]
+    info = bench["extra_info"]
+    stats = bench["stats"]
 
     records.append({
         "name": name,
         "topology": topo,
-        "num_qubits": info.get("input_num_qubits"),
-        "swap_count": info.get("output_circuit_operations", 0).get("swap", 0),
-        "runtime": stats.get("total", None)
+        "num_qubits": info["input_num_qubits"],
+        "swap_count": info["output_circuit_operations"].get("swap", 0),
+        "runtime": stats["total"]
     })
 
 df = pd.DataFrame(records).dropna()
