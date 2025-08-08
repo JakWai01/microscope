@@ -29,27 +29,8 @@ from commands.helper import (
 
 import microboost  # type: ignore
 
-
-class BenchmarkSet:
-    def __init__(self, heuristics, trials, extended_set_size):
-        self.heuristics = heuristics
-        self.trials = trials
-        self.extended_set_size = extended_set_size
-
-    def get_test_cases(self):
-        test_cases = []
-
-        for heuristic in self.heuristics:
-            for i in range(0, self.extended_set_size, 10):
-                for _ in range(self.trials):
-                    test_cases.append((heuristic, i))
-
-        return test_cases
-
-
 def coupling_line(n):
     return CouplingMap.from_line(n)
-
 
 def coupling_grid(n):
     import math
@@ -57,7 +38,6 @@ def coupling_grid(n):
     rows = math.isqrt(n)
     cols = math.ceil(n / rows)
     return CouplingMap.from_grid(rows, cols)
-
 
 def ocular(config):
     files = config["ocular"]["files"]
@@ -70,9 +50,6 @@ def ocular(config):
         test_results = defaultdict(list)
 
         input_circuit = QuantumCircuit.from_qasm_file(file)
-
-        # i = input_circuit.draw(output="latex_source", fold=-1)
-        # print(i)
 
         num_qubits = input_circuit.num_qubits
 
@@ -87,7 +64,6 @@ def ocular(config):
                 RemoveBarriers(),
             ]
         )
-
         preprocessed_circuit = pm.run(input_circuit)
 
         preprocessed_dag = circuit_to_dag(preprocessed_circuit)
@@ -112,42 +88,34 @@ def ocular(config):
         num_dag_nodes = len(micro_dag)
 
         table = Table(title="Circuit Metrics")
-
         table.add_column("Metric")
         table.add_column("Value")
-
         table.add_row(
             *["Critical Path Length", str(longest_path_len)], style="bright_green"
         )
         table.add_row(*["DAG Nodes", str(num_dag_nodes)], style="bright_green")
-
         console = Console()
         console.print(table)
 
         rust_dag = micro_dag.to_micro_dag()
 
         for heuristic, extended_set_size in test_cases:
-            rust_ms = microboost.MicroSABRE(
+            ms = microboost.MicroSABRE(
                 rust_dag, initial_layout, coupling_map.get_edges(), num_qubits
             )
-
-            sabre_result = rust_ms.run(algorithmic_depth)
+            sabre_result = ms.run(algorithmic_depth)
 
             cm = CheckMap(coupling_map=coupling_map)
-
             qiskit_pm = PassManager(
                 [SabreSwap(coupling_map, heuristic=heuristic, trials=1), cm]
             )
             transpiled_qc = qiskit_pm.run(preprocessed_circuit)
-
-            # transpiled_qc.draw(output="mpl", fold=-1)
-            transpiled_qc_dag = circuit_to_dag(transpiled_qc)
-
             if not cm.property_set.get("is_swap_mapped"):
                 raise ValueError(
                     "CheckMap identified invalid mapping from DAG to coupling_map in qiskit implementation"
                 )
 
+            transpiled_qc_dag = circuit_to_dag(transpiled_qc)
             qiskit_depth = transpiled_qc.depth()
             qiskit_swaps = len(transpiled_qc_dag.op_nodes(op=SwapGate))
 
@@ -168,9 +136,7 @@ def ocular(config):
 
             cm = CheckMap(coupling_map=coupling_map)
             pm = PassManager([cm])
-
             _ = pm.run(transpiled_sabre_circuit_boosted)
-
             if not cm.property_set.get("is_swap_mapped"):
                 raise ValueError(
                     "CheckMap identified invalid mapping from DAG to coupling_map"
@@ -263,24 +229,22 @@ def benchpress_adapter(circuit, backend, k):
         qubit_indices[k]: v for k, v in current_layout.get_virtual_bits().items()
     }
     initial_layout = microboost.MicroLayout(
-        layout_mapping, len(preprocessed_dag.qubits), coupling_map.size()
+        layout_mapping, num_qubits, coupling_map.size()
     )
 
-    micro_dag = DAG().from_qiskit_dag(preprocessed_dag)
+    dag = DAG().from_qiskit_dag(preprocessed_dag).to_micro_dag()
 
-    rust_dag = micro_dag.to_micro_dag()
-
-    rust_ms = microboost.MicroSABRE(
-        rust_dag, initial_layout, coupling_map.get_edges(), num_qubits
+    ms = microboost.MicroSABRE(
+        dag, initial_layout, coupling_map.get_edges(), num_qubits
     )
 
-    sabre_result = rust_ms.run(k)
+    sabre_result = ms.run(k)
 
     transpiled_sabre_dag_boosted, _ = apply_sabre_result(
         preprocessed_dag.copy_empty_like(),
         preprocessed_dag,
         sabre_result,
-        preprocessed_dag.qubits,
+        num_qubits,
         coupling_map,
     )
 
