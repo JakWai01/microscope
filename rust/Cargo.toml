@@ -16,9 +16,12 @@ indexmap = "2.9.0"
 pyo3 = "0.24.0"
 rand = "0.9.1"
 rustc-hash = "2.1.1"
-rustworkx-core = "0.16.0"
+rustworkx-core = "0.16.0"  
 
 [profile.release]
 debug = true        # Debug symbols for our profiler
-lto = true          # Link-time optimization
-codege-units = 1    # Slower compilation but faster code
+lto = "fat"         # Link-time optimization
+codegen-units = 1   # Slower compilation but faster code
+
+[build]
+rustflags = ["-C", "target-cpu=native"]

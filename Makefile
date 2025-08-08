@@ -1,11 +1,14 @@
 ocular: build
-	RUST_BACKTRACE=1 python3 src/microscope/main.py ocular
+	python3 src/microscope/main.py ocular
 
 olsq: build
-	RUST_BACKTRACE=1 python3 src/microscope/main.py olsq
+	python3 src/microscope/main.py olsq
 
 build:
-	maturin develop --release
+	MALLOC_CONF="thp:always,metadata_thp:always" maturin develop --release
+
+lint:
+	pushd rust > /dev/null && cargo clippy && popd
 
 format:
 	black . && pushd rust > /dev/null && cargo fmt --all && popd > /dev/null
