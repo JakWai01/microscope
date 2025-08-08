@@ -340,14 +340,14 @@ impl MicroSABRE {
     }
 
     fn executable_node_on_qubit(&self, physical_qubit: i32) -> Option<i32> {
-        for [a, b] in self.front_layer.nodes.values() {
-            if *a == physical_qubit || *b == physical_qubit {
-                if self.distance[*a as usize][*b as usize] == 1 {
-                    return Some(self.front_layer.qubits[*a as usize].unwrap().0);
-                }
+        match self.front_layer.qubits[physical_qubit as usize] {
+            Some((node_id, other_qubit))
+                if self.distance[physical_qubit as usize][other_qubit as usize] == 1 =>
+            {
+                Some(node_id)
             }
+            _ => None,
         }
-        None
     }
 
     fn initial_front(&self) -> Vec<i32> {
