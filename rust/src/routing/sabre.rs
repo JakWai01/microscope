@@ -1,7 +1,7 @@
 use crate::routing::front_layer::MicroFront;
 use crate::routing::layout::MicroLayout;
 use crate::routing::utils::{
-    best_progress_sequence, build_coupling_neighbour_map, compute_all_pairs_shortest_paths,
+    best_progress_sequence, build_coupling_neighbour_map, build_digraph_from_neighbors, compute_all_pairs_shortest_paths
 };
 
 use crate::{graph::dag::MicroDAG, routing::utils::build_adjacency_list};
@@ -16,7 +16,7 @@ use rustc_hash::FxHashMap;
 
 use rustworkx_core::dictmap::{DictMap, InitWithHasher};
 use rustworkx_core::petgraph::csr::IndexType;
-use rustworkx_core::petgraph::graph::{DiGraph, NodeIndex};
+use rustworkx_core::petgraph::graph::NodeIndex;
 use rustworkx_core::shortest_path::dijkstra;
 
 #[pyclass(module = "microboost.routing.sabre")]
@@ -149,9 +149,6 @@ impl MicroSABRE {
             .fold(0.0, |h_sum, (_node_id, [a, b])| {
                 h_sum + self.distance[*a as usize][*b as usize] as f64
             });
-
-        // (1. / num_executable_gates as f64) * (basic + 0.5 * lookahead)
-        // basic + 0.5 * lookahead
 
         let mut extended_set_len = extended_set.len();
         if extended_set_len == 0 {
@@ -490,49 +487,4 @@ impl MicroSABRE {
             vec![closest_node]
         }
     }
-}
-
-fn build_digraph_from_neighbors(neighbor_map: &FxHashMap<i32, Vec<i32>>) -> DiGraph<(), ()> {
-    let edge_list: Vec<(u32, u32)> = neighbor_map
-        .iter()
-        .flat_map(|(&src, targets)| targets.iter().map(move |&dst| (src as u32, dst as u32)))
-        .collect();
-
-    // `from_edges` creates a graph where node indices are inferred from edge endpoints
-    DiGraph::<(), ()>::from_edges(edge_list)
-}
-
-pub fn get_successor_map_and_critical_paths(dag: &MicroDAG) -> (Vec<usize>, Vec<usize>) {
-    let adj = build_adjacency_list(dag);
-    let mut successor_set: FxHashMap<i32, HashSet<i32>> =
-        dag.nodes.keys().map(|&n| (n, HashSet::new())).collect();
-    let mut critical_path_len: FxHashMap<i32, usize> = dag.nodes.keys().map(|&n| (n, 0)).collect();
-
-    // Reverse topological traversal: assumes nodes are 0..N and acyclic
-    for u in (0..dag.nodes.len() as i32).rev() {
-        if let Some(neighbors) = adj.get(&u) {
-            for &v in neighbors {
-                // Add v as successor of u
-                successor_set.get_mut(&u).unwrap().insert(v);
-                // Add all successors of v to u
-                if let Some(succ_v) = successor_set.get(&v) {
-                    let succ_v_cloned = succ_v.clone();
-                    successor_set.get_mut(&u).unwrap().extend(succ_v_cloned);
-                }
-
-                // Update critical path length
-                let cand_len = 1 + critical_path_len[&v];
-                if cand_len > critical_path_len[&u] {
-                    critical_path_len.insert(u, cand_len);
-                }
-            }
-        }
-    }
-
-    let successor_counts: Vec<usize> = dag.nodes.keys().map(|&n| successor_set[&n].len()).collect();
-
-    let critical_path_lengths: Vec<usize> =
-        dag.nodes.keys().map(|&n| critical_path_len[&n]).collect();
-
-    (successor_counts, critical_path_lengths)
 }
