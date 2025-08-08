@@ -5,12 +5,12 @@ use rustworkx_core::petgraph::graph::DiGraph;
 
 use crate::MicroDAG;
 
-pub fn build_adjacency_list(dag: &MicroDAG) -> FxHashMap<i32, Vec<i32>> {
-    let mut adj = FxHashMap::default();
-    for (u, v) in &dag.edges {
-        adj.entry(*u).or_insert(Vec::new()).push(*v);
+pub fn build_adjacency_list(dag: &MicroDAG) -> Vec<Vec<i32>> {
+    let mut adjacency = vec![Vec::new(); dag.nodes.len()];
+    for &(src, dst) in dag.edges().unwrap().iter() {
+        adjacency[src as usize].push(dst);
     }
-    adj
+    adjacency
 }
 
 pub fn compute_all_pairs_shortest_paths(coupling_map: &Vec<Vec<i32>>) -> Vec<Vec<i32>> {
@@ -42,17 +42,16 @@ pub fn compute_all_pairs_shortest_paths(coupling_map: &Vec<Vec<i32>>) -> Vec<Vec
     dist
 }
 
-pub fn build_coupling_neighbour_map(coupling_map: &Vec<Vec<i32>>) -> FxHashMap<i32, Vec<i32>> {
-    let mut neighbour_map = FxHashMap::default();
-
+pub fn build_coupling_neighbour_map(coupling_map: &[Vec<i32>]) -> Vec<Vec<i32>> {
+    let n = coupling_map.len();
+    let mut neighbours = vec![Vec::new(); n];
     for edge in coupling_map {
-        let u = edge[0];
-        let v = edge[1];
-
-        neighbour_map.entry(u).or_insert(Vec::new()).push(v);
+        let q0 = edge[0] as usize;
+        let q1 = edge[1] as usize;
+        neighbours[q0].push(edge[1]);
+        neighbours[q1].push(edge[0]);
     }
-
-    neighbour_map
+    neighbours
 }
 
 pub fn min_score(scores: FxHashMap<Vec<[i32; 2]>, (f64, usize)>, epsilon: f64) -> Vec<[i32; 2]> {
@@ -138,47 +137,57 @@ pub fn best_progress_sequence(
     best_swap_sequences.choose(&mut rng).unwrap().to_vec()
 }
 
-pub fn build_digraph_from_neighbors(neighbor_map: &FxHashMap<i32, Vec<i32>>) -> DiGraph<(), ()> {
+pub fn build_digraph_from_neighbors(neighbor_map: &Vec<Vec<i32>>) -> DiGraph<(), ()> {
     let edge_list: Vec<(u32, u32)> = neighbor_map
         .iter()
-        .flat_map(|(&src, targets)| targets.iter().map(move |&dst| (src as u32, dst as u32)))
+        .enumerate()
+        .flat_map(|(src, targets)| targets.iter().map(move |&dst| (src as u32, dst as u32)))
         .collect();
 
-    // `from_edges` creates a graph where node indices are inferred from edge endpoints
     DiGraph::<(), ()>::from_edges(edge_list)
 }
 
 pub fn get_successor_map_and_critical_paths(dag: &MicroDAG) -> (Vec<usize>, Vec<usize>) {
-    let adj = build_adjacency_list(dag);
-    let mut successor_set: FxHashMap<i32, HashSet<i32>> =
-        dag.nodes.keys().map(|&n| (n, HashSet::default())).collect();
-    let mut critical_path_len: FxHashMap<i32, usize> = dag.nodes.keys().map(|&n| (n, 0)).collect();
+    // adjacency list as Vec<Vec<i32>>
+    let adj: Vec<Vec<i32>> = build_adjacency_list(dag);
+
+    // successor sets, indexed by node ID
+    let mut successor_set: Vec<HashSet<i32>> =
+        (0..dag.nodes.len()).map(|_| HashSet::default()).collect();
+
+    // critical path lengths, indexed by node ID
+    let mut critical_path_len: Vec<usize> = vec![0; dag.nodes.len()];
 
     // Reverse topological traversal: assumes nodes are 0..N and acyclic
-    for u in (0..dag.nodes.len() as i32).rev() {
-        if let Some(neighbors) = adj.get(&u) {
-            for &v in neighbors {
-                // Add v as successor of u
-                successor_set.get_mut(&u).unwrap().insert(v);
-                // Add all successors of v to u
-                if let Some(succ_v) = successor_set.get(&v) {
-                    let succ_v_cloned = succ_v.clone();
-                    successor_set.get_mut(&u).unwrap().extend(succ_v_cloned);
-                }
+    for u in (0..dag.nodes.len()).rev() {
+        for &v in &adj[u] {
+            if u == v as usize {
+                continue; // skip self-loop just in case
+            }
 
-                // Update critical path length
-                let cand_len = 1 + critical_path_len[&v];
-                if cand_len > critical_path_len[&u] {
-                    critical_path_len.insert(u, cand_len);
-                }
+            // split into two disjoint mutable slices
+            let (low, high) = if u < v as usize {
+                let (low, high) = successor_set.split_at_mut(v as usize);
+                (&mut low[u], &high[0])
+            } else {
+                let (low, high) = successor_set.split_at_mut(u);
+                (&mut high[0], &low[v as usize])
+            };
+
+            // Add v as successor of u
+            low.insert(v);
+            // Add all successors of v to u
+            low.extend(high.iter().copied());
+
+            // Update critical path length
+            let cand_len = 1 + critical_path_len[v as usize];
+            if cand_len > critical_path_len[u] {
+                critical_path_len[u] = cand_len;
             }
         }
     }
 
-    let successor_counts: Vec<usize> = dag.nodes.keys().map(|&n| successor_set[&n].len()).collect();
+    let successor_counts: Vec<usize> = successor_set.iter().map(|s| s.len()).collect();
 
-    let critical_path_lengths: Vec<usize> =
-        dag.nodes.keys().map(|&n| critical_path_len[&n]).collect();
-
-    (successor_counts, critical_path_lengths)
+    (successor_counts, critical_path_len)
 }

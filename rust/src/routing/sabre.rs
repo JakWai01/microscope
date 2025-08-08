@@ -1,7 +1,8 @@
 use crate::routing::front_layer::MicroFront;
 use crate::routing::layout::MicroLayout;
 use crate::routing::utils::{
-    best_progress_sequence, build_coupling_neighbour_map, build_digraph_from_neighbors, compute_all_pairs_shortest_paths
+    best_progress_sequence, build_coupling_neighbour_map, build_digraph_from_neighbors,
+    compute_all_pairs_shortest_paths,
 };
 
 use crate::{graph::dag::MicroDAG, routing::utils::build_adjacency_list};
@@ -26,9 +27,9 @@ pub struct MicroSABRE {
     gate_order: Vec<i32>,
     front_layer: MicroFront,
     required_predecessors: Vec<i32>,
-    adjacency_list: FxHashMap<i32, Vec<i32>>,
+    adjacency_list: Vec<Vec<i32>>,
     distance: Vec<Vec<i32>>,
-    neighbour_map: FxHashMap<i32, Vec<i32>>,
+    neighbour_map: Vec<Vec<i32>>,
     layout: MicroLayout,
     num_qubits: usize,
     last_swap_on_qubit: FxHashMap<i32, [i32; 2]>,
@@ -193,27 +194,23 @@ impl MicroSABRE {
             while j < visit_now.len() {
                 let node_id = visit_now[j];
 
-                if let Some(successors) = self.adjacency_list.get(&node_id) {
-                    for &successor in successors {
-                        if !visited[successor as usize] {
-                            let succ = self.dag.get(successor).unwrap();
-                            visited[successor as usize] = true;
+                for &successor in &self.adjacency_list[node_id as usize] {
+                    if !visited[successor as usize] {
+                        let succ = self.dag.get(successor).unwrap();
+                        visited[successor as usize] = true;
 
-                            decremented[successor as usize] += 1;
-                            self.required_predecessors[successor as usize] -= 1;
+                        decremented[successor as usize] += 1;
+                        self.required_predecessors[successor as usize] -= 1;
 
-                            if self.required_predecessors[successor as usize] == 0 {
-                                if succ.qubits.len() == 2 {
-                                    let physical_q0 =
-                                        self.layout.virtual_to_physical(succ.qubits[0]);
-                                    let physical_q1 =
-                                        self.layout.virtual_to_physical(succ.qubits[1]);
-                                    extended_set.insert(successor, [physical_q0, physical_q1]);
-                                    to_visit.push(successor);
-                                    continue;
-                                }
-                                visit_now.push(successor);
+                        if self.required_predecessors[successor as usize] == 0 {
+                            if succ.qubits.len() == 2 {
+                                let physical_q0 = self.layout.virtual_to_physical(succ.qubits[0]);
+                                let physical_q1 = self.layout.virtual_to_physical(succ.qubits[1]);
+                                extended_set.insert(successor, [physical_q0, physical_q1]);
+                                to_visit.push(successor);
+                                continue;
                             }
+                            visit_now.push(successor);
                         }
                     }
                 }
@@ -322,9 +319,9 @@ impl MicroSABRE {
         let mut swap_candidates: Vec<[i32; 2]> = Vec::new();
 
         for &phys in self.front_layer.nodes.values().flatten() {
-            for neighbour in self.neighbour_map[&phys].iter() {
-                if neighbour > &phys || !self.front_layer.is_active(*neighbour) {
-                    swap_candidates.push([phys, *neighbour])
+            for &neighbour in &self.neighbour_map[phys as usize] {
+                if neighbour > phys || !self.front_layer.is_active(neighbour) {
+                    swap_candidates.push([phys, neighbour])
                 }
             }
         }
@@ -372,9 +369,9 @@ impl MicroSABRE {
         self.gate_order = state.gate_order;
         self.last_swap_on_qubit = state.last_swap_on_qubit;
     }
-    
-    fn advance_front_layer(&mut self, nodes: &Vec<i32>) -> i32 {
-        let mut node_queue: VecDeque<i32> = VecDeque::from(nodes.clone());
+
+    fn advance_front_layer(&mut self, nodes: &[i32]) -> i32 {
+        let mut node_queue: VecDeque<i32> = VecDeque::from(nodes.to_vec());
 
         let mut executed_gates_counter = 0;
 
@@ -393,24 +390,23 @@ impl MicroSABRE {
             }
 
             // Execute node
+            // TODO: That contains really hurts performance. A executed Vec<bool> is much better - but requires additional state tracking
             if !self.gate_order.contains(&node.id) {
                 self.gate_order.push(node.id);
                 executed_gates_counter += 1;
             }
 
-            if let Some(successors) = self.adjacency_list.get(&node_index) {
-                for successor in successors {
-                    if let Some(count) = self.required_predecessors.get_mut(*successor as usize) {
-                        *count -= 1;
-                        if *count == 0 {
-                            node_queue.push_back(*successor);
-                        }
+            for &successor in &self.adjacency_list[node_index as usize] {
+                if let Some(count) = self.required_predecessors.get_mut(successor as usize) {
+                    *count -= 1;
+                    if *count == 0 {
+                        node_queue.push_back(successor);
                     }
                 }
             }
         }
 
-        return executed_gates_counter
+        executed_gates_counter
     }
 
     fn release_valve(&mut self, current_swaps: &mut Vec<[i32; 2]>) -> Vec<i32> {
@@ -479,7 +475,7 @@ impl MicroSABRE {
             vec![closest_node]
         }
     }
-    
+
     fn apply_swap(&mut self, swap: [i32; 2]) {
         self.front_layer.apply_swap(swap);
         self.layout.swap_physical(swap);

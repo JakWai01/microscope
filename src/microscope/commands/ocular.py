@@ -11,7 +11,7 @@ from qiskit.transpiler.passes import (
     SabreLayout,
     SabreSwap,
     FullAncillaAllocation,
-    SetLayout
+    SetLayout,
 )
 
 from collections import defaultdict
@@ -21,16 +21,14 @@ from rich.console import Console  # type: ignore
 from rich.table import Table  # type: ignore
 import matplotlib.pyplot as plt  # type: ignore
 
-from commands.helper import (
-    apply_sabre_result,
-    result_table,
-    generate_initial_mapping
-)
+from commands.helper import apply_sabre_result, result_table, generate_initial_mapping
 
 import microboost  # type: ignore
 
+
 def coupling_line(n):
     return CouplingMap.from_line(n)
+
 
 def coupling_grid(n):
     import math
@@ -38,6 +36,7 @@ def coupling_grid(n):
     rows = math.isqrt(n)
     cols = math.ceil(n / rows)
     return CouplingMap.from_grid(rows, cols)
+
 
 def ocular(config):
     files = config["ocular"]["files"]
@@ -198,6 +197,7 @@ def process_results(test_results):
 
     plt.show()
 
+
 def benchpress_adapter(circuit, backend, k):
     coupling_map = backend._coupling_map
 
@@ -248,7 +248,5 @@ def benchpress_adapter(circuit, backend, k):
         coupling_map,
     )
 
-    return dag_to_circuit(
-        transpiled_sabre_dag_boosted
-    )
+    return dag_to_circuit(transpiled_sabre_dag_boosted)
     # return transpiled_qc

@@ -7,10 +7,16 @@ import pandas as pd
 
 topologies = ["heavy-hex", "square", "linear"]
 
-with open("/home/jakob/Documents/Projects/microscope/assets/benchmark/0003_output_ocular_k2.json.json", 'rb') as fd:
+with open(
+    "/home/jakob/Documents/Projects/microscope/assets/benchmark/0003_output_ocular_k2.json.json",
+    "rb",
+) as fd:
     data_preview = orjson.loads(fd.read())
 
-with open("/home/jakob/Documents/Projects/microscope/assets/benchmark/0002_output_qiskit.json.json", 'rb') as fd: 
+with open(
+    "/home/jakob/Documents/Projects/microscope/assets/benchmark/0002_output_qiskit.json.json",
+    "rb",
+) as fd:
     data_release = orjson.loads(fd.read())
 
 benchmarks_preview = data_preview["benchmarks"]
@@ -27,11 +33,15 @@ cmap = sns.color_palette("crest", as_cmap=True)
 all_qubit_counts = {}
 for benchmark in benchmarks_preview:
     try:
-        all_qubit_counts[benchmark["name"]] = benchmark["extra_info"]["input_num_qubits"]
+        all_qubit_counts[benchmark["name"]] = benchmark["extra_info"][
+            "input_num_qubits"
+        ]
     except KeyError:
         continue
 
-norm = mpl.colors.Normalize(vmin=min(all_qubit_counts.values()), vmax=max(all_qubit_counts.values()))
+norm = mpl.colors.Normalize(
+    vmin=min(all_qubit_counts.values()), vmax=max(all_qubit_counts.values())
+)
 sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
 sm.set_array([])
 
@@ -43,7 +53,9 @@ for ax, topo in zip(axs, topologies):
     for benchmark in benchmarks_preview:
         try:
             if benchmark["params"]["circ_and_topo"][1] == topo:
-                preview_swaps[benchmark["name"]] = benchmark["extra_info"]["output_circuit_operations"]["swap"]
+                preview_swaps[benchmark["name"]] = benchmark["extra_info"][
+                    "output_circuit_operations"
+                ]["swap"]
         except KeyError:
             skip_names.add(benchmark["name"])
 
@@ -51,7 +63,9 @@ for ax, topo in zip(axs, topologies):
         if benchmark["name"] in skip_names:
             continue
         if benchmark["params"]["circ_and_topo"][1] == topo:
-            release_swaps[benchmark["name"]] = benchmark["extra_info"]["output_circuit_operations"]["swap"]
+            release_swaps[benchmark["name"]] = benchmark["extra_info"][
+                "output_circuit_operations"
+            ]["swap"]
         else:
             continue
 
@@ -68,22 +82,22 @@ for ax, topo in zip(axs, topologies):
     line_min = max(min(all_data), 1)  # avoid zero or negative for log scale
     line_max = max(all_data)
     line = np.linspace(line_min, line_max, 100)
-    ax.plot(line, line, linewidth=1, color='black', linestyle="dashed")
+    ax.plot(line, line, linewidth=1, color="black", linestyle="dashed")
 
-    ax.set_title(f"Topology: {topo}", fontweight='bold', fontsize=14)
+    ax.set_title(f"Topology: {topo}", fontweight="bold", fontsize=14)
     ax.set_xlabel("k=2 swaps", fontsize=12)
     ax.set_ylabel("Qiskit swaps", fontsize=12)
-    ax.set_xscale('log')
-    ax.set_yscale('log')
+    ax.set_xscale("log")
+    ax.set_yscale("log")
     # automatic axis limits
     ax.set_xlim(1, 1e5)
     ax.set_ylim(1, 1e5)
 
 cbar_ax = fig.add_subplot(gs[0, 3])
 cbar = fig.colorbar(sm, cax=cbar_ax)
-cbar.set_label('Number of Qubits')
+cbar.set_label("Number of Qubits")
 
-plt.suptitle("Qiskit vs k=2 swaps across topologies", fontsize=16, fontweight='bold')
+plt.suptitle("Qiskit vs k=2 swaps across topologies", fontsize=16, fontweight="bold")
 plt.tight_layout(rect=[0, 0, 1, 0.95])
 plt.savefig("/tmp/combined_topologies_swaps.png", dpi=900)
 plt.show()
