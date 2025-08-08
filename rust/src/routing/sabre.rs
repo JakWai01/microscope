@@ -174,8 +174,6 @@ impl MicroSABRE {
     }
 
     fn get_extended_set(&mut self) -> MicroFront {
-        let mut required_predecessors = self.required_predecessors.clone();
-
         let mut to_visit: Vec<i32> = self.front_layer.nodes.keys().copied().collect();
         let mut i = 0;
 
@@ -188,7 +186,7 @@ impl MicroSABRE {
 
         let mut visited = vec![false; dag_size];
 
-        while i < to_visit.len() && extended_set.len() < 20 as usize {
+        while i < to_visit.len() && extended_set.len() < 20 {
             visit_now.push(to_visit[i]);
             let mut j = 0;
 
@@ -202,9 +200,9 @@ impl MicroSABRE {
                             visited[successor as usize] = true;
 
                             decremented[successor as usize] += 1;
-                            required_predecessors[successor as usize] -= 1;
+                            self.required_predecessors[successor as usize] -= 1;
 
-                            if required_predecessors[successor as usize] == 0 {
+                            if self.required_predecessors[successor as usize] == 0 {
                                 if succ.qubits.len() == 2 {
                                     let physical_q0 =
                                         self.layout.virtual_to_physical(succ.qubits[0]);
@@ -227,7 +225,7 @@ impl MicroSABRE {
         }
 
         for (index, amount) in decremented.iter().enumerate() {
-            required_predecessors[index] += amount;
+            self.required_predecessors[index] += amount;
         }
         extended_set
     }
