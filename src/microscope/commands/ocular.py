@@ -92,8 +92,6 @@ def ocular(config):
 
         preprocessed_dag = circuit_to_dag(preprocessed_circuit)
 
-        num_qubits = len(preprocessed_circuit.qubits)
-
         ops_longest_path = preprocessed_dag.count_ops_longest_path()
         longest_path_len = sum(ops_longest_path.values())
 
@@ -106,7 +104,7 @@ def ocular(config):
             qubit_indices[k]: v for k, v in current_layout.get_virtual_bits().items()
         }
         initial_layout = microboost.MicroLayout(
-            layout_mapping, len(preprocessed_dag.qubits), coupling_map.size()
+            layout_mapping, num_qubits, coupling_map.size()
         )
 
         micro_dag = DAG().from_qiskit_dag(preprocessed_dag)
