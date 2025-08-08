@@ -79,64 +79,6 @@ pub fn min_score(scores: FxHashMap<Vec<[i32; 2]>, (f64, usize)>, epsilon: f64) -
     best_swap_sequences.choose(&mut rng).unwrap().to_vec()
 }
 
-pub fn best_progress_sequence(
-    scores: FxHashMap<Vec<[i32; 2]>, (f64, usize)>,
-    epsilon: f64,
-) -> Vec<[i32; 2]> {
-    let mut best_swap_sequences = Vec::new();
-    let mut iter = scores.iter();
-
-    let (first_seq, &(first_score, first_executed)) = iter.next().unwrap();
-    let mut max_exec = first_executed;
-    let mut best_score = first_score;
-    let mut min_len = first_seq.len();
-
-    best_swap_sequences.push(first_seq);
-
-    for (swap_sequence, &(score, executed)) in iter {
-        let len = swap_sequence.len();
-
-        if executed > max_exec {
-            max_exec = executed;
-            best_score = score;
-            min_len = len;
-            best_swap_sequences.clear();
-            best_swap_sequences.push(swap_sequence);
-            // println!("Executed decides!");
-        } else if executed == max_exec {
-            let diff = score - best_score;
-            // if diff < -epsilon || (diff.abs() <= epsilon && len < min_len) {
-            //     best_score = score;
-            //     min_len = len;
-            //     best_swap_sequences.clear();
-            //     best_swap_sequences.push(swap_sequence);
-            //     // println!("Length decides!");
-            // } else if diff.abs() <= epsilon && len == min_len {
-            //     best_swap_sequences.push(swap_sequence);
-            //     // println!("Score decides!");
-            // }
-            if len < min_len {
-                println!("This case should never happen");
-                println!("Best score {:?} Score {:?}", best_score, score);
-                best_score = score;
-                min_len = len;
-                best_swap_sequences.clear();
-                best_swap_sequences.push(swap_sequence);
-            } else if len == min_len && diff < -epsilon {
-                best_score = score;
-                min_len = len;
-                best_swap_sequences.clear();
-                best_swap_sequences.push(swap_sequence);
-            } else if len == min_len && diff.abs() <= epsilon {
-                best_swap_sequences.push(swap_sequence);
-            }
-        }
-    }
-
-    let mut rng = rand::rng();
-    best_swap_sequences.choose(&mut rng).unwrap().to_vec()
-}
-
 pub fn build_digraph_from_neighbors(neighbor_map: &Vec<Vec<i32>>) -> DiGraph<(), ()> {
     let edge_list: Vec<(u32, u32)> = neighbor_map
         .iter()

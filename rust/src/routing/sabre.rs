@@ -1,8 +1,7 @@
 use crate::routing::front_layer::MicroFront;
 use crate::routing::layout::MicroLayout;
 use crate::routing::utils::{
-    best_progress_sequence, build_coupling_neighbour_map, build_digraph_from_neighbors,
-    compute_all_pairs_shortest_paths,
+    build_coupling_neighbour_map, build_digraph_from_neighbors, compute_all_pairs_shortest_paths,
 };
 
 use crate::{graph::dag::MicroDAG, routing::utils::build_adjacency_list};
@@ -11,6 +10,7 @@ use std::cmp::Ordering;
 
 use std::collections::{HashSet, VecDeque};
 
+use indexmap::IndexMap;
 use pyo3::{pyclass, pymethods, PyResult};
 
 use rustc_hash::FxHashMap;
@@ -151,30 +151,24 @@ impl MicroSABRE {
     fn calculate_heuristic(&mut self) -> f64 {
         let extended_set = self.get_extended_set();
 
-        let basic = self
-            .front_layer
-            .nodes
-            .iter()
-            .fold(0.0, |h_sum, (_node_id, [a, b])| {
-                h_sum + self.distance[*a as usize][*b as usize] as f64
-            });
+        let sum_distances = |nodes: &IndexMap<i32, [i32; 2]>| {
+            nodes
+                .values()
+                .map(|[a, b]| self.distance[*a as usize][*b as usize] as f64)
+                .sum::<f64>()
+        };
 
-        let lookahead = extended_set
-            .nodes
-            .iter()
-            .fold(0.0, |h_sum, (_node_id, [a, b])| {
-                h_sum + self.distance[*a as usize][*b as usize] as f64
-            });
+        let basic = sum_distances(&self.front_layer.nodes);
+        let lookahead = sum_distances(&extended_set.nodes);
 
-        let mut extended_set_len = extended_set.len();
-        if extended_set_len == 0 {
-            extended_set_len = 1
-        }
+        let weight = 0.5 / extended_set.len().max(1) as f64;
 
-        basic + (0.5 / extended_set_len as f64) * lookahead
+        basic + weight * lookahead
     }
 
     fn get_extended_set(&mut self) -> MicroFront {
+        let mut required_predecessors = self.required_predecessors.clone();
+
         let mut to_visit: Vec<i32> = self.front_layer.nodes.keys().copied().collect();
         let mut i = 0;
 
@@ -200,9 +194,9 @@ impl MicroSABRE {
                         visited[successor as usize] = true;
 
                         decremented[successor as usize] += 1;
-                        self.required_predecessors[successor as usize] -= 1;
+                        required_predecessors[successor as usize] -= 1;
 
-                        if self.required_predecessors[successor as usize] == 0 {
+                        if required_predecessors[successor as usize] == 0 {
                             if succ.qubits.len() == 2 {
                                 let physical_q0 = self.layout.virtual_to_physical(succ.qubits[0]);
                                 let physical_q1 = self.layout.virtual_to_physical(succ.qubits[1]);
@@ -221,9 +215,6 @@ impl MicroSABRE {
             i += 1;
         }
 
-        for (index, amount) in decremented.iter().enumerate() {
-            self.required_predecessors[index] += amount;
-        }
         extended_set
     }
 
@@ -231,7 +222,40 @@ impl MicroSABRE {
         let initial_state = self.create_snapshot();
 
         let mut stack = Vec::new();
-        let mut scores: FxHashMap<Vec<[i32; 2]>, (f64, usize)> = FxHashMap::default();
+
+        let mut best_sequence: Option<Vec<[i32; 2]>> = None;
+        let mut best_exec = 0;
+        let mut best_score = f64::NEG_INFINITY;
+        let mut best_len = usize::MAX;
+        let epsilon = 1e-10;
+
+        let mut update_best = |seq: Vec<[i32; 2]>, score: f64, executed: usize| {
+            let len = seq.len();
+
+            if executed > best_exec {
+                best_exec = executed;
+                best_score = score;
+                best_len = len;
+                best_sequence = Some(seq);
+            } else if executed == best_exec {
+                let diff = score - best_score;
+
+                if len < best_len {
+                    best_score = score;
+                    best_len = len;
+                    best_sequence = Some(seq);
+                } else if len == best_len && diff < -epsilon {
+                    best_score = score;
+                    best_sequence = Some(seq);
+                } else if len == best_len && diff.abs() <= epsilon {
+                    // Tie — random chance to replace
+                    if rand::random::<bool>() {
+                        best_score = score;
+                        best_sequence = Some(seq);
+                    }
+                }
+            }
+        };
 
         stack.push(StackItem {
             state: self.create_snapshot(),
@@ -243,10 +267,7 @@ impl MicroSABRE {
 
         while let Some(item) = stack.pop() {
             if item.current_depth == 0 {
-                scores.insert(
-                    item.swap_sequence.clone(),
-                    (item.score, item.executed_gates),
-                );
+                update_best(item.swap_sequence.clone(), item.score, item.executed_gates);
                 continue;
             }
 
@@ -255,20 +276,14 @@ impl MicroSABRE {
             self.load_snapshot(state.clone());
 
             if self.front_layer.is_empty() {
-                scores.insert(
-                    item.swap_sequence.clone(),
-                    (item.score, item.executed_gates),
-                );
+                update_best(item.swap_sequence.clone(), item.score, item.executed_gates);
                 continue;
             }
 
             let swap_candidates = self.compute_swap_candidates();
 
             if swap_candidates.is_empty() {
-                scores.insert(
-                    item.swap_sequence.clone(),
-                    (item.score, item.executed_gates),
-                );
+                update_best(item.swap_sequence.clone(), item.score, item.executed_gates);
                 continue;
             }
 
@@ -276,11 +291,8 @@ impl MicroSABRE {
                 self.load_snapshot(state.clone());
 
                 let before = self.calculate_heuristic();
-
                 self.apply_swap([q0, q1]);
-
                 let after = self.calculate_heuristic();
-
                 let score: f64 = after - before;
 
                 let mut execute_gate_list = Vec::new();
@@ -295,7 +307,6 @@ impl MicroSABRE {
                 }
 
                 let mut swap_sequence = item.swap_sequence.clone();
-
                 swap_sequence.push([q0, q1]);
 
                 let advanced_gates = self.advance_front_layer(&execute_gate_list);
@@ -312,7 +323,7 @@ impl MicroSABRE {
 
         self.load_snapshot(initial_state);
 
-        best_progress_sequence(scores, 1e-10)
+        best_sequence.unwrap_or_default()
     }
 
     fn compute_swap_candidates(&self) -> Vec<[i32; 2]> {

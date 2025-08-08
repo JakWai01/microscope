@@ -102,6 +102,7 @@ considering a node multiple times.
    - decay
 - [ ] Matt Treinish Quantum Computing Slides
 - [ ] I'd like to show that my technique is better than qiskit's and you can invest abitrary amounts of time to get better results
+- [ ] Pre-allocate vectors with a certain size .reserve()
 
 
 ## Optimal Solutions (using OLSQ)
