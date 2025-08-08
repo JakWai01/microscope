@@ -58,11 +58,6 @@ impl MicroSABRE {
         })
     }
 
-    fn apply_swap(&mut self, swap: [i32; 2]) {
-        self.front_layer.apply_swap(swap);
-        self.layout.swap_physical(swap);
-    }
-
     fn run(&mut self, depth: usize) -> (FxHashMap<i32, Vec<[i32; 2]>>, Vec<i32>) {
         self.dag
             .edges()
@@ -131,7 +126,27 @@ impl MicroSABRE {
             std::mem::take(&mut self.gate_order),
         )
     }
+}
 
+#[derive(Clone)]
+struct State {
+    front_layer: MicroFront,
+    required_predecessors: Vec<i32>,
+    layout: MicroLayout,
+    gate_order: Vec<i32>,
+    last_swap_on_qubit: FxHashMap<i32, [i32; 2]>,
+}
+
+#[derive(Clone)]
+struct StackItem {
+    state: State,
+    swap_sequence: Vec<[i32; 2]>,
+    score: f64,
+    current_depth: usize,
+    executed_gates: usize,
+}
+
+impl MicroSABRE {
     fn calculate_heuristic(&mut self) -> f64 {
         let extended_set = self.get_extended_set();
 
@@ -342,27 +357,6 @@ impl MicroSABRE {
             .cloned()
             .collect()
     }
-}
-
-#[derive(Clone)]
-struct State {
-    front_layer: MicroFront,
-    required_predecessors: Vec<i32>,
-    layout: MicroLayout,
-    gate_order: Vec<i32>,
-    last_swap_on_qubit: FxHashMap<i32, [i32; 2]>,
-}
-
-#[derive(Clone)]
-struct StackItem {
-    state: State,
-    swap_sequence: Vec<[i32; 2]>,
-    score: f64,
-    current_depth: usize,
-    executed_gates: usize,
-}
-
-impl MicroSABRE {
     fn create_snapshot(&self) -> State {
         State {
             front_layer: self.front_layer.clone(),
@@ -486,5 +480,10 @@ impl MicroSABRE {
             }
             vec![closest_node]
         }
+    }
+    
+    fn apply_swap(&mut self, swap: [i32; 2]) {
+        self.front_layer.apply_swap(swap);
+        self.layout.swap_physical(swap);
     }
 }
