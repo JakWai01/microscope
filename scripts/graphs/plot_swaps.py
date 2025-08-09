@@ -8,7 +8,7 @@ import pandas as pd
 topologies = ["heavy-hex", "square", "linear"]
 
 with open(
-    "/home/jakob/Documents/Projects/microscope/assets/benchmark/0003_output_ocular_k2.json.json",
+    "/home/jakob/Documents/Projects/microscope/assets/benchmark/0001_output_ocular_k3.json.json",
     "rb",
 ) as fd:
     data_preview = orjson.loads(fd.read())
