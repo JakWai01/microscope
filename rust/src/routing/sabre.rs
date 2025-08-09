@@ -313,7 +313,7 @@ impl MicroSABRE {
 
                 stack.push(StackItem {
                     state: self.create_snapshot(),
-                    swap_sequence: swap_sequence,
+                    swap_sequence,
                     score: item.score + score,
                     current_depth: item.current_depth - 1,
                     executed_gates: item.executed_gates + advanced_gates as usize,
