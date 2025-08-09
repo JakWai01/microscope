@@ -90,10 +90,12 @@ impl MicroSABRE {
 
                     if let Some(node) = self.executable_node_on_qubit(q0) {
                         execute_gate_list.push(node);
+                        self.front_layer.remove(&node);
                     }
 
                     if let Some(node) = self.executable_node_on_qubit(q1) {
                         execute_gate_list.push(node);
+                        self.front_layer.remove(&node);
                     }
                 }
             }
@@ -112,10 +114,6 @@ impl MicroSABRE {
                 .entry(node_id)
                 .or_default()
                 .extend(current_swaps.clone());
-
-            for &node in &execute_gate_list {
-                self.front_layer.remove(&node);
-            }
 
             self.advance_front_layer(&execute_gate_list);
 
@@ -270,7 +268,7 @@ impl MicroSABRE {
                 update_best(item.swap_sequence.clone(), item.score, item.executed_gates);
                 continue;
             }
-
+    
             let state = item.state.clone();
 
             self.load_snapshot(state.clone());
@@ -287,6 +285,7 @@ impl MicroSABRE {
                 continue;
             }
 
+            let mut execute_gate_list = Vec::new();
             for &[q0, q1] in &swap_candidates {
                 self.load_snapshot(state.clone());
 
@@ -295,7 +294,6 @@ impl MicroSABRE {
                 let after = self.calculate_heuristic();
                 let score: f64 = after - before;
 
-                let mut execute_gate_list = Vec::new();
 
                 if let Some(node) = self.executable_node_on_qubit(q0) {
                     execute_gate_list.push(node);
@@ -317,7 +315,9 @@ impl MicroSABRE {
                     score: item.score + score,
                     current_depth: item.current_depth - 1,
                     executed_gates: item.executed_gates + advanced_gates as usize,
-                })
+                });
+
+                execute_gate_list.clear();
             }
         }
 
