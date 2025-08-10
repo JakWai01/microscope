@@ -244,7 +244,7 @@ def benchpress_adapter(circuit, backend, k):
         preprocessed_dag.copy_empty_like(),
         preprocessed_dag,
         sabre_result,
-        num_qubits,
+        preprocessed_dag.qubits,
         coupling_map,
     )
 
