@@ -138,11 +138,9 @@ struct State {
 
 #[derive(Clone)]
 struct StackItem {
-    state: State,
     swap_sequence: Vec<[i32; 2]>,
     score: f64,
     current_depth: usize,
-    executed_gates: usize,
 }
 
 impl MicroSABRE {
@@ -246,7 +244,6 @@ impl MicroSABRE {
                     best_score = score;
                     best_sequence = Some(seq);
                 } else if len == best_len && diff.abs() <= epsilon {
-                    // Tie — random chance to replace
                     if rand::random::<bool>() {
                         best_score = score;
                         best_sequence = Some(seq);
@@ -256,44 +253,68 @@ impl MicroSABRE {
         };
 
         stack.push(StackItem {
-            state: self.create_snapshot(),
             swap_sequence: Vec::new(),
             score: 0.0,
             current_depth: depth,
-            executed_gates: 0,
         });
 
         while let Some(item) = stack.pop() {
+            let mut advanced_gates = 0;
+
+            // I'm pretty sure initial_state could be copied read-only via Rc in this implementation
+            self.load_snapshot(initial_state.clone());
+
+            let mut execute_gate_list = Vec::new();
+
+            for swap in item.swap_sequence.clone() {
+                let q0 = swap[0];
+                let q1 = swap[1];
+
+                self.apply_swap([q0, q1]);
+
+                if let Some(node) = self.executable_node_on_qubit(q0) {
+                    execute_gate_list.push(node);
+                    self.front_layer.remove(&node);
+                }
+
+                if let Some(node) = self.executable_node_on_qubit(q1) {
+                    execute_gate_list.push(node);
+                    self.front_layer.remove(&node);
+                }
+
+                advanced_gates += self.advance_front_layer(&execute_gate_list);
+                execute_gate_list.clear();
+            }
+            
             if item.current_depth == 0 {
-                update_best(item.swap_sequence.clone(), item.score, item.executed_gates);
+                update_best(item.swap_sequence.clone(), item.score, advanced_gates as usize);
                 continue;
             }
     
-            let state = item.state.clone();
-
-            self.load_snapshot(state.clone());
 
             if self.front_layer.is_empty() {
-                update_best(item.swap_sequence.clone(), item.score, item.executed_gates);
+                update_best(item.swap_sequence.clone(), item.score, advanced_gates as usize);
                 continue;
             }
+
+            let state_after_sequence = self.create_snapshot();
 
             let swap_candidates = self.compute_swap_candidates();
 
             if swap_candidates.is_empty() {
-                update_best(item.swap_sequence.clone(), item.score, item.executed_gates);
+                update_best(item.swap_sequence.clone(), item.score, advanced_gates as usize);
                 continue;
             }
 
-            let mut execute_gate_list = Vec::new();
             for &[q0, q1] in &swap_candidates {
-                self.load_snapshot(state.clone());
+                // We need to reset the state here after applying each swap_candidate
+                // self.load_snapshot(state.clone());
+                self.load_snapshot(state_after_sequence.clone());
 
                 let before = self.calculate_heuristic();
                 self.apply_swap([q0, q1]);
                 let after = self.calculate_heuristic();
                 let score: f64 = after - before;
-
 
                 if let Some(node) = self.executable_node_on_qubit(q0) {
                     execute_gate_list.push(node);
@@ -306,15 +327,14 @@ impl MicroSABRE {
 
                 let mut swap_sequence = item.swap_sequence.clone();
                 swap_sequence.push([q0, q1]);
-
-                let advanced_gates = self.advance_front_layer(&execute_gate_list);
+                
+                // We could probably only insert advanced_gates at the very end
+                // let advanced_gates = self.advance_front_layer(&execute_gate_list);
 
                 stack.push(StackItem {
-                    state: self.create_snapshot(),
                     swap_sequence,
                     score: item.score + score,
                     current_depth: item.current_depth - 1,
-                    executed_gates: item.executed_gates + advanced_gates as usize,
                 });
 
                 execute_gate_list.clear();

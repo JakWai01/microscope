@@ -1,5 +1,5 @@
 ocular: build
-	python3 src/microscope/main.py ocular
+	RUST_BACKTRACE=1 python3 src/microscope/main.py ocular
 
 olsq: build
 	python3 src/microscope/main.py olsq
