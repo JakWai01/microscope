@@ -184,24 +184,6 @@ impl MicroSABRE {
         (front_len as f64) / cap
     }
 
-    fn calculate_heuristic(&mut self) -> f64 {
-        let extended_set = self.get_extended_set();
-
-        let sum_distances = |nodes: &IndexMap<i32, [i32; 2]>| {
-            nodes
-                .values()
-                .map(|[a, b]| self.distance[*a as usize][*b as usize] as f64)
-                .sum::<f64>()
-        };
-
-        let basic = sum_distances(&self.front_layer.nodes);
-        let lookahead = sum_distances(&extended_set.nodes);
-
-        let weight = 0.5 / extended_set.len().max(1) as f64;
-
-        basic + weight * lookahead
-    }
-
     fn get_extended_set(&mut self) -> MicroFront {
         let mut required_predecessors = self.required_predecessors.clone();
 
@@ -257,7 +239,7 @@ impl MicroSABRE {
     fn choose_best_swaps(&mut self, depth: usize) -> Vec<[i32; 2]> {
         let initial_state = self.create_snapshot();
         let lambda: f64 = 0.5; // weight for the extended set portion
-        let gamma: f64 = 0.10; // small occupancy bonus
+        let gamma: f64 = 0.1; // small occupancy bonus
         let eps: f64 = f64::EPSILON;
 
         // φ at the very start (same for all sequences in this call)
@@ -386,7 +368,7 @@ impl MicroSABRE {
                 let delta_h = h_before - h_after; // larger is better
 
                 let phi_end = self.occupancy(self.front_layer.len());
-                let secondary = delta_h + gamma * (phi_end * phi_start);
+                let secondary = delta_h + gamma * (phi_end - phi_start);
 
                 update_best(item.swap_sequence.clone(), advanced_gates, secondary);
                 continue;
