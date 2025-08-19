@@ -103,6 +103,7 @@ considering a node multiple times.
 - [ ] Matt Treinish Quantum Computing Slides
 - [ ] I'd like to show that my technique is better than qiskit's and you can invest abitrary amounts of time to get better results
 - [ ] Pre-allocate vectors with a certain size .reserve()
+- [ ] Comparability decay - bigger k leads to smaller comparability across branches
 
 
 ## Optimal Solutions (using OLSQ)

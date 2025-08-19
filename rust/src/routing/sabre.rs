@@ -6,11 +6,12 @@ use crate::routing::utils::{
 
 use crate::{graph::dag::MicroDAG, routing::utils::build_adjacency_list};
 
+use core::f64;
 use std::cmp::Ordering;
 
 use std::collections::{HashSet, VecDeque};
 
-use indexmap::IndexMap;
+use indexmap::{IndexMap, IndexSet};
 use pyo3::{pyclass, pymethods, PyResult};
 
 use rustc_hash::FxHashMap;
@@ -144,6 +145,45 @@ struct StackItem {
 }
 
 impl MicroSABRE {
+    #[inline]
+    fn sum_nodes_distance_with_layout(
+        &self,
+        layout: &MicroLayout,
+        node_ids: &IndexSet<i32>,
+    ) -> f64 {
+        let mut acc = 0.0;
+        for &nid in node_ids.iter() {
+            let node = self.dag.get(nid).unwrap();
+            if node.qubits.len() == 2 {
+                let p0 = layout.virtual_to_physical(node.qubits[0]) as usize;
+                let p1 = layout.virtual_to_physical(node.qubits[1]) as usize;
+                acc += self.distance[p0][p1] as f64;
+            }
+        }
+        acc
+    }
+
+    #[inline]
+    fn union_heuristic_with_layout(
+        &self,
+        layout: &MicroLayout,
+        u_front: &IndexSet<i32>,
+        u_ext: &IndexSet<i32>,
+        lambda: f64,
+    ) -> f64 {
+        let basic = self.sum_nodes_distance_with_layout(layout, u_front);
+        let ext_sum = self.sum_nodes_distance_with_layout(layout, u_ext);
+        let m = u_ext.len().max(1) as f64;
+        basic + (lambda / m) * ext_sum
+    }
+
+    /// Occupancy φ(F) = |F| / floor(num_qubits/2)
+    #[inline]
+    fn occupancy(&self, front_len: usize) -> f64 {
+        let cap = (self.num_qubits / 2).max(1) as f64;
+        (front_len as f64) / cap
+    }
+
     fn calculate_heuristic(&mut self) -> f64 {
         let extended_set = self.get_extended_set();
 
@@ -216,134 +256,166 @@ impl MicroSABRE {
 
     fn choose_best_swaps(&mut self, depth: usize) -> Vec<[i32; 2]> {
         let initial_state = self.create_snapshot();
+        let lambda: f64 = 0.5; // weight for the extended set portion
+        let gamma: f64 = 0.10; // small occupancy bonus
+        let eps: f64 = f64::EPSILON;
+
+        // φ at the very start (same for all sequences in this call)
+        let phi_start = {
+            let start_front_len = initial_state.front_layer.len();
+            self.occupancy(start_front_len)
+        };
+
+        #[derive(Clone)]
+        struct StackItem {
+            swap_sequence: Vec<[i32; 2]>,
+            remaining_depth: usize,
+        }
 
         let mut stack = Vec::new();
+        stack.push(StackItem {
+            swap_sequence: Vec::new(),
+            remaining_depth: depth,
+        });
 
-        let mut best_sequence: Option<Vec<[i32; 2]>> = None;
+        let mut best_seq: Option<Vec<[i32; 2]>> = None;
         let mut best_exec = 0;
-        let mut best_score = f64::NEG_INFINITY;
+        let mut best_secondary = f64::NEG_INFINITY;
         let mut best_len = usize::MAX;
-        let epsilon = 1e-10;
 
-        let mut update_best = |seq: Vec<[i32; 2]>, score: f64, executed: usize| {
+        let mut update_best = |seq: Vec<[i32; 2]>, exec: usize, secondary: f64| {
             let len = seq.len();
+            let better = (exec > best_exec)
+                || (exec == best_exec
+                    && (secondary > best_secondary + eps
+                        || ((secondary - best_secondary).abs() <= eps && len < best_len)));
 
-            if executed > best_exec {
-                best_exec = executed;
-                best_score = score;
+            if better {
+                best_exec = exec;
+                best_secondary = secondary;
                 best_len = len;
-                best_sequence = Some(seq);
-            } else if executed == best_exec {
-                let diff = score - best_score;
-
-                if len < best_len {
-                    best_score = score;
-                    best_len = len;
-                    best_sequence = Some(seq);
-                } else if len == best_len && diff < -epsilon {
-                    best_score = score;
-                    best_sequence = Some(seq);
-                } else if len == best_len && diff.abs() <= epsilon {
-                    if rand::random::<bool>() {
-                        best_score = score;
-                        best_sequence = Some(seq);
-                    }
-                }
+                best_seq = Some(seq);
+            } else if exec == best_exec
+                && (secondary - best_secondary).abs() <= eps
+                && len == best_len
+                && rand::random::<bool>()
+            {
+                // stochastic tie-break like SABRE
+                best_exec = exec;
+                best_secondary = secondary;
+                best_len = len;
+                best_seq = Some(seq);
             }
         };
 
-        stack.push(StackItem {
-            swap_sequence: Vec::new(),
-            score: 0.0,
-            current_depth: depth,
-        });
-
         while let Some(item) = stack.pop() {
-            let mut advanced_gates = 0;
-
-            // I'm pretty sure initial_state could be copied read-only via Rc in this implementation
             self.load_snapshot(initial_state.clone());
 
             let mut execute_gate_list = Vec::new();
+            let mut advanced_gates = 0usize;
 
-            for swap in item.swap_sequence.clone() {
-                let q0 = swap[0];
-                let q1 = swap[1];
+            // unions of logical 2-qubit node IDs across t = 0..|s|
+            let mut u_front: IndexSet<i32> = IndexSet::new();
+            let mut u_ext: IndexSet<i32> = IndexSet::new();
 
+            // Capture step t = 0
+            for &nid in self.front_layer.nodes.keys() {
+                u_front.insert(nid);
+            }
+            {
+                let ext0 = self.get_extended_set();
+                for &nid in ext0.nodes.keys() {
+                    u_ext.insert(nid);
+                }
+            }
+
+            // Apply swaps in the prefix, executing gates and collecting unions at each step
+            for &swap in &item.swap_sequence {
+                let [q0, q1] = swap;
+
+                // Apply the SWAP
                 self.apply_swap([q0, q1]);
 
+                // Execute gates on q0 and q1 if adjacent after SWAP
                 if let Some(node) = self.executable_node_on_qubit(q0) {
                     execute_gate_list.push(node);
                     self.front_layer.remove(&node);
                 }
-
                 if let Some(node) = self.executable_node_on_qubit(q1) {
                     execute_gate_list.push(node);
                     self.front_layer.remove(&node);
                 }
 
-                advanced_gates += self.advance_front_layer(&execute_gate_list);
+                // Advance (may add successors into the front layer)
+                advanced_gates += self.advance_front_layer(&execute_gate_list) as usize;
                 execute_gate_list.clear();
-            }
-            
-            if item.current_depth == 0 {
-                update_best(item.swap_sequence.clone(), item.score, advanced_gates as usize);
-                continue;
-            }
-    
 
-            if self.front_layer.is_empty() {
-                update_best(item.swap_sequence.clone(), item.score, advanced_gates as usize);
-                continue;
-            }
-
-            let state_after_sequence = self.create_snapshot();
-
-            let swap_candidates = self.compute_swap_candidates();
-
-            if swap_candidates.is_empty() {
-                update_best(item.swap_sequence.clone(), item.score, advanced_gates as usize);
-                continue;
-            }
-
-            for &[q0, q1] in &swap_candidates {
-                // We need to reset the state here after applying each swap_candidate
-                // self.load_snapshot(state.clone());
-                self.load_snapshot(state_after_sequence.clone());
-
-                let before = self.calculate_heuristic();
-                self.apply_swap([q0, q1]);
-                let after = self.calculate_heuristic();
-                let score: f64 = after - before;
-
-                if let Some(node) = self.executable_node_on_qubit(q0) {
-                    execute_gate_list.push(node);
-                    self.front_layer.remove(&node);
+                // Record unions after the step
+                for &nid in self.front_layer.nodes.keys() {
+                    u_front.insert(nid);
                 }
-                if let Some(node) = self.executable_node_on_qubit(q1) {
-                    execute_gate_list.push(node);
-                    self.front_layer.remove(&node);
+                {
+                    let ext_t = self.get_extended_set();
+                    for &nid in ext_t.nodes.keys() {
+                        u_ext.insert(nid);
+                    }
                 }
+            }
 
-                let mut swap_sequence = item.swap_sequence.clone();
-                swap_sequence.push([q0, q1]);
+            // Temrinal conditions -> evaluate sequence (single before/after)
+            let should_score_leaf = item.remaining_depth == 0 || self.front_layer.is_empty();
+
+            let swap_candidates = if !should_score_leaf {
+                self.compute_swap_candidates()
+            } else {
+                Vec::new()
+            };
+
+            if should_score_leaf || swap_candidates.is_empty() {
+                // Compute union-based ΔH and occupancy improvement at the *end* of this sequence.
+                //   before: initial layout
+                //   after : current layout (after applying prefix and executions)
+                let h_before = self.union_heuristic_with_layout(
+                    &initial_state.layout,
+                    &u_front,
+                    &u_ext,
+                    lambda,
+                );
+                let h_after =
+                    self.union_heuristic_with_layout(&self.layout, &u_front, &u_ext, lambda);
+                let delta_h = h_before - h_after; // larger is better
+
+                let phi_end = self.occupancy(self.front_layer.len());
+                let secondary = delta_h + gamma * (phi_end * phi_start);
+
+                update_best(item.swap_sequence.clone(), advanced_gates, secondary);
+                continue;
+            }
+
+            let state_after_prefix = self.create_snapshot();
+
+            for &swap in &swap_candidates {
+                let [q0, q1] = swap;
                 
-                // We could probably only insert advanced_gates at the very end
-                // let advanced_gates = self.advance_front_layer(&execute_gate_list);
+                // For each child, start from identical state-after-prefix
+                self.load_snapshot(state_after_prefix.clone());
+
+                // Apply *one* more swap to extend the prefix, but do not execute/advance here.
+                // We only evaluate at leaves (or early termination) to keep comparability cheap.
+                // Just record the extended sequence for deeper exploration.
+                let mut next_seq= item.swap_sequence.clone();
+                next_seq.push([q0, q1]);
+
 
                 stack.push(StackItem {
-                    swap_sequence,
-                    score: item.score + score,
-                    current_depth: item.current_depth - 1,
+                    swap_sequence: next_seq,
+                    remaining_depth: item.remaining_depth - 1,
                 });
-
-                execute_gate_list.clear();
             }
         }
 
         self.load_snapshot(initial_state);
-
-        best_sequence.unwrap_or_default()
+        best_seq.unwrap_or_default()
     }
 
     fn compute_swap_candidates(&self) -> Vec<[i32; 2]> {
