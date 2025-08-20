@@ -138,38 +138,6 @@ struct State {
 }
 
 impl MicroSABRE {
-    #[inline]
-    fn sum_nodes_distance_with_layout(
-        &self,
-        layout: &MicroLayout,
-        node_ids: &IndexSet<i32>,
-    ) -> f64 {
-        let mut acc = 0.0;
-        for &nid in node_ids.iter() {
-            let node = self.dag.get(nid).unwrap();
-            if node.qubits.len() == 2 {
-                let p0 = layout.virtual_to_physical(node.qubits[0]) as usize;
-                let p1 = layout.virtual_to_physical(node.qubits[1]) as usize;
-                acc += self.distance[p0][p1] as f64;
-            }
-        }
-        acc
-    }
-
-    #[inline]
-    fn union_heuristic_with_layout(
-        &self,
-        layout: &MicroLayout,
-        u_front: &IndexSet<i32>,
-        u_ext: &IndexSet<i32>,
-        lambda: f64,
-    ) -> f64 {
-        let basic = self.sum_nodes_distance_with_layout(layout, u_front);
-        let ext_sum = self.sum_nodes_distance_with_layout(layout, u_ext);
-        let m = u_ext.len().max(1) as f64;
-        basic + (lambda / m) * ext_sum
-    }
-
     /// Occupancy φ(F) = |F| / floor(num_qubits/2)
     #[inline]
     fn occupancy(&self, front_len: usize) -> f64 {
