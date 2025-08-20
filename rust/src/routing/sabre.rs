@@ -11,7 +11,7 @@ use std::cmp::Ordering;
 
 use std::collections::{HashSet, VecDeque};
 
-use indexmap::{IndexMap, IndexSet};
+use indexmap::{IndexSet};
 use pyo3::{pyclass, pymethods, PyResult};
 
 use rustc_hash::FxHashMap;
@@ -137,13 +137,6 @@ struct State {
     last_swap_on_qubit: FxHashMap<i32, [i32; 2]>,
 }
 
-#[derive(Clone)]
-struct StackItem {
-    swap_sequence: Vec<[i32; 2]>,
-    score: f64,
-    current_depth: usize,
-}
-
 impl MicroSABRE {
     #[inline]
     fn sum_nodes_distance_with_layout(
@@ -236,11 +229,47 @@ impl MicroSABRE {
         extended_set
     }
 
+    /// Sum of per-node min-swaps needed (d-1)^+ over node_ids under given layout.
+    #[inline]
+    fn sum_min_swaps_needed_for_nodes(
+        &self,
+        layout: &MicroLayout,
+        node_ids: &IndexSet<i32>,
+    ) -> f64 {
+        let mut acc = 0.0_f64;
+        for &nid in node_ids.iter() {
+            let node = self.dag.get(nid).unwrap();
+            if node.qubits.len() == 2 {
+                let p0 = layout.virtual_to_physical(node.qubits[0]) as usize;
+                let p1 = layout.virtual_to_physical(node.qubits[1]) as usize;
+                let d = self.distance[p0][p1];
+                acc += ((d - 1).max(0)) as f64;
+            }
+        }
+        acc
+    }
+
+    /// Heuristic on front/extended unions using (d-1)^+, with a weight lambda for extended.
+    #[inline]
+    fn union_heuristic_min_swaps_with_layout(
+        &self,
+        layout: &MicroLayout,
+        u_front: &IndexSet<i32>,
+        u_ext: &IndexSet<i32>,
+        lambda: f64,
+    ) -> f64 {
+        let front_sum = self.sum_min_swaps_needed_for_nodes(layout, u_front);
+        let ext_sum = self.sum_min_swaps_needed_for_nodes(layout, u_ext);
+        let m = (u_ext.len().max(1)) as f64;
+        front_sum + (lambda / m) * ext_sum
+    }
+
+    // ---------- Updated choose_best_swaps ----------
     fn choose_best_swaps(&mut self, depth: usize) -> Vec<[i32; 2]> {
         let initial_state = self.create_snapshot();
         let lambda: f64 = 0.5; // weight for the extended set portion
         let gamma: f64 = 0.1; // small occupancy bonus
-        let eps: f64 = f64::EPSILON;
+        let eps: f64 = 1e-12;
 
         // φ at the very start (same for all sequences in this call)
         let phi_start = {
@@ -261,7 +290,7 @@ impl MicroSABRE {
         });
 
         let mut best_seq: Option<Vec<[i32; 2]>> = None;
-        let mut best_exec = 0;
+        let mut best_exec = 0usize;
         let mut best_secondary = f64::NEG_INFINITY;
         let mut best_len = usize::MAX;
 
@@ -291,6 +320,7 @@ impl MicroSABRE {
         };
 
         while let Some(item) = stack.pop() {
+            // reset to baseline for this prefix
             self.load_snapshot(initial_state.clone());
 
             let mut execute_gate_list = Vec::new();
@@ -344,7 +374,7 @@ impl MicroSABRE {
                 }
             }
 
-            // Temrinal conditions -> evaluate sequence (single before/after)
+            // Terminal conditions -> evaluate sequence (single before/after)
             let should_score_leaf = item.remaining_depth == 0 || self.front_layer.is_empty();
 
             let swap_candidates = if !should_score_leaf {
@@ -354,21 +384,29 @@ impl MicroSABRE {
             };
 
             if should_score_leaf || swap_candidates.is_empty() {
-                // Compute union-based ΔH and occupancy improvement at the *end* of this sequence.
-                //   before: initial layout
-                //   after : current layout (after applying prefix and executions)
-                let h_before = self.union_heuristic_with_layout(
+                // Build union set size (unique nodes)
+                let mut u_union = u_front.clone();
+                for &nid in u_ext.iter() {
+                    u_union.insert(nid);
+                }
+                let union_size = u_union.len().max(1); // avoid division by zero
+
+                // Compute min-swaps heuristic before / after on the per-sequence unions
+                let h_before = self.union_heuristic_min_swaps_with_layout(
                     &initial_state.layout,
                     &u_front,
                     &u_ext,
                     lambda,
                 );
                 let h_after =
-                    self.union_heuristic_with_layout(&self.layout, &u_front, &u_ext, lambda);
-                let delta_h = h_before - h_after; // larger is better
+                    self.union_heuristic_min_swaps_with_layout(&self.layout, &u_front, &u_ext, lambda);
 
+                let delta_h = h_before - h_after; // larger is better
+                let norm_delta = delta_h / (union_size as f64); // normalization per node
+
+                // occupancy at end
                 let phi_end = self.occupancy(self.front_layer.len());
-                let secondary = delta_h + gamma * (phi_end - phi_start);
+                let secondary = norm_delta + gamma * (phi_end - phi_start);
 
                 update_best(item.swap_sequence.clone(), advanced_gates, secondary);
                 continue;
@@ -377,17 +415,12 @@ impl MicroSABRE {
             let state_after_prefix = self.create_snapshot();
 
             for &swap in &swap_candidates {
-                let [q0, q1] = swap;
-                
                 // For each child, start from identical state-after-prefix
                 self.load_snapshot(state_after_prefix.clone());
 
-                // Apply *one* more swap to extend the prefix, but do not execute/advance here.
-                // We only evaluate at leaves (or early termination) to keep comparability cheap.
                 // Just record the extended sequence for deeper exploration.
-                let mut next_seq= item.swap_sequence.clone();
-                next_seq.push([q0, q1]);
-
+                let mut next_seq = item.swap_sequence.clone();
+                next_seq.push(swap);
 
                 stack.push(StackItem {
                     swap_sequence: next_seq,
