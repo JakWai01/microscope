@@ -125,3 +125,11 @@ considering a node multiple times.
 ## Qiskit vs k=2 ratios
 
 ![k=2](./assets/img/plots/ratio_swaps.png)
+
+## Benchmarks
+
+1. Execute a benchmark i times on up to n cores:
+
+```
+for i in {1..5}; do python3 -m pytest -n auto --benchmark-save="test_k1_trial_${i}.json" --timeout-skip-list=600 benchpress/ocular_gym; done
+```
