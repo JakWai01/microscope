@@ -232,14 +232,12 @@ impl MicroSABRE {
         front_sum + (lambda / m) * ext_sum
     }
 
-    // ---------- Updated choose_best_swaps ----------
     fn choose_best_swaps(&mut self, depth: usize) -> Vec<[i32; 2]> {
         let initial_state = self.create_snapshot();
-        let lambda: f64 = 0.5; // weight for the extended set portion
-        let gamma: f64 = 0.1; // small occupancy bonus
+        let lambda: f64 = 0.5; 
+        let gamma: f64 = 0.1;
         let eps: f64 = 1e-12;
 
-        // φ at the very start (same for all sequences in this call)
         let phi_start = {
             let start_front_len = initial_state.front_layer.len();
             self.occupancy(start_front_len)
@@ -279,7 +277,6 @@ impl MicroSABRE {
                 && len == best_len
                 && rand::random::<bool>()
             {
-                // stochastic tie-break like SABRE
                 best_exec = exec;
                 best_secondary = secondary;
                 best_len = len;
@@ -288,17 +285,14 @@ impl MicroSABRE {
         };
 
         while let Some(item) = stack.pop() {
-            // reset to baseline for this prefix
             self.load_snapshot(initial_state.clone());
 
             let mut execute_gate_list = Vec::new();
             let mut advanced_gates = 0usize;
 
-            // unions of logical 2-qubit node IDs across t = 0..|s|
             let mut u_front: IndexSet<i32> = IndexSet::new();
             let mut u_ext: IndexSet<i32> = IndexSet::new();
 
-            // Capture step t = 0
             for &nid in self.front_layer.nodes.keys() {
                 u_front.insert(nid);
             }
@@ -309,14 +303,11 @@ impl MicroSABRE {
                 }
             }
 
-            // Apply swaps in the prefix, executing gates and collecting unions at each step
             for &swap in &item.swap_sequence {
                 let [q0, q1] = swap;
 
-                // Apply the SWAP
                 self.apply_swap([q0, q1]);
 
-                // Execute gates on q0 and q1 if adjacent after SWAP
                 if let Some(node) = self.executable_node_on_qubit(q0) {
                     execute_gate_list.push(node);
                     self.front_layer.remove(&node);
@@ -326,11 +317,9 @@ impl MicroSABRE {
                     self.front_layer.remove(&node);
                 }
 
-                // Advance (may add successors into the front layer)
                 advanced_gates += self.advance_front_layer(&execute_gate_list) as usize;
                 execute_gate_list.clear();
 
-                // Record unions after the step
                 for &nid in self.front_layer.nodes.keys() {
                     u_front.insert(nid);
                 }
@@ -342,7 +331,6 @@ impl MicroSABRE {
                 }
             }
 
-            // Terminal conditions -> evaluate sequence (single before/after)
             let should_score_leaf = item.remaining_depth == 0 || self.front_layer.is_empty();
 
             let swap_candidates = if !should_score_leaf {
@@ -352,14 +340,12 @@ impl MicroSABRE {
             };
 
             if should_score_leaf || swap_candidates.is_empty() {
-                // Build union set size (unique nodes)
                 let mut u_union = u_front.clone();
                 for &nid in u_ext.iter() {
                     u_union.insert(nid);
                 }
                 let union_size = u_union.len().max(1); // avoid division by zero
 
-                // Compute min-swaps heuristic before / after on the per-sequence unions
                 let h_before = self.union_heuristic_min_swaps_with_layout(
                     &initial_state.layout,
                     &u_front,
@@ -372,7 +358,6 @@ impl MicroSABRE {
                 let delta_h = h_before - h_after; // larger is better
                 let norm_delta = delta_h / (union_size as f64); // normalization per node
 
-                // occupancy at end
                 let phi_end = self.occupancy(self.front_layer.len());
                 let secondary = norm_delta + gamma * (phi_end - phi_start);
 
@@ -383,10 +368,8 @@ impl MicroSABRE {
             let state_after_prefix = self.create_snapshot();
 
             for &swap in &swap_candidates {
-                // For each child, start from identical state-after-prefix
                 self.load_snapshot(state_after_prefix.clone());
 
-                // Just record the extended sequence for deeper exploration.
                 let mut next_seq = item.swap_sequence.clone();
                 next_seq.push(swap);
 
