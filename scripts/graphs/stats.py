@@ -4,7 +4,7 @@ import statistics
 from collections import defaultdict
 
 # Input: n accumulated files
-input_files = glob.glob("/home/jakob/Documents/Projects/microscope/assets/benchmark/test-k3/combined/*")
+input_files = glob.glob("/home/jakob/Documents/Projects/microscope/assets/benchmark/test-k4/combined/*")
 
 # Collect data
 bench_swap_data = defaultdict(list)
@@ -41,7 +41,7 @@ for name, swaps in bench_swap_data.items():
     })
 
 # Write to file
-output_path = "/home/jakob/Documents/Projects/microscope/assets/benchmark/test-k3/stats/benchmark_swap_stats.json"
+output_path = "/home/jakob/Documents/Projects/microscope/assets/benchmark/test-k4/stats/benchmark_swap_stats.json"
 with open(output_path, "wb") as f:
     f.write(orjson.dumps(aggregated, option=orjson.OPT_INDENT_2))
 
