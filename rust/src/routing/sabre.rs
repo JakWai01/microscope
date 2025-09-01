@@ -382,10 +382,7 @@ impl MicroSABRE {
                 continue;
             }
 
-            let state_after_prefix = self.create_snapshot();
-
             for &swap in &swap_candidates {
-                self.load_snapshot(state_after_prefix.clone());
                 let mut next_seq = item.swap_sequence.clone();
                 next_seq.push(swap);
                 stack.push(StackItem { swap_sequence: next_seq, remaining_depth: item.remaining_depth - 1});
