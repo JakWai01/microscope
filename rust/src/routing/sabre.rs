@@ -137,6 +137,52 @@ struct State {
     last_swap_on_qubit: FxHashMap<i32, [i32; 2]>,
 }
 
+ #[derive(Clone)]
+struct StackItem {
+    swap_sequence: Vec<[i32; 2]>,
+    remaining_depth: usize,
+}
+
+#[derive(Clone)]
+struct Best {
+    seq: Option<Vec<[i32; 2]>>,
+    exec: usize,
+    secondary: f64,
+    len: usize,
+}
+
+impl Best {
+    fn new() -> Self {
+        Self {
+            seq: None,
+            exec: 0,
+            secondary: f64::NEG_INFINITY,
+            len: usize::MAX,
+        }
+    }
+
+    fn check_best(&mut self, seq: Vec<[i32; 2]>, exec: usize, secondary: f64) {
+        let len = seq.len();
+
+        let better = (exec > self.exec)
+            || (exec == self.exec
+                && (secondary > self.secondary + f64::EPSILON
+                    || ((secondary - self.secondary).abs() <= f64::EPSILON && len < self.len)));
+
+        let equal = exec == self.exec
+            && (secondary - self.secondary).abs() <= f64::EPSILON
+            && len == self.len;
+
+        if better || (equal && rand::random::<bool>()) {
+            self.exec = exec;
+            self.secondary = secondary;
+            self.len = len;
+            self.seq = Some(seq);
+        }
+    }
+}
+
+
 impl MicroSABRE {
     /// Occupancy φ(F) = |F| / floor(num_qubits/2)
     #[inline]
@@ -233,21 +279,14 @@ impl MicroSABRE {
     }
 
     fn choose_best_swaps(&mut self, depth: usize) -> Vec<[i32; 2]> {
-        let initial_state = self.create_snapshot();
-        let lambda: f64 = 0.5; 
-        let gamma: f64 = 0.1;
-        let eps: f64 = 1e-12;
+        let extended_set_weight: f64 = 0.5; 
+        let occupancy_weight: f64 = 0.1;
 
+        let initial_state = self.create_snapshot();
         let phi_start = {
             let start_front_len = initial_state.front_layer.len();
             self.occupancy(start_front_len)
         };
-
-        #[derive(Clone)]
-        struct StackItem {
-            swap_sequence: Vec<[i32; 2]>,
-            remaining_depth: usize,
-        }
 
         let mut stack = Vec::new();
         stack.push(StackItem {
@@ -255,34 +294,7 @@ impl MicroSABRE {
             remaining_depth: depth,
         });
 
-        let mut best_seq: Option<Vec<[i32; 2]>> = None;
-        let mut best_exec = 0usize;
-        let mut best_secondary = f64::NEG_INFINITY;
-        let mut best_len = usize::MAX;
-
-        let mut update_best = |seq: Vec<[i32; 2]>, exec: usize, secondary: f64| {
-            let len = seq.len();
-            let better = (exec > best_exec)
-                || (exec == best_exec
-                    && (secondary > best_secondary + eps
-                        || ((secondary - best_secondary).abs() <= eps && len < best_len)));
-
-            if better {
-                best_exec = exec;
-                best_secondary = secondary;
-                best_len = len;
-                best_seq = Some(seq);
-            } else if exec == best_exec
-                && (secondary - best_secondary).abs() <= eps
-                && len == best_len
-                && rand::random::<bool>()
-            {
-                best_exec = exec;
-                best_secondary = secondary;
-                best_len = len;
-                best_seq = Some(seq);
-            }
-        };
+        let mut best = Best::new();
 
         while let Some(item) = stack.pop() {
             self.load_snapshot(initial_state.clone());
@@ -350,18 +362,18 @@ impl MicroSABRE {
                     &initial_state.layout,
                     &u_front,
                     &u_ext,
-                    lambda,
+                    extended_set_weight,
                 );
                 let h_after =
-                    self.union_heuristic_min_swaps_with_layout(&self.layout, &u_front, &u_ext, lambda);
+                    self.union_heuristic_min_swaps_with_layout(&self.layout, &u_front, &u_ext, extended_set_weight);
 
                 let delta_h = h_before - h_after; // larger is better
                 let norm_delta = delta_h / (union_size as f64); // normalization per node
 
                 let phi_end = self.occupancy(self.front_layer.len());
-                let secondary = norm_delta + gamma * (phi_end - phi_start);
+                let secondary = norm_delta + occupancy_weight * (phi_end - phi_start);
 
-                update_best(item.swap_sequence.clone(), advanced_gates, secondary);
+                best.check_best(item.swap_sequence.clone(), advanced_gates, secondary);
                 continue;
             }
 
@@ -381,7 +393,7 @@ impl MicroSABRE {
         }
 
         self.load_snapshot(initial_state);
-        best_seq.unwrap_or_default()
+        best.seq.unwrap_or_default()
     }
 
     fn compute_swap_candidates(&self) -> Vec<[i32; 2]> {
