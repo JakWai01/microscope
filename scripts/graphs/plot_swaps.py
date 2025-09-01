@@ -8,21 +8,21 @@ import pandas as pd
 topologies = ["heavy-hex", "square", "linear"]
 
 with open(
-        "/home/jakob/Documents/Projects/microscope/assets/benchmark/0001_output_ocular_k3.json.json",
+        "/home/jakob/Documents/Projects/microscope/assets/benchmark/test-k3/stats/benchmark_swap_stats.json",
         "rb",
         ) as fd:
-    data_preview = orjson.loads(fd.read())
+    data_ocular = orjson.loads(fd.read())
 
 with open(
         "/home/jakob/Documents/Projects/microscope/assets/benchmark/0002_output_qiskit.json.json",
         "rb",
         ) as fd:
-    data_release = orjson.loads(fd.read())
+    data_qiskit = orjson.loads(fd.read())
 
-benchmarks_preview = data_preview["benchmarks"]
-benchmarks_release = data_release["benchmarks"]
+ocular = data_ocular["benchmarks"]
+qiskit = data_qiskit["benchmarks"]
 
-sns.set()
+sns.set_theme()
 
 fig = plt.figure(figsize=(20, 6))
 gs = fig.add_gridspec(1, 4, width_ratios=[1, 1, 1, 0.07], wspace=0.3)
@@ -31,48 +31,53 @@ axs = [fig.add_subplot(gs[0, i]) for i in range(3)]
 cmap = sns.color_palette("crest", as_cmap=True)
 
 all_qubit_counts = {}
-for benchmark in benchmarks_preview:
+
+for benchmark in ocular:
     try:
-        all_qubit_counts[benchmark["name"]] = benchmark["extra_info"][
-                "input_num_qubits"
-                ]
+        all_qubit_counts[benchmark["name"]] = benchmark["swap_stats"]["average"]
     except KeyError:
         continue
 
 norm = mpl.colors.Normalize(
         vmin=min(all_qubit_counts.values()), vmax=max(all_qubit_counts.values())
         )
+
 sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
 sm.set_array([])
 
 for ax, topo in zip(axs, topologies):
-    preview_swaps = {}
-    release_swaps = {}
+    ocular_swaps = {}
+    qiskit_swaps = {}
     skip_names = set()
 
-    for benchmark in benchmarks_preview:
+    for benchmark in ocular:
         try:
-            if benchmark["params"]["circ_and_topo"][1] == topo:
-                preview_swaps[benchmark["name"]] = benchmark["extra_info"][
-                        "output_circuit_operations"
-                        ]["swap"]
+            if benchmark["topology"] == topo:
+                if benchmark["swap_stats"]["count"] < 10:
+                    skip_names.add(benchmark["name"])
+                    continue
+                ocular_swaps[benchmark["name"]] = benchmark["swap_stats"]["average"]
         except KeyError:
             skip_names.add(benchmark["name"])
 
-    for benchmark in benchmarks_release:
+    for benchmark in qiskit:
         if benchmark["name"] in skip_names:
             continue
-        if benchmark["params"]["circ_and_topo"][1] == topo:
-            release_swaps[benchmark["name"]] = benchmark["extra_info"][
-                    "output_circuit_operations"
-                    ]["swap"]
+    
+        try:
+            if benchmark["params"]["circ_and_topo"][1] == topo:
+                qiskit_swaps[benchmark["name"]] = benchmark["extra_info"][
+                        "output_circuit_operations"
+                        ]["swap"]
+        except KeyError:
+            continue
         else:
             continue
 
-    names = list(preview_swaps)
-    preview_data = [preview_swaps[name] for name in names if name in release_swaps]
-    release_data = [release_swaps[name] for name in names if name in release_swaps]
-    names = [name for name in names if name in release_swaps]
+    names = list(ocular_swaps)
+    preview_data = [ocular_swaps[name] for name in names if name in qiskit_swaps]
+    release_data = [qiskit_swaps[name] for name in names if name in qiskit_swaps]
+    names = [name for name in names if name in qiskit_swaps]
 
     c = [all_qubit_counts[x] for x in names]
 
@@ -99,5 +104,5 @@ cbar.set_label("Number of Qubits")
 
 plt.suptitle("Qiskit vs k=3 swaps across topologies", fontsize=16, fontweight="bold")
 plt.tight_layout(rect=[0, 0, 1, 0.95])
-plt.savefig("/tmp/combined_topologies_swaps.png", dpi=900)
+plt.savefig("/tmp/combined_topologies_swaps_k3_16_cores_avg.png", dpi=900)
 plt.show()
