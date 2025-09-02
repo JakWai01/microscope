@@ -8,7 +8,7 @@ import pandas as pd
 topologies = ["heavy-hex", "square", "linear"]
 
 with open(
-        "/home/jakob/Documents/Projects/microscope/assets/benchmark/test-k3/stats/benchmark_swap_stats.json",
+        "/home/jakob/Documents/Projects/microscope/assets/benchmark/test-k5/stats/benchmark_swap_stats.json",
         "rb",
         ) as fd:
     data_ocular = orjson.loads(fd.read())
@@ -90,7 +90,7 @@ for ax, topo in zip(axs, topologies):
     ax.plot(line, line, linewidth=1, color="black", linestyle="dashed")
 
     ax.set_title(f"Topology: {topo}", fontweight="bold", fontsize=14)
-    ax.set_xlabel("k=3 swaps", fontsize=12)
+    ax.set_xlabel("k=5 swaps", fontsize=12)
     ax.set_ylabel("Qiskit swaps", fontsize=12)
     ax.set_xscale("log")
     ax.set_yscale("log")
@@ -102,7 +102,7 @@ cbar_ax = fig.add_subplot(gs[0, 3])
 cbar = fig.colorbar(sm, cax=cbar_ax)
 cbar.set_label("Number of Qubits")
 
-plt.suptitle("Qiskit vs k=3 swaps across topologies", fontsize=16, fontweight="bold")
+plt.suptitle("Qiskit vs k=5 swaps across topologies", fontsize=16, fontweight="bold")
 plt.tight_layout(rect=[0, 0, 1, 0.95])
 plt.savefig("/tmp/combined_topologies_swaps_k3_16_cores_avg.png", dpi=900)
 plt.show()
