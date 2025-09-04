@@ -430,13 +430,6 @@ impl MicroSABRE {
             };
 
             if should_score_leaf || swap_candidates.is_empty() {
-                // Remove all executed gates from the executed set and front
-                // layer so they are accounted with 0 to the sum
-                // for id in &advanced_gates {
-                //     u_front.shift_remove(id);
-                //     u_ext.shift_remove(id);
-                // }
-
                 let score = self.score_leaf(
                     &initial_state.layout,
                     &u_front,
