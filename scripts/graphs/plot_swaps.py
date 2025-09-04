@@ -8,13 +8,13 @@ import pandas as pd
 topologies = ["heavy-hex", "square", "linear"]
 
 with open(
-        "/home/jakob/Documents/Projects/microscope/assets/benchmark/test-k5/stats/benchmark_swap_stats.json",
+        "/home/jakob/Documents/Projects/microscope/assets/benchmark/test-k4/stats/benchmark_swap_stats.json",
         "rb",
         ) as fd:
     data_ocular = orjson.loads(fd.read())
 
 with open(
-        "/home/jakob/Documents/Projects/microscope/assets/benchmark/0002_output_qiskit.json.json",
+        "/home/jakob/Documents/Projects/microscope/assets/benchmark/qiskit/stats/benchmark_swap_stats.json",
         "rb",
         ) as fd:
     data_qiskit = orjson.loads(fd.read())
@@ -34,7 +34,7 @@ all_qubit_counts = {}
 
 for benchmark in ocular:
     try:
-        all_qubit_counts[benchmark["name"]] = benchmark["swap_stats"]["average"]
+        all_qubit_counts[benchmark["name"]] = benchmark["qubits"]
     except KeyError:
         continue
 
@@ -65,10 +65,11 @@ for ax, topo in zip(axs, topologies):
             continue
     
         try:
-            if benchmark["params"]["circ_and_topo"][1] == topo:
-                qiskit_swaps[benchmark["name"]] = benchmark["extra_info"][
-                        "output_circuit_operations"
-                        ]["swap"]
+            if benchmark["topology"] == topo:
+                # qiskit_swaps[benchmark["name"]] = benchmark["extra_info"][
+                #         "output_circuit_operations"
+                #         ]["swap"]
+                qiskit_swaps[benchmark["name"]] = benchmark["swap_stats"]["average"]
         except KeyError:
             continue
         else:
@@ -90,7 +91,7 @@ for ax, topo in zip(axs, topologies):
     ax.plot(line, line, linewidth=1, color="black", linestyle="dashed")
 
     ax.set_title(f"Topology: {topo}", fontweight="bold", fontsize=14)
-    ax.set_xlabel("k=5 swaps", fontsize=12)
+    ax.set_xlabel("k=4 swaps", fontsize=12)
     ax.set_ylabel("Qiskit swaps", fontsize=12)
     ax.set_xscale("log")
     ax.set_yscale("log")
@@ -102,7 +103,7 @@ cbar_ax = fig.add_subplot(gs[0, 3])
 cbar = fig.colorbar(sm, cax=cbar_ax)
 cbar.set_label("Number of Qubits")
 
-plt.suptitle("Qiskit vs k=5 swaps across topologies", fontsize=16, fontweight="bold")
+plt.suptitle("Qiskit vs k=4 swaps across topologies", fontsize=16, fontweight="bold")
 plt.tight_layout(rect=[0, 0, 1, 0.95])
-plt.savefig("/tmp/combined_topologies_swaps_k3_16_cores_avg.png", dpi=900)
+plt.savefig("/tmp/combined_topologies_swaps_k4_16_cores_avg.png", dpi=900)
 plt.show()
