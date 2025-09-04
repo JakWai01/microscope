@@ -3,7 +3,64 @@ use rand::seq::IndexedRandom;
 use rustc_hash::FxHashMap;
 use rustworkx_core::petgraph::graph::DiGraph;
 
-use crate::MicroDAG;
+use crate::{
+    routing::{front_layer::MicroFront, layout::MicroLayout},
+    MicroDAG,
+};
+
+#[derive(Clone)]
+pub struct State {
+    pub front_layer: MicroFront,
+    pub required_predecessors: Vec<i32>,
+    pub layout: MicroLayout,
+    pub gate_order: Vec<i32>,
+    pub executed: FxHashMap<i32, bool>,
+}
+
+#[derive(Clone)]
+pub struct StackItem {
+    pub swap_sequence: Vec<[i32; 2]>,
+    pub remaining_depth: usize,
+}
+
+#[derive(Clone)]
+pub struct Best {
+    pub seq: Option<Vec<[i32; 2]>>,
+    pub exec: usize,
+    pub secondary: f64,
+    pub len: usize,
+}
+
+impl Best {
+    pub fn new() -> Self {
+        Self {
+            seq: None,
+            exec: 0,
+            secondary: f64::NEG_INFINITY,
+            len: usize::MAX,
+        }
+    }
+
+    pub fn check_best(&mut self, seq: Vec<[i32; 2]>, exec: usize, secondary: f64) {
+        let len = seq.len();
+
+        let better = (exec > self.exec)
+            || (exec == self.exec
+                && (secondary > self.secondary + f64::EPSILON
+                    || ((secondary - self.secondary).abs() <= f64::EPSILON && len < self.len)));
+
+        let equal = exec == self.exec
+            && (secondary - self.secondary).abs() <= f64::EPSILON
+            && len == self.len;
+
+        if better || (equal && rand::random::<bool>()) {
+            self.exec = exec;
+            self.secondary = secondary;
+            self.len = len;
+            self.seq = Some(seq);
+        }
+    }
+}
 
 pub fn build_adjacency_list(dag: &MicroDAG) -> Vec<Vec<i32>> {
     let mut adjacency = vec![Vec::new(); dag.nodes.len()];

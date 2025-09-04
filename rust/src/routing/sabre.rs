@@ -2,25 +2,21 @@ use crate::routing::front_layer::MicroFront;
 use crate::routing::layout::MicroLayout;
 use crate::routing::utils::{
     build_coupling_neighbour_map, build_digraph_from_neighbors, compute_all_pairs_shortest_paths,
+    Best, StackItem, State,
 };
-
 use crate::{graph::dag::MicroDAG, routing::utils::build_adjacency_list};
-
 use core::f64;
-use std::cmp::Ordering;
-
-use std::collections::{HashSet, VecDeque};
-
-use indexmap::{IndexSet};
+use indexmap::IndexSet;
 use pyo3::{pyclass, pymethods, PyResult};
-
 use rustc_hash::FxHashMap;
-
 use rustworkx_core::dictmap::{DictMap, InitWithHasher};
 use rustworkx_core::petgraph::csr::IndexType;
 use rustworkx_core::petgraph::graph::NodeIndex;
 use rustworkx_core::shortest_path::dijkstra;
+use std::cmp::Ordering;
+use std::collections::{HashSet, VecDeque};
 
+#[derive(Debug)]
 #[pyclass(module = "microboost.routing.sabre")]
 pub struct MicroSABRE {
     dag: MicroDAG,
@@ -33,7 +29,7 @@ pub struct MicroSABRE {
     neighbour_map: Vec<Vec<i32>>,
     layout: MicroLayout,
     num_qubits: usize,
-    last_swap_on_qubit: FxHashMap<i32, [i32; 2]>,
+    executed: FxHashMap<i32, bool>,
 }
 
 #[pymethods]
@@ -56,7 +52,7 @@ impl MicroSABRE {
             front_layer: MicroFront::new(num_qubits),
             neighbour_map: build_coupling_neighbour_map(&coupling_map),
             num_qubits,
-            last_swap_on_qubit: FxHashMap::default(),
+            executed: FxHashMap::default(),
         })
     }
 
@@ -128,67 +124,220 @@ impl MicroSABRE {
     }
 }
 
-#[derive(Clone)]
-struct State {
-    front_layer: MicroFront,
-    required_predecessors: Vec<i32>,
-    layout: MicroLayout,
-    gate_order: Vec<i32>,
-    last_swap_on_qubit: FxHashMap<i32, [i32; 2]>,
-}
-
- #[derive(Clone)]
-struct StackItem {
-    swap_sequence: Vec<[i32; 2]>,
-    remaining_depth: usize,
-}
-
-#[derive(Clone)]
-struct Best {
-    seq: Option<Vec<[i32; 2]>>,
-    exec: usize,
-    secondary: f64,
-    len: usize,
-}
-
-impl Best {
-    fn new() -> Self {
-        Self {
-            seq: None,
-            exec: 0,
-            secondary: f64::NEG_INFINITY,
-            len: usize::MAX,
-        }
-    }
-
-    fn check_best(&mut self, seq: Vec<[i32; 2]>, exec: usize, secondary: f64) {
-        let len = seq.len();
-
-        let better = (exec > self.exec)
-            || (exec == self.exec
-                && (secondary > self.secondary + f64::EPSILON
-                    || ((secondary - self.secondary).abs() <= f64::EPSILON && len < self.len)));
-
-        let equal = exec == self.exec
-            && (secondary - self.secondary).abs() <= f64::EPSILON
-            && len == self.len;
-
-        if better || (equal && rand::random::<bool>()) {
-            self.exec = exec;
-            self.secondary = secondary;
-            self.len = len;
-            self.seq = Some(seq);
-        }
-    }
-}
-
-
 impl MicroSABRE {
-    /// Occupancy φ(F) = |F| / floor(num_qubits/2)
     #[inline]
     fn occupancy(&self, front_len: usize) -> f64 {
         let cap = (self.num_qubits / 2).max(1) as f64;
         (front_len as f64) / cap
+    }
+
+    #[inline]
+    fn sum_min_swaps_needed_for_nodes(
+        &self,
+        layout: &MicroLayout,
+        node_ids: &IndexSet<i32>,
+    ) -> f64 {
+        let mut acc = 0.0_f64;
+        for &nid in node_ids.iter() {
+            // if let Some(_) = self.executed.get(&nid) {
+            //     continue;
+            // }
+            let node = self.dag.get(nid).unwrap();
+            if node.qubits.len() == 2 {
+                let p0 = layout.virtual_to_physical(node.qubits[0]) as usize;
+                let p1 = layout.virtual_to_physical(node.qubits[1]) as usize;
+                let d = self.distance[p0][p1];
+                acc += ((d - 1).max(0)) as f64;
+            }
+        }
+        acc
+    }
+
+    #[inline]
+    fn union_heuristic_min_swaps_with_layout(
+        &self,
+        layout: &MicroLayout,
+        u_front: &IndexSet<i32>,
+        u_ext: &IndexSet<i32>,
+        lambda: f64,
+    ) -> f64 {
+        let front_sum = self.sum_min_swaps_needed_for_nodes(layout, u_front);
+        let ext_sum = self.sum_min_swaps_needed_for_nodes(layout, u_ext);
+        let m = (u_ext.len().max(1)) as f64;
+        front_sum + (lambda / m) * ext_sum
+    }
+
+    #[inline]
+    fn collect_sets(&mut self) -> (IndexSet<i32>, IndexSet<i32>) {
+        let mut u_front = IndexSet::new();
+        for &nid in self.front_layer.nodes.keys() {
+            u_front.insert(nid);
+        }
+        let mut u_ext = IndexSet::new();
+        for &nid in self.get_extended_set().nodes.keys() {
+            u_ext.insert(nid);
+        }
+        (u_front, u_ext)
+    }
+
+    fn apply_prefix(
+        &mut self,
+        prefix: &[[i32; 2]],
+        mut u_front: IndexSet<i32>,
+        mut u_ext: IndexSet<i32>,
+    ) -> (Vec<i32>, IndexSet<i32>, IndexSet<i32>) {
+        let mut execute_gate_list = Vec::new();
+        let mut advanced_gates = Vec::new();
+
+        for &[q0, q1] in prefix {
+            self.apply_swap([q0, q1]);
+            for &q in &[q0, q1] {
+                if let Some(node) = self.executable_node_on_qubit(q) {
+                    execute_gate_list.push(node);
+                    self.front_layer.remove(&node);
+                }
+            }
+            advanced_gates.extend(self.advance_front_layer(&execute_gate_list));
+            execute_gate_list.clear();
+            for &nid in self.front_layer.nodes.keys() {
+                u_front.insert(nid);
+            }
+            for &nid in self.get_extended_set().nodes.keys() {
+                u_ext.insert(nid);
+            }
+        }
+
+        (advanced_gates, u_front, u_ext)
+    }
+
+    fn score_leaf(
+        &mut self,
+        initial_layout: &MicroLayout,
+        u_front: &IndexSet<i32>,
+        u_ext: &IndexSet<i32>,
+        phi_start: f64,
+        extended_set_weight: f64,
+        occupancy_weight: f64,
+    ) -> f64 {
+        let mut u_union = u_front.clone();
+        u_union.extend(u_ext.iter().cloned());
+
+        let union_size = u_union.len().max(1) as f64;
+
+        let h_before = self.union_heuristic_min_swaps_with_layout(
+            initial_layout,
+            u_front,
+            u_ext,
+            extended_set_weight,
+        );
+        let h_after = self.union_heuristic_min_swaps_with_layout(
+            &self.layout,
+            u_front,
+            u_ext,
+            extended_set_weight,
+        );
+
+        let norm_delta = (h_before - h_after) / union_size;
+
+        let phi_end = self.occupancy(self.front_layer.len());
+        norm_delta + occupancy_weight * (phi_end - phi_start)
+    }
+    
+    fn compute_swap_candidates(&self) -> Vec<[i32; 2]> {
+        let mut swap_candidates: Vec<[i32; 2]> = Vec::new();
+
+        for &phys in self.front_layer.nodes.values().flatten() {
+            for &neighbour in &self.neighbour_map[phys as usize] {
+                if neighbour > phys || !self.front_layer.is_active(neighbour) {
+                    swap_candidates.push([phys, neighbour])
+                }
+            }
+        }
+        swap_candidates
+    }
+
+    fn executable_node_on_qubit(&self, physical_qubit: i32) -> Option<i32> {
+        match self.front_layer.qubits[physical_qubit as usize] {
+            Some((node_id, other_qubit))
+                if self.distance[physical_qubit as usize][other_qubit as usize] == 1 =>
+            {
+                Some(node_id)
+            }
+            _ => None,
+        }
+    }
+
+    fn initial_front(&self) -> Vec<i32> {
+        let mut nodes_with_predecessors: HashSet<i32> = HashSet::new();
+        let all_nodes: HashSet<i32> = (0..self.dag.nodes.len() as i32).collect();
+
+        for &(_, target) in &self.dag.edges {
+            nodes_with_predecessors.insert(target);
+        }
+
+        all_nodes
+            .difference(&nodes_with_predecessors)
+            .cloned()
+            .collect()
+    }
+
+    fn create_snapshot(&self) -> State {
+        State {
+            front_layer: self.front_layer.clone(),
+            required_predecessors: self.required_predecessors.clone(),
+            layout: self.layout.clone(),
+            gate_order: self.gate_order.clone(),
+            executed: self.executed.clone(),
+        }
+    }
+
+    fn load_snapshot(&mut self, state: State) {
+        self.front_layer = state.front_layer;
+        self.required_predecessors = state.required_predecessors;
+        self.layout = state.layout;
+        self.gate_order = state.gate_order;
+        self.executed = state.executed;
+    }
+
+    fn advance_front_layer(&mut self, nodes: &[i32]) -> Vec<i32> {
+        let mut node_queue: VecDeque<i32> = VecDeque::from(nodes.to_vec());
+
+        // let mut advanced_gate_counter = 0;
+        let mut advanced_gates: Vec<i32> = Vec::new();
+
+        while let Some(node_index) = node_queue.pop_front() {
+            let node = self.dag.get(node_index).unwrap();
+
+            if node.qubits.len() == 2 {
+                let physical_q0 = self.layout.virtual_to_physical(node.qubits[0]);
+                let physical_q1 = self.layout.virtual_to_physical(node.qubits[1]);
+
+                if self.distance[physical_q0 as usize][physical_q1 as usize] != 1 {
+                    self.front_layer
+                        .insert(node_index, [physical_q0, physical_q1]);
+                    continue;
+                }
+            }
+
+            if let None = self.executed.get(&node.id) {
+                self.executed.insert(node.id, true);
+
+                self.gate_order.push(node.id);
+                // advanced_gate_counter += 1;
+                advanced_gates.push(node.id);
+            }
+
+            for &successor in &self.adjacency_list[node_index as usize] {
+                if let Some(count) = self.required_predecessors.get_mut(successor as usize) {
+                    *count -= 1;
+                    if *count == 0 {
+                        node_queue.push_back(successor);
+                    }
+                }
+            }
+        }
+
+        advanced_gates
     }
 
     fn get_extended_set(&mut self) -> MicroFront {
@@ -243,149 +392,61 @@ impl MicroSABRE {
         extended_set
     }
 
-    /// Sum of per-node min-swaps needed (d-1)^+ over node_ids under given layout.
-    #[inline]
-    fn sum_min_swaps_needed_for_nodes(
-        &self,
-        layout: &MicroLayout,
-        node_ids: &IndexSet<i32>,
-    ) -> f64 {
-        let mut acc = 0.0_f64;
-        for &nid in node_ids.iter() {
-            let node = self.dag.get(nid).unwrap();
-            if node.qubits.len() == 2 {
-                let p0 = layout.virtual_to_physical(node.qubits[0]) as usize;
-                let p1 = layout.virtual_to_physical(node.qubits[1]) as usize;
-                let d = self.distance[p0][p1];
-                acc += ((d - 1).max(0)) as f64;
-            }
-        }
-        acc
-    }
-
-    /// Heuristic on front/extended unions using (d-1)^+, with a weight lambda for extended.
-    #[inline]
-    fn union_heuristic_min_swaps_with_layout(
-        &self,
-        layout: &MicroLayout,
-        u_front: &IndexSet<i32>,
-        u_ext: &IndexSet<i32>,
-        lambda: f64,
-    ) -> f64 {
-        let front_sum = self.sum_min_swaps_needed_for_nodes(layout, u_front);
-        let ext_sum = self.sum_min_swaps_needed_for_nodes(layout, u_ext);
-        let m = (u_ext.len().max(1)) as f64;
-        front_sum + (lambda / m) * ext_sum
-    }
-
-    fn collect_sets(&mut self) -> (IndexSet<i32>, IndexSet<i32>) {
-        let mut u_front = IndexSet::new();
-        for &nid in self.front_layer.nodes.keys() {
-            u_front.insert(nid);
-        }
-
-        let mut u_ext = IndexSet::new();
-        for &nid in self.get_extended_set().nodes.keys() {
-            u_ext.insert(nid);
-        }
-
-        (u_front, u_ext)
-    }
-
-    fn apply_prefix(
-        &mut self,
-        prefix: &[[i32; 2]],
-        mut u_front: IndexSet<i32>,
-        mut u_ext: IndexSet<i32>,
-    ) -> (usize, IndexSet<i32>, IndexSet<i32>) {
-        let mut execute_gate_list = Vec::new();
-        let mut advanced_gates = 0usize;
-
-        for &[q0, q1] in prefix {
-            self.apply_swap([q0, q1]);
-
-            for &q in &[q0, q1] {
-                if let Some(node) = self.executable_node_on_qubit(q) {
-                    execute_gate_list.push(node);
-                    self.front_layer.remove(&node);
-                }
-            }
-
-            advanced_gates += self.advance_front_layer(&execute_gate_list) as usize;
-            execute_gate_list.clear();
-
-            for &nid in self.front_layer.nodes.keys() {
-                u_front.insert(nid);
-            }
-            for &nid in self.get_extended_set().nodes.keys() {
-                u_ext.insert(nid);
-            }
-        }
-
-        (advanced_gates, u_front, u_ext)
-    }
-
-    fn score_leaf(
-        &mut self,
-        initial_layout: &MicroLayout,
-        u_front: &IndexSet<i32>,
-        u_ext: &IndexSet<i32>,
-        phi_start: f64,
-        extended_set_weight: f64,
-        occupancy_weight: f64,
-    ) -> f64 {
-        let mut u_union = u_front.clone();
-        u_union.extend(u_ext.iter().cloned());
-
-        let union_size = u_union.len().max(1) as f64;
-
-        let h_before = self.union_heuristic_min_swaps_with_layout(initial_layout, u_front, u_ext, extended_set_weight);
-        let h_after = self.union_heuristic_min_swaps_with_layout(&self.layout, u_front, u_ext, extended_set_weight);
-
-        let norm_delta = (h_before - h_after) / union_size;
-
-        let phi_end = self.occupancy(self.front_layer.len());
-        norm_delta + occupancy_weight * (phi_end - phi_start)
-    }
-
     fn choose_best_swaps(&mut self, depth: usize) -> Vec<[i32; 2]> {
-        let extended_set_weight: f64 = 0.5; 
+        let extended_set_weight: f64 = 0.5;
         let occupancy_weight: f64 = 0.1;
 
         let initial_state = self.create_snapshot();
         let phi_start = self.occupancy(initial_state.front_layer.len());
 
-        let mut stack = vec![StackItem {swap_sequence: Vec::new(), remaining_depth: depth }];
+        let mut stack = vec![StackItem {
+            swap_sequence: Vec::new(),
+            remaining_depth: depth,
+        }];
         let mut best = Best::new();
 
         while let Some(item) = stack.pop() {
             self.load_snapshot(initial_state.clone());
             let (u_front, u_ext) = self.collect_sets();
 
-            let (advanced_gates, u_front, u_ext) =
-            self.apply_prefix(&item.swap_sequence, u_front, u_ext);
+            let (advanced_gates, mut u_front, mut u_ext) =
+                self.apply_prefix(&item.swap_sequence, u_front, u_ext);
 
             let should_score_leaf = item.remaining_depth == 0 || self.front_layer.is_empty();
-            let swap_candidates = if should_score_leaf { vec![] } else { self.compute_swap_candidates() };
+            let swap_candidates = if should_score_leaf {
+                vec![]
+            } else {
+                self.compute_swap_candidates()
+            };
 
             if should_score_leaf || swap_candidates.is_empty() {
+                // Remove all executed gates from the executed set and front
+                // layer so they are accounted with 0 to the sum
+                // for id in &advanced_gates {
+                //     u_front.shift_remove(id);
+                //     u_ext.shift_remove(id);
+                // }
+
                 let score = self.score_leaf(
                     &initial_state.layout,
                     &u_front,
                     &u_ext,
                     phi_start,
                     extended_set_weight,
-                    occupancy_weight
+                    occupancy_weight,
                 );
 
-                best.check_best(item.swap_sequence.clone(), advanced_gates, score);
+                best.check_best(item.swap_sequence.clone(), advanced_gates.len(), score);
                 continue;
             }
 
             for &swap in &swap_candidates {
                 let mut next_seq = item.swap_sequence.clone();
                 next_seq.push(swap);
-                stack.push(StackItem { swap_sequence: next_seq, remaining_depth: item.remaining_depth - 1});
+                stack.push(StackItem {
+                    swap_sequence: next_seq,
+                    remaining_depth: item.remaining_depth - 1,
+                });
             }
         }
 
@@ -393,99 +454,6 @@ impl MicroSABRE {
         best.seq.unwrap_or_default()
     }
 
-    fn compute_swap_candidates(&self) -> Vec<[i32; 2]> {
-        let mut swap_candidates: Vec<[i32; 2]> = Vec::new();
-
-        for &phys in self.front_layer.nodes.values().flatten() {
-            for &neighbour in &self.neighbour_map[phys as usize] {
-                if neighbour > phys || !self.front_layer.is_active(neighbour) {
-                    swap_candidates.push([phys, neighbour])
-                }
-            }
-        }
-        swap_candidates
-    }
-
-    fn executable_node_on_qubit(&self, physical_qubit: i32) -> Option<i32> {
-        match self.front_layer.qubits[physical_qubit as usize] {
-            Some((node_id, other_qubit))
-                if self.distance[physical_qubit as usize][other_qubit as usize] == 1 =>
-            {
-                Some(node_id)
-            }
-            _ => None,
-        }
-    }
-
-    fn initial_front(&self) -> Vec<i32> {
-        let mut nodes_with_predecessors: HashSet<i32> = HashSet::new();
-        let all_nodes: HashSet<i32> = (0..self.dag.nodes.len() as i32).collect();
-
-        for &(_, target) in &self.dag.edges {
-            nodes_with_predecessors.insert(target);
-        }
-
-        all_nodes
-            .difference(&nodes_with_predecessors)
-            .cloned()
-            .collect()
-    }
-    fn create_snapshot(&self) -> State {
-        State {
-            front_layer: self.front_layer.clone(),
-            required_predecessors: self.required_predecessors.clone(),
-            layout: self.layout.clone(),
-            gate_order: self.gate_order.clone(),
-            last_swap_on_qubit: self.last_swap_on_qubit.clone(),
-        }
-    }
-
-    fn load_snapshot(&mut self, state: State) {
-        self.front_layer = state.front_layer;
-        self.required_predecessors = state.required_predecessors;
-        self.layout = state.layout;
-        self.gate_order = state.gate_order;
-        self.last_swap_on_qubit = state.last_swap_on_qubit;
-    }
-
-    fn advance_front_layer(&mut self, nodes: &[i32]) -> i32 {
-        let mut node_queue: VecDeque<i32> = VecDeque::from(nodes.to_vec());
-
-        let mut executed_gates_counter = 0;
-
-        while let Some(node_index) = node_queue.pop_front() {
-            let node = self.dag.get(node_index).unwrap();
-
-            if node.qubits.len() == 2 {
-                let physical_q0 = self.layout.virtual_to_physical(node.qubits[0]);
-                let physical_q1 = self.layout.virtual_to_physical(node.qubits[1]);
-
-                if self.distance[physical_q0 as usize][physical_q1 as usize] != 1 {
-                    self.front_layer
-                        .insert(node_index, [physical_q0, physical_q1]);
-                    continue;
-                }
-            }
-
-            // Execute node
-            // TODO: That contains really hurts performance. A executed Vec<bool> is much better - but requires additional state tracking
-            if !self.gate_order.contains(&node.id) {
-                self.gate_order.push(node.id);
-                executed_gates_counter += 1;
-            }
-
-            for &successor in &self.adjacency_list[node_index as usize] {
-                if let Some(count) = self.required_predecessors.get_mut(successor as usize) {
-                    *count -= 1;
-                    if *count == 0 {
-                        node_queue.push_back(successor);
-                    }
-                }
-            }
-        }
-
-        executed_gates_counter
-    }
 
     fn release_valve(&mut self, current_swaps: &mut Vec<[i32; 2]>) -> Vec<i32> {
         let (&closest_node, &qubits) = {

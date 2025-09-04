@@ -2,14 +2,12 @@ import orjson
 import glob
 
 # List of input JSON files (adjust the pattern or provide manually)
-input_files = glob.glob("/home/jakob/Documents/Projects/microscope/assets/benchmark/qiskit/all/*_test_qiskit_single_10.json.json")
+input_files = glob.glob(
+    "/home/jakob/Documents/Projects/microscope/assets/benchmark/qiskit/all/*_test_qiskit_single_10.json.json"
+)
 
 # The combined structure will mimic pytest-benchmark schema
-combined = {
-    "machine_info": None,
-    "commit_info": None,
-    "benchmarks": []
-}
+combined = {"machine_info": None, "commit_info": None, "benchmarks": []}
 
 for i, path in enumerate(sorted(input_files)):
     with open(path, "rb") as f:

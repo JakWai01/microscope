@@ -8,15 +8,15 @@ import pandas as pd
 topologies = ["heavy-hex", "square", "linear"]
 
 with open(
-        "/home/jakob/Documents/Projects/microscope/assets/benchmark/test-k4/stats/benchmark_swap_stats.json",
-        "rb",
-        ) as fd:
+    "/home/jakob/Documents/Projects/microscope/assets/benchmark/test-k4/stats/benchmark_swap_stats.json",
+    "rb",
+) as fd:
     data_ocular = orjson.loads(fd.read())
 
 with open(
-        "/home/jakob/Documents/Projects/microscope/assets/benchmark/qiskit/stats/benchmark_swap_stats.json",
-        "rb",
-        ) as fd:
+    "/home/jakob/Documents/Projects/microscope/assets/benchmark/qiskit/stats/benchmark_swap_stats.json",
+    "rb",
+) as fd:
     data_qiskit = orjson.loads(fd.read())
 
 ocular = data_ocular["benchmarks"]
@@ -39,8 +39,8 @@ for benchmark in ocular:
         continue
 
 norm = mpl.colors.Normalize(
-        vmin=min(all_qubit_counts.values()), vmax=max(all_qubit_counts.values())
-        )
+    vmin=min(all_qubit_counts.values()), vmax=max(all_qubit_counts.values())
+)
 
 sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
 sm.set_array([])
@@ -63,7 +63,7 @@ for ax, topo in zip(axs, topologies):
     for benchmark in qiskit:
         if benchmark["name"] in skip_names:
             continue
-    
+
         try:
             if benchmark["topology"] == topo:
                 # qiskit_swaps[benchmark["name"]] = benchmark["extra_info"][
