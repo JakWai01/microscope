@@ -139,10 +139,12 @@ impl MicroSABRE {
     ) -> f64 {
         let mut acc = 0.0_f64;
         for &nid in node_ids.iter() {
-            // if let Some(_) = self.executed.get(&nid) {
-            //     continue;
-            // }
             let node = self.dag.get(nid).unwrap();
+
+            if self.executed.contains_key(&node.id) {
+                continue;
+            }
+
             if node.qubits.len() == 2 {
                 let p0 = layout.virtual_to_physical(node.qubits[0]) as usize;
                 let p1 = layout.virtual_to_physical(node.qubits[1]) as usize;
@@ -187,18 +189,29 @@ impl MicroSABRE {
         mut u_ext: IndexSet<i32>,
     ) -> (Vec<i32>, IndexSet<i32>, IndexSet<i32>) {
         let mut execute_gate_list = Vec::new();
-        let mut advanced_gates = Vec::new();
+        let mut advanced_gates: Vec<i32> = Vec::new();
 
         for &[q0, q1] in prefix {
             self.apply_swap([q0, q1]);
+
             for &q in &[q0, q1] {
-                if let Some(node) = self.executable_node_on_qubit(q) {
-                    execute_gate_list.push(node);
-                    self.front_layer.remove(&node);
+                if let Some(node_index) = self.executable_node_on_qubit(q) {
+                    execute_gate_list.push(node_index);
+                    self.front_layer.remove(&node_index);
                 }
             }
-            advanced_gates.extend(self.advance_front_layer(&execute_gate_list));
+
+            // NOTE: advance_front_layer now returns node *indices* (not node.id)
+            let just_advanced = self.advance_front_layer(&execute_gate_list);
+
+            for &nid in &just_advanced {
+                u_front.swap_remove(&nid);
+                u_ext.swap_remove(&nid);
+                advanced_gates.push(nid);
+            }
+
             execute_gate_list.clear();
+
             for &nid in self.front_layer.nodes.keys() {
                 u_front.insert(nid);
             }
@@ -302,7 +315,6 @@ impl MicroSABRE {
     fn advance_front_layer(&mut self, nodes: &[i32]) -> Vec<i32> {
         let mut node_queue: VecDeque<i32> = VecDeque::from(nodes.to_vec());
 
-        // let mut advanced_gate_counter = 0;
         let mut advanced_gates: Vec<i32> = Vec::new();
 
         while let Some(node_index) = node_queue.pop_front() {
@@ -321,10 +333,8 @@ impl MicroSABRE {
 
             if let None = self.executed.get(&node.id) {
                 self.executed.insert(node.id, true);
-
                 self.gate_order.push(node.id);
-                // advanced_gate_counter += 1;
-                advanced_gates.push(node.id);
+                advanced_gates.push(node_index);
             }
 
             for &successor in &self.adjacency_list[node_index as usize] {
