@@ -1,23 +1,22 @@
-use std::collections::HashMap;
-
 use pyo3::{pyclass, pymethods, PyResult};
+use rustc_hash::FxHashMap;
 
 #[derive(Clone, Debug)]
 #[pyclass(module = "microboost.graph.dag")]
 pub struct MicroDAG {
-    pub nodes: HashMap<i32, MicroDAGNode>,
+    pub nodes: FxHashMap<i32, MicroDAGNode>,
     pub edges: Vec<(i32, i32)>,
 }
 
 #[pymethods]
 impl MicroDAG {
     #[new]
-    pub fn new(nodes: HashMap<i32, MicroDAGNode>, edges: Vec<(i32, i32)>) -> PyResult<Self> {
+    pub fn new(nodes: FxHashMap<i32, MicroDAGNode>, edges: Vec<(i32, i32)>) -> PyResult<Self> {
         Ok(Self { nodes, edges })
     }
 
     #[getter]
-    pub fn nodes(&self) -> PyResult<HashMap<i32, MicroDAGNode>> {
+    pub fn nodes(&self) -> PyResult<FxHashMap<i32, MicroDAGNode>> {
         Ok(self.nodes.clone())
     }
 
