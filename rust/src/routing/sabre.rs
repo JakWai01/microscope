@@ -1,7 +1,7 @@
 use crate::routing::front_layer::MicroFront;
 use crate::routing::layout::MicroLayout;
 use crate::routing::utils::{
-    build_coupling_neighbour_map, build_digraph_from_neighbors, compute_all_pairs_shortest_paths,
+    build_coupling_neighbour_map, compute_all_pairs_shortest_paths,
     Best, StackItem, State,
 };
 use crate::{graph::dag::MicroDAG, routing::utils::build_adjacency_list};
@@ -9,11 +9,6 @@ use core::f64;
 use indexmap::IndexSet;
 use pyo3::{pyclass, pymethods, PyResult};
 use rustc_hash::FxHashMap;
-use rustworkx_core::dictmap::{DictMap, InitWithHasher};
-use rustworkx_core::petgraph::csr::IndexType;
-use rustworkx_core::petgraph::graph::NodeIndex;
-use rustworkx_core::shortest_path::dijkstra;
-use std::cmp::Ordering;
 use std::collections::{HashSet, VecDeque};
 
 #[derive(Debug)]
@@ -71,7 +66,12 @@ impl MicroSABRE {
         while !self.front_layer.is_empty() {
             let mut current_swaps: Vec<[i32; 2]> = Vec::new();
 
-            while execute_gate_list.is_empty() && current_swaps.len() < 10 * self.num_qubits {
+            while execute_gate_list.is_empty() {
+
+                if current_swaps.len() > 10000 {
+                    panic!("We are stuck!");
+                }
+
                 if insertion_queue.is_empty() {
                     for swap in self.choose_best_swaps(depth) {
                         insertion_queue.push_back(swap);
@@ -95,15 +95,6 @@ impl MicroSABRE {
                         self.front_layer.remove(&node);
                     }
                 }
-            }
-
-            if execute_gate_list.is_empty() {
-                current_swaps
-                    .drain(..)
-                    .rev()
-                    .for_each(|swap| self.apply_swap(swap));
-                let force_routed = self.release_valve(&mut current_swaps);
-                execute_gate_list.extend(force_routed);
             }
 
             let node_id = self.dag.get(execute_gate_list[0]).unwrap().id;
@@ -439,74 +430,6 @@ impl MicroSABRE {
 
         self.load_snapshot(initial_state);
         best.seq.unwrap_or_default()
-    }
-
-
-    fn release_valve(&mut self, current_swaps: &mut Vec<[i32; 2]>) -> Vec<i32> {
-        let (&closest_node, &qubits) = {
-            self.front_layer
-                .nodes
-                .iter()
-                .min_by(|(_, qubits_a), (_, qubits_b)| {
-                    self.distance[qubits_a[0] as usize][qubits_a[1] as usize]
-                        .partial_cmp(&self.distance[qubits_b[0] as usize][qubits_b[1] as usize])
-                        .unwrap_or(Ordering::Equal)
-                })
-                .unwrap()
-        };
-
-        let shortest_path = {
-            let mut shortest_paths: DictMap<NodeIndex, Vec<NodeIndex>> = DictMap::new();
-            (dijkstra(
-                &build_digraph_from_neighbors(&self.neighbour_map),
-                NodeIndex::new(qubits[0] as usize),
-                Some(NodeIndex::new(qubits[1] as usize)),
-                |_| Ok(1.),
-                Some(&mut shortest_paths),
-            ) as PyResult<Vec<Option<f64>>>)
-                .unwrap();
-
-            shortest_paths
-                .get(&NodeIndex::new(qubits[1] as usize))
-                .unwrap()
-                .iter()
-                .map(|n| n.index())
-                .collect::<Vec<_>>()
-        };
-
-        let split: usize = shortest_path.len() / 2;
-        current_swaps.reserve(shortest_path.len() - 2);
-        for i in 0..split {
-            current_swaps.push([shortest_path[i] as i32, shortest_path[i + 1] as i32]);
-        }
-        for i in 0..split - 1 {
-            let end = shortest_path.len() - 1 - i;
-            current_swaps.push([shortest_path[end] as i32, shortest_path[end - 1] as i32]);
-        }
-        current_swaps.iter().for_each(|&swap| self.apply_swap(swap));
-
-        if current_swaps.len() > 1 {
-            vec![closest_node]
-        } else {
-            // check if the closest node has neighbors that are now routable -- for that we get
-            // the other physical qubit that was swapped and check whether the node on it
-            // is now routable
-            let mut possible_other_qubit = current_swaps[0]
-                .iter()
-                // check if other nodes are in the front layer that are connected by this swap
-                .filter_map(|&swap_qubit| self.front_layer.qubits[swap_qubit as usize])
-                // remove the closest_node, which we know we already routed
-                .filter(|(node_index, _other_qubit)| *node_index != closest_node)
-                .map(|(_node_index, other_qubit)| other_qubit);
-
-            // if there is indeed another candidate, check if that gate is routable
-            if let Some(other_qubit) = possible_other_qubit.next() {
-                if let Some(also_routed) = self.executable_node_on_qubit(other_qubit) {
-                    return vec![closest_node, also_routed];
-                }
-            }
-            vec![closest_node]
-        }
     }
 
     fn apply_swap(&mut self, swap: [i32; 2]) {

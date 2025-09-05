@@ -1,8 +1,4 @@
-use ahash::HashSet;
-use rand::seq::IndexedRandom;
 use rustc_hash::FxHashMap;
-use rustworkx_core::petgraph::graph::DiGraph;
-
 use crate::{
     routing::{front_layer::MicroFront, layout::MicroLayout},
     MicroDAG,
@@ -109,84 +105,4 @@ pub fn build_coupling_neighbour_map(coupling_map: &[Vec<i32>]) -> Vec<Vec<i32>> 
         neighbours[q1].push(edge[0]);
     }
     neighbours
-}
-
-pub fn min_score(scores: FxHashMap<Vec<[i32; 2]>, (f64, usize)>, epsilon: f64) -> Vec<[i32; 2]> {
-    let mut best_swap_sequences = Vec::new();
-
-    let mut iter = scores.iter();
-
-    let (min_swap_sequence, mut min_score) = iter.next().unwrap();
-    best_swap_sequences.push(min_swap_sequence);
-
-    for (swap_sequence, score) in iter {
-        let diff = score.0 - min_score.0;
-
-        if diff < -epsilon {
-            min_score = score;
-            best_swap_sequences.clear();
-            best_swap_sequences.push(swap_sequence);
-        } else if diff.abs() <= epsilon {
-            best_swap_sequences.push(swap_sequence);
-        }
-    }
-
-    let mut rng = rand::rng();
-
-    best_swap_sequences.choose(&mut rng).unwrap().to_vec()
-}
-
-pub fn build_digraph_from_neighbors(neighbor_map: &Vec<Vec<i32>>) -> DiGraph<(), ()> {
-    let edge_list: Vec<(u32, u32)> = neighbor_map
-        .iter()
-        .enumerate()
-        .flat_map(|(src, targets)| targets.iter().map(move |&dst| (src as u32, dst as u32)))
-        .collect();
-
-    DiGraph::<(), ()>::from_edges(edge_list)
-}
-
-pub fn get_successor_map_and_critical_paths(dag: &MicroDAG) -> (Vec<usize>, Vec<usize>) {
-    // adjacency list as Vec<Vec<i32>>
-    let adj: Vec<Vec<i32>> = build_adjacency_list(dag);
-
-    // successor sets, indexed by node ID
-    let mut successor_set: Vec<HashSet<i32>> =
-        (0..dag.nodes.len()).map(|_| HashSet::default()).collect();
-
-    // critical path lengths, indexed by node ID
-    let mut critical_path_len: Vec<usize> = vec![0; dag.nodes.len()];
-
-    // Reverse topological traversal: assumes nodes are 0..N and acyclic
-    for u in (0..dag.nodes.len()).rev() {
-        for &v in &adj[u] {
-            if u == v as usize {
-                continue; // skip self-loop just in case
-            }
-
-            // split into two disjoint mutable slices
-            let (low, high) = if u < v as usize {
-                let (low, high) = successor_set.split_at_mut(v as usize);
-                (&mut low[u], &high[0])
-            } else {
-                let (low, high) = successor_set.split_at_mut(u);
-                (&mut high[0], &low[v as usize])
-            };
-
-            // Add v as successor of u
-            low.insert(v);
-            // Add all successors of v to u
-            low.extend(high.iter().copied());
-
-            // Update critical path length
-            let cand_len = 1 + critical_path_len[v as usize];
-            if cand_len > critical_path_len[u] {
-                critical_path_len[u] = cand_len;
-            }
-        }
-    }
-
-    let successor_counts: Vec<usize> = successor_set.iter().map(|s| s.len()).collect();
-
-    (successor_counts, critical_path_len)
 }
