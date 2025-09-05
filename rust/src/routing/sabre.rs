@@ -164,7 +164,7 @@ impl MicroSABRE {
     }
 
     #[inline]
-    fn collect_sets(&mut self) -> (IndexSet<i32>, IndexSet<i32>) {
+    fn populate_union(&mut self) -> (IndexSet<i32>, IndexSet<i32>) {
         let mut u_front = IndexSet::new();
         for &nid in self.front_layer.nodes.keys() {
             u_front.insert(nid);
@@ -179,11 +179,11 @@ impl MicroSABRE {
     fn apply_prefix(
         &mut self,
         prefix: &[[i32; 2]],
-        mut u_front: IndexSet<i32>,
-        mut u_ext: IndexSet<i32>,
     ) -> (Vec<i32>, IndexSet<i32>, IndexSet<i32>) {
         let mut execute_gate_list = Vec::new();
         let mut advanced_gates: Vec<i32> = Vec::new();
+
+        let (mut u_front, mut u_ext) = self.populate_union();
 
         for &[q0, q1] in prefix {
             self.apply_swap([q0, q1]);
@@ -404,10 +404,9 @@ impl MicroSABRE {
 
         while let Some(item) = stack.pop() {
             self.load_snapshot(initial_state.clone());
-            let (u_front, u_ext) = self.collect_sets();
 
             let (advanced_gates, u_front, u_ext) =
-                self.apply_prefix(&item.swap_sequence, u_front, u_ext);
+                self.apply_prefix(&item.swap_sequence);
 
             let should_score_leaf = item.remaining_depth == 0 || self.front_layer.is_empty();
             let swap_candidates = if should_score_leaf {
