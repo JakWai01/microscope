@@ -126,12 +126,6 @@ impl MicroSABRE {
 
 impl MicroSABRE {
     #[inline]
-    fn occupancy(&self, front_len: usize) -> f64 {
-        let cap = (self.num_qubits / 2).max(1) as f64;
-        (front_len as f64) / cap
-    }
-
-    #[inline]
     fn sum_min_swaps_needed_for_nodes(
         &self,
         layout: &MicroLayout,
@@ -228,9 +222,7 @@ impl MicroSABRE {
         initial_layout: &MicroLayout,
         u_front: &IndexSet<i32>,
         u_ext: &IndexSet<i32>,
-        phi_start: f64,
         extended_set_weight: f64,
-        occupancy_weight: f64,
     ) -> f64 {
         let mut u_union = u_front.clone();
         u_union.extend(u_ext.iter().cloned());
@@ -250,11 +242,7 @@ impl MicroSABRE {
             extended_set_weight,
         );
 
-        let norm_delta = (h_before - h_after) / union_size;
-
-        // let phi_end = self.occupancy(self.front_layer.len());
-        // norm_delta + occupancy_weight * (phi_end - phi_start)
-        norm_delta
+        (h_before - h_after) / union_size
     }
     
     fn compute_swap_candidates(&self) -> Vec<[i32; 2]> {
@@ -405,10 +393,8 @@ impl MicroSABRE {
 
     fn choose_best_swaps(&mut self, depth: usize) -> Vec<[i32; 2]> {
         let extended_set_weight: f64 = 0.5;
-        let occupancy_weight: f64 = 0.1;
 
         let initial_state = self.create_snapshot();
-        let phi_start = self.occupancy(initial_state.front_layer.len());
 
         let mut stack = vec![StackItem {
             swap_sequence: Vec::new(),
@@ -435,9 +421,7 @@ impl MicroSABRE {
                     &initial_state.layout,
                     &u_front,
                     &u_ext,
-                    phi_start,
                     extended_set_weight,
-                    occupancy_weight,
                 );
 
                 best.check_best(item.swap_sequence.clone(), advanced_gates.len(), score);
