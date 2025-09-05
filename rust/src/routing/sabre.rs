@@ -252,8 +252,9 @@ impl MicroSABRE {
 
         let norm_delta = (h_before - h_after) / union_size;
 
-        let phi_end = self.occupancy(self.front_layer.len());
-        norm_delta + occupancy_weight * (phi_end - phi_start)
+        // let phi_end = self.occupancy(self.front_layer.len());
+        // norm_delta + occupancy_weight * (phi_end - phi_start)
+        norm_delta
     }
     
     fn compute_swap_candidates(&self) -> Vec<[i32; 2]> {
@@ -419,7 +420,7 @@ impl MicroSABRE {
             self.load_snapshot(initial_state.clone());
             let (u_front, u_ext) = self.collect_sets();
 
-            let (advanced_gates, mut u_front, mut u_ext) =
+            let (advanced_gates, u_front, u_ext) =
                 self.apply_prefix(&item.swap_sequence, u_front, u_ext);
 
             let should_score_leaf = item.remaining_depth == 0 || self.front_layer.is_empty();
