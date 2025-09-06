@@ -400,13 +400,14 @@ impl MicroSABRE {
                 self.apply_prefix(&item.swap_sequence);
 
             let should_score_leaf = item.remaining_depth == 0 || self.front_layer.is_empty();
-            let swap_candidates = if should_score_leaf {
-                vec![]
-            } else {
-                self.compute_swap_candidates()
-            };
+            // let swap_candidates = if should_score_leaf {
+            //     vec![]
+            // } else {
+            //     self.compute_swap_candidates()
+            // };
 
-            if should_score_leaf || swap_candidates.is_empty() {
+            // if should_score_leaf || swap_candidates.is_empty() {
+            if should_score_leaf {
                 let score = self.score_leaf(
                     &initial_state.layout,
                     &u_front,
@@ -418,7 +419,7 @@ impl MicroSABRE {
                 continue;
             }
 
-            for &swap in &swap_candidates {
+            for &swap in &self.compute_swap_candidates() {
                 let mut next_seq = item.swap_sequence.clone();
                 next_seq.push(swap);
                 stack.push(StackItem {
