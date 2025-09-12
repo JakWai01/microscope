@@ -220,9 +220,9 @@ def plot_violin_split(df, out_path, title=None):
             f"  max    = {max_val:.1f} %\n"
         )
 
-    ax.set_ylabel('Relative improvement (%)')
+    ax.set_ylabel('Relative Improvement (%)')
     ax.set_xlabel('')
-    ax.set_title(title or 'Relative improvement of K-SWAP SABRE vs Qiskit SABRE \n(square topology, ≤ 40 qubits)')
+    ax.set_title(title or 'Relative Improvement of K-SWAP SABRE vs Qiskit SABRE \n(square topology, ≤ 40 qubits)')
 
     ax.yaxis.grid(True, linestyle=':', linewidth=0.6, color='gray', alpha=0.5)
     ax.xaxis.grid(False)
