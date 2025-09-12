@@ -5,7 +5,7 @@ from collections import defaultdict
 
 # Input: n accumulated files
 input_files = glob.glob(
-    "/home/jakob/Documents/Projects/microscope/assets/benchmark/test-k5/combined/*"
+    "/home/jakob/Documents/Projects/microscope/assets/benchmark/test-k3-no-timeout/combined/*"
 )
 
 # Collect data
@@ -51,7 +51,7 @@ for name, swaps in bench_swap_data.items():
     )
 
 # Write to file
-output_path = "/home/jakob/Documents/Projects/microscope/assets/benchmark/test-k5/stats/benchmark_swap_stats.json"
+output_path = "/home/jakob/Documents/Projects/microscope/assets/benchmark/test-k3-no-timeout/stats/benchmark_swap_stats.json"
 with open(output_path, "wb") as f:
     f.write(orjson.dumps(aggregated, option=orjson.OPT_INDENT_2))
 

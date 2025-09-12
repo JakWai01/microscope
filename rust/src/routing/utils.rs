@@ -1,4 +1,5 @@
 use rustc_hash::FxHashMap;
+use rustworkx_core::petgraph::graph::DiGraph;
 use crate::{
     routing::{front_layer::MicroFront, layout::MicroLayout},
     MicroDAG,

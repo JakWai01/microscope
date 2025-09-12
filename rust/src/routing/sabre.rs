@@ -6,9 +6,11 @@ use crate::routing::utils::{
 };
 use crate::{graph::dag::MicroDAG, routing::utils::build_adjacency_list};
 use core::f64;
+
 use indexmap::IndexSet;
 use pyo3::{pyclass, pymethods, PyResult};
 use rustc_hash::FxHashMap;
+
 use std::collections::{HashSet, VecDeque};
 
 #[derive(Debug)]
@@ -400,13 +402,7 @@ impl MicroSABRE {
                 self.apply_prefix(&item.swap_sequence);
 
             let should_score_leaf = item.remaining_depth == 0 || self.front_layer.is_empty();
-            // let swap_candidates = if should_score_leaf {
-            //     vec![]
-            // } else {
-            //     self.compute_swap_candidates()
-            // };
-
-            // if should_score_leaf || swap_candidates.is_empty() {
+       
             if should_score_leaf {
                 let score = self.score_leaf(
                     &initial_state.layout,
