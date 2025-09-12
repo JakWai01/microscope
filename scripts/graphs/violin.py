@@ -33,44 +33,44 @@ def make_map(benchmarks):
         d[name] = {'avg': avg, 'qubits': qubits, 'topology': topology}
     return d
 
-def compute_improvements(ocular_map, qiskit_map, max_qubits=40, topology_filter="square"):
-    rows = []
-    for name, o in ocular_map.items():
-        if name not in qiskit_map:
-            continue
-        q = qiskit_map[name]
+# def compute_improvements(ocular_map, qiskit_map, max_qubits=40, topology_filter="square"):
+#     rows = []
+#     for name, o in ocular_map.items():
+#         if name not in qiskit_map:
+#             continue
+#         q = qiskit_map[name]
 
-        # enforce topology filter
-        topo = o.get('topology') or q.get('topology')
-        if topology_filter and topo != topology_filter:
-            continue
+#         # enforce topology filter
+#         topo = o.get('topology') or q.get('topology')
+#         if topology_filter and topo != topology_filter:
+#             continue
 
-        o_avg = o.get('avg')
-        q_avg = q.get('avg')
-        qubits = o.get('qubits') if o.get('qubits') is not None else q.get('qubits')
+#         o_avg = o.get('avg')
+#         q_avg = q.get('avg')
+#         qubits = o.get('qubits') if o.get('qubits') is not None else q.get('qubits')
 
-        if qubits is None:
-            continue
-        try:
-            qubits_int = int(qubits)
-        except Exception:
-            continue
-        if qubits_int > max_qubits:
-            continue
+#         if qubits is None:
+#             continue
+#         try:
+#             qubits_int = int(qubits)
+#         except Exception:
+#             continue
+#         if qubits_int > max_qubits:
+#             continue
 
-        if q_avg is None or q_avg == 0 or o_avg is None:
-            continue
+#         if q_avg is None or q_avg == 0 or o_avg is None:
+#             continue
 
-        improvement = (q_avg - o_avg) / q_avg * 100.0
-        rows.append({
-            'name': name,
-            'qubits': qubits_int,
-            'topology': topo,
-            'ocular_avg': float(o_avg),
-            'qiskit_avg': float(q_avg),
-            'improvement': float(improvement)
-        })
-    return pd.DataFrame(rows)
+#         improvement = (q_avg - o_avg) / q_avg * 100.0
+#         rows.append({
+#             'name': name,
+#             'qubits': qubits_int,
+#             'topology': topo,
+#             'ocular_avg': float(o_avg),
+#             'qiskit_avg': float(q_avg),
+#             'improvement': float(improvement)
+#         })
+#     return pd.DataFrame(rows)
 
 
 # def plot_violin(df, out_path, title=None):
@@ -235,12 +235,93 @@ def plot_violin_split(df, out_path, title=None):
     ax.get_figure().savefig(out_path, dpi=300, bbox_inches='tight')
     plt.close(ax.get_figure())
 
+# def main():
+#     p = argparse.ArgumentParser(description="Violin plot of relative improvement (ocular vs qiskit) for square topology")
+#     p.add_argument('--ocular', type=Path, default=Path('/mnt/data/ocular_benchmark_swap_stats.json'))
+#     p.add_argument('--ocular2', type=Path, help="Second ocular benchmark file (different k)", default=None)
+#     p.add_argument('--qiskit', type=Path, default=Path('/mnt/data/qiskit_benchmark_swap_stats.json'))
+#     p.add_argument('--max-qubits', type=int, default=40)
+#     p.add_argument('--out', type=Path, default=Path('violin_improvement_square_0_40.png'))
+#     args = p.parse_args()
+
+#     qiskit_bench = load_benchmarks(args.qiskit)
+#     qiskit_map = make_map(qiskit_bench)
+
+#     # First ocular
+#     ocular_bench = load_benchmarks(args.ocular)
+#     ocular_map = make_map(ocular_bench)
+#     df1 = compute_improvements(ocular_map, qiskit_map, max_qubits=args.max_qubits, topology_filter="square")
+#     df1['benchmark'] = 'k = 3'  # or use a label that matches your config
+
+#     dfs = [df1]
+
+#     # Second ocular (optional)
+#     if args.ocular2:
+#         ocular2_bench = load_benchmarks(args.ocular2)
+#         ocular2_map = make_map(ocular2_bench)
+#         df2 = compute_improvements(ocular2_map, qiskit_map, max_qubits=args.max_qubits, topology_filter="square")
+#         df2['benchmark'] = 'k = 4'  # or use a label that matches your config
+#         dfs.append(df2)
+
+#     df = pd.concat(dfs, ignore_index=True)
+
+#     if df.empty:
+#         print("No matched benchmarks found for square topology within qubit range.")
+#         return
+
+#     csv_out = args.out.with_suffix('.csv')
+#     df.to_csv(csv_out, index=False)
+#     print(f"Saved computed improvements to {csv_out}")
+
+#     plot_violin_split(df, args.out)
+#     print(f"Violin plot saved to {args.out}")
+
+def compute_improvements(ocular_map, qiskit_map, min_qubits=0, max_qubits=40, topology_filter="square"):
+    rows = []
+    for name, o in ocular_map.items():
+        if name not in qiskit_map:
+            continue
+        q = qiskit_map[name]
+
+        # enforce topology filter
+        topo = o.get('topology') or q.get('topology')
+        if topology_filter and topo != topology_filter:
+            continue
+
+        o_avg = o.get('avg')
+        q_avg = q.get('avg')
+        qubits = o.get('qubits') if o.get('qubits') is not None else q.get('qubits')
+
+        if qubits is None:
+            continue
+        try:
+            qubits_int = int(qubits)
+        except Exception:
+            continue
+        if qubits_int < min_qubits or qubits_int > max_qubits:
+            continue
+
+        if q_avg is None or q_avg == 0 or o_avg is None:
+            continue
+
+        improvement = (q_avg - o_avg) / q_avg * 100.0
+        rows.append({
+            'name': name,
+            'qubits': qubits_int,
+            'topology': topo,
+            'ocular_avg': float(o_avg),
+            'qiskit_avg': float(q_avg),
+            'improvement': float(improvement)
+        })
+    return pd.DataFrame(rows)
+
 def main():
     p = argparse.ArgumentParser(description="Violin plot of relative improvement (ocular vs qiskit) for square topology")
     p.add_argument('--ocular', type=Path, default=Path('/mnt/data/ocular_benchmark_swap_stats.json'))
     p.add_argument('--ocular2', type=Path, help="Second ocular benchmark file (different k)", default=None)
     p.add_argument('--qiskit', type=Path, default=Path('/mnt/data/qiskit_benchmark_swap_stats.json'))
-    p.add_argument('--max-qubits', type=int, default=40)
+    p.add_argument('--min-qubits', type=int, default=0, help="Minimum number of qubits (inclusive)")
+    p.add_argument('--max-qubits', type=int, default=40, help="Maximum number of qubits (inclusive)")
     p.add_argument('--out', type=Path, default=Path('violin_improvement_square_0_40.png'))
     args = p.parse_args()
 
@@ -250,7 +331,12 @@ def main():
     # First ocular
     ocular_bench = load_benchmarks(args.ocular)
     ocular_map = make_map(ocular_bench)
-    df1 = compute_improvements(ocular_map, qiskit_map, max_qubits=args.max_qubits, topology_filter="square")
+    df1 = compute_improvements(
+        ocular_map, qiskit_map,
+        min_qubits=args.min_qubits,
+        max_qubits=args.max_qubits,
+        topology_filter="square"
+    )
     df1['benchmark'] = 'k = 3'  # or use a label that matches your config
 
     dfs = [df1]
@@ -259,7 +345,12 @@ def main():
     if args.ocular2:
         ocular2_bench = load_benchmarks(args.ocular2)
         ocular2_map = make_map(ocular2_bench)
-        df2 = compute_improvements(ocular2_map, qiskit_map, max_qubits=args.max_qubits, topology_filter="square")
+        df2 = compute_improvements(
+            ocular2_map, qiskit_map,
+            min_qubits=args.min_qubits,
+            max_qubits=args.max_qubits,
+            topology_filter="square"
+        )
         df2['benchmark'] = 'k = 4'  # or use a label that matches your config
         dfs.append(df2)
 
