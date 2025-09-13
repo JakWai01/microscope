@@ -12,6 +12,7 @@ input_files = glob.glob(
 bench_swap_data = defaultdict(list)
 bench_topo_data = defaultdict(str)
 bench_qubit_data = defaultdict(str)
+bench_depth_data = defaultdict(int)
 
 for path in input_files:
     with open(path, "rb") as f:
@@ -22,11 +23,13 @@ for path in input_files:
         )
         topology = bench.get("params", {}).get("circ_and_topo", [])[1]
         qubits = bench.get("extra_info", {}).get("input_num_qubits")
+        depth = bench.get("extra_info", {}).get("output_depth_2q")
 
         if swaps is not None:
             bench_swap_data[bench["name"]].append(swaps)
             bench_topo_data[bench["name"]] = topology
             bench_qubit_data[bench["name"]] = qubits
+            bench_depth_data[bench["name"]] = depth
 
 # Build aggregated results
 aggregated = {"benchmarks": []}
@@ -47,6 +50,7 @@ for name, swaps in bench_swap_data.items():
                 "min": mn,
                 "max": mx,
             },
+            "depth": bench_depth_data[name],
         }
     )
 
