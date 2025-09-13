@@ -52,8 +52,8 @@ def ocular(config):
 
         num_qubits = input_circuit.num_qubits
 
-        # coupling_map = coupling_line(input_circuit.num_qubits)
-        coupling_map = coupling_grid(input_circuit.num_qubits)
+        coupling_map = coupling_line(input_circuit.num_qubits)
+        # coupling_map = coupling_grid(input_circuit.num_qubits)
 
         pm = PassManager(
             [
@@ -115,7 +115,7 @@ def ocular(config):
                     "CheckMap identified invalid mapping from DAG to coupling_map in qiskit implementation"
                 )
             
-            transpiled_qc.draw(output="mpl", fold=-1)
+            # transpiled_qc.draw(output="mpl", fold=-1)
 
             transpiled_qc_dag = circuit_to_dag(transpiled_qc)
             qiskit_depth = transpiled_qc.depth()
@@ -133,7 +133,7 @@ def ocular(config):
                 transpiled_sabre_dag_boosted
             )
 
-            transpiled_sabre_circuit_boosted.draw(output="mpl", fold=-1)
+            # transpiled_sabre_circuit_boosted.draw(output="mpl", fold=-1)
             
 
             cm = CheckMap(coupling_map=coupling_map)
