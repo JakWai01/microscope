@@ -8,7 +8,7 @@ import pandas as pd
 topologies = ["heavy-hex", "square", "linear"]
 
 with open(
-    "/home/jakob/Documents/Projects/microscope/assets/benchmark/test-k3-no-timeout/stats/benchmark_swap_stats.json",
+    "/home/jakob/Documents/Projects/microscope/assets/benchmark/test-k3-1h/stats/benchmark_swap_stats.json",
     "rb",
 ) as fd:
     data_ocular = orjson.loads(fd.read())
@@ -23,6 +23,7 @@ ocular = data_ocular["benchmarks"]
 qiskit = data_qiskit["benchmarks"]
 
 sns.set_theme()
+
 
 fig = plt.figure(figsize=(20, 6))
 gs = fig.add_gridspec(1, 4, width_ratios=[1, 1, 1, 0.07], wspace=0.3)
@@ -91,8 +92,8 @@ for ax, topo in zip(axs, topologies):
     ax.plot(line, line, linewidth=1, color="black", linestyle="dashed")
 
     ax.set_title(f"Topology: {topo}", fontweight="bold", fontsize=14)
-    ax.set_xlabel("k=3 swaps", fontsize=12)
-    ax.set_ylabel("Qiskit swaps", fontsize=12)
+    ax.set_xlabel("K-SWAP SABRE Swaps", fontsize=12)
+    ax.set_ylabel("Qiskit SABRE Swaps", fontsize=12)
     ax.set_xscale("log")
     ax.set_yscale("log")
     # automatic axis limits
@@ -103,7 +104,7 @@ cbar_ax = fig.add_subplot(gs[0, 3])
 cbar = fig.colorbar(sm, cax=cbar_ax)
 cbar.set_label("Number of Qubits")
 
-plt.suptitle("Qiskit vs k=3 swaps across topologies", fontsize=16, fontweight="bold")
+plt.suptitle("Qiskit SABRE vs K-SWAP SABRE (k=3)", fontsize=16, fontweight="bold")
 plt.tight_layout(rect=[0, 0, 1, 0.95])
 plt.savefig("/tmp/combined_topologies_swaps_k4_16_cores_avg.png", dpi=900)
 plt.show()
