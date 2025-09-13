@@ -41,14 +41,17 @@ impl Best {
     pub fn check_best(&mut self, seq: Vec<[i32; 2]>, exec: usize, secondary: f64) {
         let len = seq.len();
 
-        let better = (exec > self.exec)
-            || (exec == self.exec
-                && (secondary > self.secondary + f64::EPSILON
-                    || ((secondary - self.secondary).abs() <= f64::EPSILON && len < self.len)));
+        // let better = (exec > self.exec)
+            // || (exec == self.exec
+            //     && (secondary > self.secondary + f64::EPSILON
+            //         || ((secondary - self.secondary).abs() <= f64::EPSILON && len < self.len)));
 
-        let equal = exec == self.exec
-            && (secondary - self.secondary).abs() <= f64::EPSILON
-            && len == self.len;
+        let better = secondary > self.secondary + f64::EPSILON;
+        // let equal = exec == self.exec
+        //     && (secondary - self.secondary).abs() <= f64::EPSILON
+        //     && len == self.len;
+
+        let equal = (secondary - self.secondary).abs() <= f64::EPSILON;
 
         if better || (equal && rand::random::<bool>()) {
             self.exec = exec;
@@ -106,4 +109,14 @@ pub fn build_coupling_neighbour_map(coupling_map: &[Vec<i32>]) -> Vec<Vec<i32>> 
         neighbours[q1].push(edge[0]);
     }
     neighbours
+}
+
+pub fn build_digraph_from_neighbors(neighbor_map: &Vec<Vec<i32>>) -> DiGraph<(), ()> {
+    let edge_list: Vec<(u32, u32)> = neighbor_map
+        .iter()
+        .enumerate()
+        .flat_map(|(src, targets)| targets.iter().map(move |&dst| (src as u32, dst as u32)))
+        .collect();
+
+    DiGraph::<(), ()>::from_edges(edge_list)
 }
