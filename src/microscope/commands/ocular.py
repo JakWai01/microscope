@@ -52,8 +52,8 @@ def ocular(config):
 
         num_qubits = input_circuit.num_qubits
 
-        coupling_map = coupling_line(input_circuit.num_qubits)
-        # coupling_map = coupling_grid(input_circuit.num_qubits)
+        # coupling_map = coupling_line(input_circuit.num_qubits)
+        coupling_map = coupling_grid(input_circuit.num_qubits)
 
         pm = PassManager(
             [
