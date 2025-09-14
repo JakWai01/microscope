@@ -59,4 +59,6 @@ for i, (topo, cmap, marker) in enumerate(zip(topologies, cmap, markers)):
 
 axs[-1].set_xlabel("Qubit Count", fontsize=14)
 plt.tight_layout()
+
+plt.show()
 plt.savefig("/tmp/bench_circuits.png")
