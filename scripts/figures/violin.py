@@ -2,8 +2,8 @@
 """
 plot_improvement_violin_square.py
 
-Produce a violin plot of relative improvement (%) of "ocular" (K-SWAP SABRE k=3)
-compared to Qiskit for circuits with qubits <= 40, restricted to square topology.
+Produce a violin plot of relative improvement (%) of "ocular" (K-SWAP SABRE with different k values)
+compared to Qiskit for circuits with qubits <= 1000, restricted to square topology.
 """
 
 import json
@@ -15,10 +15,12 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 
+
 def load_benchmarks(path):
     with open(path, 'r') as f:
         j = json.load(f)
     return j.get('benchmarks', [])
+
 
 def make_map(benchmarks):
     d = {}
@@ -33,7 +35,8 @@ def make_map(benchmarks):
         d[name] = {'avg': avg, 'qubits': qubits, 'topology': topology}
     return d
 
-def plot_violin_split(df, out_path, title=None):
+
+def plot_violin(df, out_path, title=None):
     if df.empty:
         raise ValueError("No matched benchmarks to plot (empty dataframe).")
 
@@ -54,12 +57,11 @@ def plot_violin_split(df, out_path, title=None):
     unique_benchmarks = df['benchmark'].nunique()
 
     if unique_benchmarks == 1:
-        # Just one benchmark → full violin
         ax = sns.violinplot(
+            x='benchmark',
             y='improvement',
             data=df,
             inner='box',
-            # cut=0,
             scale='area',
             bw=0.3,
             width=0.7,
@@ -67,19 +69,16 @@ def plot_violin_split(df, out_path, title=None):
             linewidth=1.2,
         )
     else:
-        # Multiple benchmarks → split violin
         ax = sns.violinplot(
+            x='benchmark',
             y='improvement',
-            hue='benchmark',
             data=df,
-            split=True,
             inner='box',
-            # cut=0,
             scale='area',
             bw=0.3,
             width=0.7,
-            palette=['#4477AA', '#EE7733'],
             linewidth=1.2,
+            palette='Set2'
         )
 
     ax.axhline(0.0, color='gray', linestyle='--', linewidth=1, zorder=0)
@@ -92,7 +91,7 @@ def plot_violin_split(df, out_path, title=None):
     ax.yaxis.set_major_locator(MaxNLocator(nbins=7, prune='both', integer=False))
     ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: f'{y:.0f}%'))
 
-    # Print stats
+    # Print stats per benchmark
     for label in df['benchmark'].unique():
         sub = df[df['benchmark'] == label]
         n = len(sub)
@@ -111,32 +110,17 @@ def plot_violin_split(df, out_path, title=None):
 
     ax.set_ylabel('Relative Improvement (%)')
     ax.set_xlabel('')
-    # ax.set_title(title or 'Relative Improvement of K-SWAP SABRE vs Qiskit SABRE (IQR) \n(square topology, k=3, ≤ 1000 qubits)')
     ax.set_title(
         (title or 'Relative Improvement of K-SWAP SABRE vs Qiskit SABRE \n'
-                '(square topology, k=3, ≤ 1000 qubits, IQR)')
+                  '(square topology, ≤ 1000 qubits, IQR)')
     )
-    # ax.annotate(
-    #     "Outliers Removed via IQR rule",
-    #     xy=(0.5, -0.15),
-    #     xycoords='axes fraction',
-    #     ha='center',
-    #     fontsize=9,
-    #     style='italic'
-    # )
     ax.yaxis.grid(True, linestyle=':', linewidth=0.6, color='gray', alpha=0.5)
     ax.xaxis.grid(False)
-
-    # Only add legend if multiple benchmarks
-    if unique_benchmarks > 1:
-        handles, labels = ax.get_legend_handles_labels()
-        ax.legend(handles, labels, title='Benchmark', loc='upper right', frameon=True)
-    else:
-        ax.get_legend().remove() if ax.get_legend() else None
 
     plt.tight_layout()
     ax.get_figure().savefig(out_path, dpi=300, bbox_inches='tight')
     plt.close(ax.get_figure())
+
 
 def compute_improvements(ocular_map, qiskit_map, min_qubits=0, max_qubits=40, topology_filter="square"):
     rows = []
@@ -177,44 +161,43 @@ def compute_improvements(ocular_map, qiskit_map, min_qubits=0, max_qubits=40, to
         })
     return pd.DataFrame(rows)
 
+
 def main():
     p = argparse.ArgumentParser(description="Violin plot of relative improvement (ocular vs qiskit) for square topology")
-    p.add_argument('--ocular', type=Path, default=Path('/mnt/data/ocular_benchmark_swap_stats.json'))
-    p.add_argument('--ocular2', type=Path, help="Second ocular benchmark file (different k)", default=None)
-    p.add_argument('--qiskit', type=Path, default=Path('/mnt/data/qiskit_benchmark_swap_stats.json'))
+    p.add_argument(
+        '--oculars', type=Path, nargs='+',
+        help="List of ocular benchmark files (different k values)",
+        required=True
+    )
+    p.add_argument(
+        '--labels', type=str, nargs='+',
+        help="Labels for each ocular benchmark (e.g. k=1 k=2 k=3)",
+        required=True
+    )
+    p.add_argument('--qiskit', type=Path, required=True)
     p.add_argument('--min-qubits', type=int, default=0, help="Minimum number of qubits (inclusive)")
-    p.add_argument('--max-qubits', type=int, default=40, help="Maximum number of qubits (inclusive)")
-    p.add_argument('--out', type=Path, default=Path('violin_improvement_square_0_40.png'))
+    p.add_argument('--max-qubits', type=int, default=1000, help="Maximum number of qubits (inclusive)")
+    p.add_argument('--out', type=Path, default=Path('violin_improvement_square.png'))
     args = p.parse_args()
+
+    if len(args.oculars) != len(args.labels):
+        raise ValueError("You must provide the same number of --oculars and --labels")
 
     qiskit_bench = load_benchmarks(args.qiskit)
     qiskit_map = make_map(qiskit_bench)
 
-    # First ocular
-    ocular_bench = load_benchmarks(args.ocular)
-    ocular_map = make_map(ocular_bench)
-    df1 = compute_improvements(
-        ocular_map, qiskit_map,
-        min_qubits=args.min_qubits,
-        max_qubits=args.max_qubits,
-        topology_filter="square"
-    )
-    df1['benchmark'] = 'k = 3'  # or use a label that matches your config
-
-    dfs = [df1]
-
-    # Second ocular (optional)
-    if args.ocular2:
-        ocular2_bench = load_benchmarks(args.ocular2)
-        ocular2_map = make_map(ocular2_bench)
-        df2 = compute_improvements(
-            ocular2_map, qiskit_map,
+    dfs = []
+    for path, label in zip(args.oculars, args.labels):
+        ocular_bench = load_benchmarks(path)
+        ocular_map = make_map(ocular_bench)
+        df_i = compute_improvements(
+            ocular_map, qiskit_map,
             min_qubits=args.min_qubits,
             max_qubits=args.max_qubits,
             topology_filter="square"
         )
-        df2['benchmark'] = 'k = 4'  # or use a label that matches your config
-        dfs.append(df2)
+        df_i['benchmark'] = label
+        dfs.append(df_i)
 
     df = pd.concat(dfs, ignore_index=True)
 
@@ -226,20 +209,17 @@ def main():
     df.to_csv(csv_out, index=False)
     print(f"Saved computed improvements to {csv_out}")
 
-    # lower = df['improvement'].quantile(0.01)
-    # upper = df['improvement'].quantile(0.99)
-
-    # df = df[(df['improvement'] >= lower) & (df['improvement'] <= upper)]
+    # Outlier removal via IQR
     Q1 = df['improvement'].quantile(0.25)
     Q3 = df['improvement'].quantile(0.75)
     IQR = Q3 - Q1
     lower = Q1 - 1.5 * IQR
     upper = Q3 + 1.5 * IQR
-
     df = df[(df['improvement'] >= lower) & (df['improvement'] <= upper)]
 
-    plot_violin_split(df, args.out)
+    plot_violin(df, args.out)
     print(f"Violin plot saved to {args.out}")
+
 
 if __name__ == '__main__':
     main()
