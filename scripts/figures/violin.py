@@ -111,8 +111,19 @@ def plot_violin_split(df, out_path, title=None):
 
     ax.set_ylabel('Relative Improvement (%)')
     ax.set_xlabel('')
-    ax.set_title(title or 'Relative Improvement of K-SWAP SABRE vs Qiskit SABRE \n(square topology, k=3, ≤ 1000 qubits)')
-
+    # ax.set_title(title or 'Relative Improvement of K-SWAP SABRE vs Qiskit SABRE (IQR) \n(square topology, k=3, ≤ 1000 qubits)')
+    ax.set_title(
+        (title or 'Relative Improvement of K-SWAP SABRE vs Qiskit SABRE \n'
+                '(square topology, k=3, ≤ 1000 qubits, IQR)')
+    )
+    # ax.annotate(
+    #     "Outliers Removed via IQR rule",
+    #     xy=(0.5, -0.15),
+    #     xycoords='axes fraction',
+    #     ha='center',
+    #     fontsize=9,
+    #     style='italic'
+    # )
     ax.yaxis.grid(True, linestyle=':', linewidth=0.6, color='gray', alpha=0.5)
     ax.xaxis.grid(False)
 
@@ -214,6 +225,18 @@ def main():
     csv_out = args.out.with_suffix('.csv')
     df.to_csv(csv_out, index=False)
     print(f"Saved computed improvements to {csv_out}")
+
+    # lower = df['improvement'].quantile(0.01)
+    # upper = df['improvement'].quantile(0.99)
+
+    # df = df[(df['improvement'] >= lower) & (df['improvement'] <= upper)]
+    Q1 = df['improvement'].quantile(0.25)
+    Q3 = df['improvement'].quantile(0.75)
+    IQR = Q3 - Q1
+    lower = Q1 - 1.5 * IQR
+    upper = Q3 + 1.5 * IQR
+
+    df = df[(df['improvement'] >= lower) & (df['improvement'] <= upper)]
 
     plot_violin_split(df, args.out)
     print(f"Violin plot saved to {args.out}")
