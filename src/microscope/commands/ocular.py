@@ -12,6 +12,7 @@ from qiskit.transpiler.passes import (
     SabreSwap,
     FullAncillaAllocation,
     SetLayout,
+    TrivialLayout
 )
 
 from collections import defaultdict
@@ -111,7 +112,13 @@ def ocular(config):
 
             cm = CheckMap(coupling_map=coupling_map)
             qiskit_pm = PassManager(
-                [SabreSwap(coupling_map, heuristic=heuristic, trials=1), cm]
+                [
+                    SabreLayout(coupling_map, skip_routing=True, seed=42),
+                    FullAncillaAllocation(coupling_map=coupling_map),
+                    ApplyLayout(),
+                    RemoveBarriers(),
+                    SabreSwap(coupling_map, heuristic=heuristic, trials=1), cm
+                ]
             )
             transpiled_qc = qiskit_pm.run(preprocessed_circuit)
             if not cm.property_set.get("is_swap_mapped"):
@@ -222,10 +229,13 @@ def benchpress_adapter(circuit, backend, k):
 
     preprocessed_dag = circuit_to_dag(preprocessed_circuit)
 
-    # qiskit_pm = PassManager(
-    #     [SabreSwap(coupling_map, heuristic="lookahead", trials=1)]
-    # )
-    # transpiled_qc = qiskit_pm.run(preprocessed_circuit)
+    qiskit_pm = PassManager(
+        [
+ 
+            SabreSwap(coupling_map, heuristic="lookahead", trials=1)
+        ]
+    )
+    transpiled_qc = qiskit_pm.run(preprocessed_circuit)
 
     num_qubits = len(preprocessed_circuit.qubits)
 
