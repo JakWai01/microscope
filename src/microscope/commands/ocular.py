@@ -52,8 +52,8 @@ def ocular(config):
 
         num_qubits = input_circuit.num_qubits
 
-        # coupling_map = coupling_line(input_circuit.num_qubits)
-        coupling_map = coupling_grid(input_circuit.num_qubits)
+        coupling_map = coupling_line(input_circuit.num_qubits)
+        # coupling_map = coupling_grid(input_circuit.num_qubits)
 
         pm = PassManager(
             [
@@ -107,9 +107,17 @@ def ocular(config):
 
             cm = CheckMap(coupling_map=coupling_map)
             qiskit_pm = PassManager(
-                [SabreSwap(coupling_map, heuristic=heuristic, trials=1), cm]
+                [
+                    Unroll3qOrMore(),
+                    SabreLayout(coupling_map, skip_routing=True, seed=42),
+                    FullAncillaAllocation(coupling_map=coupling_map),
+                    ApplyLayout(),
+                    RemoveBarriers(),
+                    SabreSwap(coupling_map, heuristic=heuristic, trials=1), cm
+                ]
             )
-            transpiled_qc = qiskit_pm.run(preprocessed_circuit)
+            # transpiled_qc = qiskit_pm.run(preprocessed_circuit)
+            transpiled_qc = qiskit_pm.run(input_circuit)
             if not cm.property_set.get("is_swap_mapped"):
                 raise ValueError(
                     "CheckMap identified invalid mapping from DAG to coupling_map in qiskit implementation"
@@ -204,52 +212,60 @@ def process_results(test_results):
 def benchpress_adapter(circuit, backend, k):
     coupling_map = backend._coupling_map
 
-    pm = PassManager(
+    # pm = PassManager(
+    #     [
+    #         Unroll3qOrMore(),
+    #         SabreLayout(coupling_map, skip_routing=True, seed=42),
+    #         FullAncillaAllocation(coupling_map=coupling_map),
+    #         ApplyLayout(),
+    #         RemoveBarriers(),
+    #     ]
+    # )
+
+    # preprocessed_circuit = pm.run(circuit)
+
+    # preprocessed_dag = circuit_to_dag(preprocessed_circuit)
+
+    qiskit_pm = PassManager(
         [
             Unroll3qOrMore(),
             SabreLayout(coupling_map, skip_routing=True, seed=42),
             FullAncillaAllocation(coupling_map=coupling_map),
             ApplyLayout(),
             RemoveBarriers(),
+            SabreSwap(coupling_map, heuristic="lookahead", trials=1),
         ]
+    ,
     )
+    transpiled_qc = qiskit_pm.run(circuit)
 
-    preprocessed_circuit = pm.run(circuit)
+    # num_qubits = len(preprocessed_circuit.qubits)
 
-    preprocessed_dag = circuit_to_dag(preprocessed_circuit)
-
-    # qiskit_pm = PassManager(
-    #     [SabreSwap(coupling_map, heuristic="lookahead", trials=1)]
+    # canonical_register = preprocessed_dag.qregs["q"]
+    # current_layout = Layout.generate_trivial_layout(canonical_register)
+    # qubit_indices = {bit: idx for idx, bit in enumerate(canonical_register)}
+    # layout_mapping = {
+    #     qubit_indices[k]: v for k, v in current_layout.get_virtual_bits().items()
+    # }
+    # initial_layout = microboost.MicroLayout(
+    #     layout_mapping, num_qubits, coupling_map.size()
     # )
-    # transpiled_qc = qiskit_pm.run(preprocessed_circuit)
 
-    num_qubits = len(preprocessed_circuit.qubits)
+    # dag = DAG().from_qiskit_dag(preprocessed_dag).to_micro_dag()
 
-    canonical_register = preprocessed_dag.qregs["q"]
-    current_layout = Layout.generate_trivial_layout(canonical_register)
-    qubit_indices = {bit: idx for idx, bit in enumerate(canonical_register)}
-    layout_mapping = {
-        qubit_indices[k]: v for k, v in current_layout.get_virtual_bits().items()
-    }
-    initial_layout = microboost.MicroLayout(
-        layout_mapping, num_qubits, coupling_map.size()
-    )
+    # ms = microboost.MicroSABRE(
+    #     dag, initial_layout, coupling_map.get_edges(), num_qubits
+    # )
 
-    dag = DAG().from_qiskit_dag(preprocessed_dag).to_micro_dag()
+    # sabre_result = ms.run(k)
 
-    ms = microboost.MicroSABRE(
-        dag, initial_layout, coupling_map.get_edges(), num_qubits
-    )
+    # transpiled_sabre_dag_boosted, _ = apply_sabre_result(
+    #     preprocessed_dag.copy_empty_like(),
+    #     preprocessed_dag,
+    #     sabre_result,
+    #     preprocessed_dag.qubits,
+    #     coupling_map,
+    # )
 
-    sabre_result = ms.run(k)
-
-    transpiled_sabre_dag_boosted, _ = apply_sabre_result(
-        preprocessed_dag.copy_empty_like(),
-        preprocessed_dag,
-        sabre_result,
-        preprocessed_dag.qubits,
-        coupling_map,
-    )
-
-    return dag_to_circuit(transpiled_sabre_dag_boosted)
-    # return transpiled_qc
+    # return dag_to_circuit(transpiled_sabre_dag_boosted)
+    return transpiled_qc
