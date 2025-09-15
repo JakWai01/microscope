@@ -55,6 +55,8 @@ def plot_violin(df, out_path, title=None):
     plt.rcParams['axes.spines.right'] = False
 
     unique_benchmarks = df['benchmark'].nunique()
+    palette = sns.color_palette("crest", n_colors=unique_benchmarks)
+
 
     if unique_benchmarks == 1:
         ax = sns.violinplot(
@@ -78,7 +80,7 @@ def plot_violin(df, out_path, title=None):
             bw=0.3,
             width=0.7,
             linewidth=1.2,
-            palette='Set2'
+            palette=palette
         )
 
     ax.axhline(0.0, color='gray', linestyle='--', linewidth=1, zorder=0)
