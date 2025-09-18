@@ -114,7 +114,7 @@ def plot_violin(df, out_path, title=None):
     ax.set_xlabel('')
     ax.set_title(
         (title or 'Relative Improvement of K-SWAP SABRE vs Qiskit SABRE \n'
-                  '(square topology, ≤ 1000 qubits, IQR)')
+                  '(square topology, ≤ 40 qubits, IQR)')
     )
     ax.yaxis.grid(True, linestyle=':', linewidth=0.6, color='gray', alpha=0.5)
     ax.xaxis.grid(False)
