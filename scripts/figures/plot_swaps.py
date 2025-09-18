@@ -18,7 +18,7 @@ parser.add_argument('--qiskit', type=str, required=True, help='Path to qiskit be
 parser.add_argument('--out', type=str, default='/tmp/combined_topologies_swaps_grid.png', help='Output file path')
 args = parser.parse_args()
 
-topologies = ["heavy-hex", "square", "linear"]
+topologies = ["linear", "heavy-hex", "square"]
 k_labels = ["k=1", "k=2", "k=3"]
 ocular_files = [args.ocular1, args.ocular2, args.ocular3]
 
@@ -108,7 +108,7 @@ cbar_ax = fig.add_subplot(gs[:, 3])
 cbar = fig.colorbar(sm, cax=cbar_ax)
 cbar.set_label("Number of Qubits")
 
-plt.suptitle("Qiskit SABRE vs K-SWAP SABRE (k=1,2,3) across Topologies", fontsize=16, fontweight="bold")
+plt.suptitle("Qiskit SABRE vs K-SWAP SABRE (k=1,2,3) across Topologies\n(topologies sorted according to connectivity)", fontsize=16, fontweight="bold")  # default ~1.0, lower moves it closer to the figure
 plt.tight_layout(rect=[0, 0, 1, 0.97])
 plt.savefig(args.out, dpi=900)
 plt.show()

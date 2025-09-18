@@ -1,0 +1,4908 @@
+{
+  "machine_info": {
+    "node": "algiers2",
+    "processor": "x86_64",
+    "machine": "x86_64",
+    "python_compiler": "GCC 13.3.0",
+    "python_implementation": "CPython",
+    "python_implementation_version": "3.12.3",
+    "python_version": "3.12.3",
+    "python_build": [
+      "main",
+      "Aug 14 2025 17:47:21"
+    ],
+    "release": "6.8.0-79-generic",
+    "system": "Linux",
+    "cpu": {
+      "python_version": "3.12.3.final.0 (64 bit)",
+      "cpuinfo_version": [
+        9,
+        0,
+        0
+      ],
+      "cpuinfo_version_string": "9.0.0",
+      "arch": "X86_64",
+      "bits": 64,
+      "count": 32,
+      "arch_string_raw": "x86_64",
+      "vendor_id_raw": "AuthenticAMD",
+      "brand_raw": "AMD Ryzen 9 3950X 16-Core Processor",
+      "hz_advertised_friendly": "2.2000 GHz",
+      "hz_actual_friendly": "2.2000 GHz",
+      "hz_advertised": [
+        2200000000,
+        0
+      ],
+      "hz_actual": [
+        2200000000,
+        0
+      ],
+      "model": 113,
+      "family": 23,
+      "flags": [
+        "3dnowprefetch",
+        "abm",
+        "adx",
+        "aes",
+        "aperfmperf",
+        "apic",
+        "arat",
+        "avic",
+        "avx",
+        "avx2",
+        "bmi1",
+        "bmi2",
+        "bpext",
+        "cat_l3",
+        "cdp_l3",
+        "clflush",
+        "clflushopt",
+        "clwb",
+        "clzero",
+        "cmov",
+        "cmp_legacy",
+        "constant_tsc",
+        "cpb",
+        "cpuid",
+        "cqm",
+        "cqm_llc",
+        "cqm_mbm_local",
+        "cqm_mbm_total",
+        "cqm_occup_llc",
+        "cr8_legacy",
+        "cx16",
+        "cx8",
+        "dbx",
+        "de",
+        "decodeassists",
+        "extapic",
+        "extd_apicid",
+        "f16c",
+        "flushbyasid",
+        "fma",
+        "fpu",
+        "fsgsbase",
+        "fxsr",
+        "fxsr_opt",
+        "ht",
+        "hw_pstate",
+        "ibpb",
+        "ibs",
+        "irperf",
+        "lahf_lm",
+        "lbrv",
+        "lm",
+        "mba",
+        "mca",
+        "mce",
+        "misalignsse",
+        "mmx",
+        "mmxext",
+        "monitor",
+        "movbe",
+        "msr",
+        "mtrr",
+        "mwaitx",
+        "nonstop_tsc",
+        "nopl",
+        "npt",
+        "nrip_save",
+        "nx",
+        "osvw",
+        "osxsave",
+        "overflow_recov",
+        "pae",
+        "pat",
+        "pausefilter",
+        "pci_l2i",
+        "pclmulqdq",
+        "pdpe1gb",
+        "perfctr_core",
+        "perfctr_llc",
+        "perfctr_nb",
+        "pfthreshold",
+        "pge",
+        "pni",
+        "popcnt",
+        "pqe",
+        "pqm",
+        "pse",
+        "pse36",
+        "rapl",
+        "rdpid",
+        "rdpru",
+        "rdrand",
+        "rdrnd",
+        "rdseed",
+        "rdt_a",
+        "rdtscp",
+        "rep_good",
+        "sep",
+        "sev",
+        "sev_es",
+        "sha",
+        "sha_ni",
+        "skinit",
+        "smap",
+        "smca",
+        "smep",
+        "ssbd",
+        "sse",
+        "sse2",
+        "sse4_1",
+        "sse4_2",
+        "sse4a",
+        "ssse3",
+        "stibp",
+        "succor",
+        "svm",
+        "svm_lock",
+        "syscall",
+        "tce",
+        "topoext",
+        "tsc",
+        "tsc_scale",
+        "umip",
+        "v_spec_ctrl",
+        "v_vmsave_vmload",
+        "vgif",
+        "vmcb_clean",
+        "vme",
+        "vmmcall",
+        "wbnoinvd",
+        "wdt",
+        "xgetbv1",
+        "xsave",
+        "xsavec",
+        "xsaveerptr",
+        "xsaveopt"
+      ],
+      "l3_cache_size": 524288,
+      "l2_cache_size": 8388608,
+      "l1_data_cache_size": 524288,
+      "l1_instruction_cache_size": 524288,
+      "l2_cache_line_size": 512,
+      "l2_cache_associativity": 6
+    }
+  },
+  "commit_info": {
+    "id": "33d3816a185d900fc3934f96241406343085e800",
+    "time": "2025-09-06T11:12:05+02:00",
+    "author_time": "2025-09-06T11:12:05+02:00",
+    "dirty": true,
+    "project": "benchpress",
+    "branch": "main"
+  },
+  "benchmarks": [
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_mu_x_prime_enc_unary_dvalues_16-16-16-16-16-16-16-16-16-16-16-16-16-16-16-linear]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_mu_x_prime_enc_unary_dvalues_16-16-16-16-16-16-16-16-16-16-16-16-16-16-16-linear]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "chemistry",
+            "ham_primary_type": "vibrational",
+            "ham_problem": "all-vib-cyclo_propene",
+            "ham_instance": "/mu_x_prime_enc_unary_dvalues_16-16-16-16-16-16-16-16-16-16-16-16-16-16-16,",
+            "ham_qubits": 64,
+            "ham_terms": 120
+          },
+          "linear"
+        ]
+      },
+      "param": "ham_mu_x_prime_enc_unary_dvalues_16-16-16-16-16-16-16-16-16-16-16-16-16-16-16-linear",
+      "extra_info": {
+        "input_num_qubits": 64,
+        "ham_category": "chemistry",
+        "ham_primary_type": "vibrational",
+        "ham_problem": "all-vib-cyclo_propene",
+        "ham_instance": "/mu_x_prime_enc_unary_dvalues_16-16-16-16-16-16-16-16-16-16-16-16-16-16-16,",
+        "ham_qubits": 64,
+        "ham_terms": 120,
+        "output_num_qubits": 64,
+        "output_circuit_operations": {
+          "rxx": 60,
+          "ryy": 60
+        },
+        "output_gate_count_2q": 0,
+        "output_depth_2q": 0
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 0.018371646059677005,
+        "max": 0.10673950100317597,
+        "mean": 0.05507473598911681,
+        "stddev": 0.0340954333876099,
+        "rounds": 11,
+        "median": 0.06649385392665863,
+        "iqr": 0.06252850277815014,
+        "q1": 0.019263357273302972,
+        "q3": 0.08179186005145311,
+        "iqr_outliers": 0,
+        "stddev_outliers": 6,
+        "outliers": "6;0",
+        "ld15iqr": 0.018371646059677005,
+        "hd15iqr": 0.10673950100317597,
+        "ops": 18.15714559571575,
+        "total": 0.6058220958802849,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_graph-2D-grid-nonpbc-qubitnodes_Lx-5_Ly-15_h-3-linear]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_graph-2D-grid-nonpbc-qubitnodes_Lx-5_Ly-15_h-3-linear]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "tfim",
+            "ham_problem": "tfim",
+            "ham_instance": "/graph-2D-grid-nonpbc-qubitnodes_Lx-5_Ly-15_h-3,",
+            "ham_qubits": 75,
+            "ham_terms": 205
+          },
+          "linear"
+        ]
+      },
+      "param": "ham_graph-2D-grid-nonpbc-qubitnodes_Lx-5_Ly-15_h-3-linear",
+      "extra_info": {
+        "input_num_qubits": 75,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "tfim",
+        "ham_problem": "tfim",
+        "ham_instance": "/graph-2D-grid-nonpbc-qubitnodes_Lx-5_Ly-15_h-3,",
+        "ham_qubits": 75,
+        "ham_terms": 205,
+        "output_num_qubits": 75,
+        "output_circuit_operations": {
+          "swap": 341,
+          "rzz": 130,
+          "rx": 75
+        },
+        "output_gate_count_2q": 0,
+        "output_depth_2q": 0
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 157.72298374096863,
+        "max": 157.72298374096863,
+        "mean": 157.72298374096863,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 157.72298374096863,
+        "iqr": 0.0,
+        "q1": 157.72298374096863,
+        "q3": 157.72298374096863,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 157.72298374096863,
+        "hd15iqr": 157.72298374096863,
+        "ops": 0.006340230043088193,
+        "total": 157.72298374096863,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_graph-2D-triag-pbc-qubitnodes_Lx-13_Ly-13_h-0.1-square]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_graph-2D-triag-pbc-qubitnodes_Lx-13_Ly-13_h-0.1-square]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "tfim",
+            "ham_problem": "tfim",
+            "ham_instance": "/graph-2D-triag-pbc-qubitnodes_Lx-13_Ly-13_h-0.1,",
+            "ham_qubits": 91,
+            "ham_terms": 364
+          },
+          "square"
+        ]
+      },
+      "param": "ham_graph-2D-triag-pbc-qubitnodes_Lx-13_Ly-13_h-0.1-square",
+      "extra_info": {
+        "input_num_qubits": 91,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "tfim",
+        "ham_problem": "tfim",
+        "ham_instance": "/graph-2D-triag-pbc-qubitnodes_Lx-13_Ly-13_h-0.1,",
+        "ham_qubits": 91,
+        "ham_terms": 364,
+        "output_num_qubits": 100,
+        "output_circuit_operations": {
+          "swap": 362,
+          "rzz": 273,
+          "rx": 91
+        },
+        "output_gate_count_2q": 0,
+        "output_depth_2q": 0
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 1886.2211405958515,
+        "max": 1886.2211405958515,
+        "mean": 1886.2211405958515,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 1886.2211405958515,
+        "iqr": 0.0,
+        "q1": 1886.2211405958515,
+        "q3": 1886.2211405958515,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 1886.2211405958515,
+        "hd15iqr": 1886.2211405958515,
+        "ops": 0.0005301605302144493,
+        "total": 1886.2211405958515,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_graph-2D-triag-pbc-qubitnodes_Lx-13_Ly-13_h-0.1-heavy-hex]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_graph-2D-triag-pbc-qubitnodes_Lx-13_Ly-13_h-0.1-heavy-hex]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "tfim",
+            "ham_problem": "tfim",
+            "ham_instance": "/graph-2D-triag-pbc-qubitnodes_Lx-13_Ly-13_h-0.1,",
+            "ham_qubits": 91,
+            "ham_terms": 364
+          },
+          "heavy-hex"
+        ]
+      },
+      "param": "ham_graph-2D-triag-pbc-qubitnodes_Lx-13_Ly-13_h-0.1-heavy-hex",
+      "extra_info": {
+        "input_num_qubits": 91,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "tfim",
+        "ham_problem": "tfim",
+        "ham_instance": "/graph-2D-triag-pbc-qubitnodes_Lx-13_Ly-13_h-0.1,",
+        "ham_qubits": 91,
+        "ham_terms": 364,
+        "output_num_qubits": 115,
+        "output_circuit_operations": {
+          "swap": 694,
+          "rzz": 273,
+          "rx": 91
+        },
+        "output_gate_count_2q": 0,
+        "output_depth_2q": 0
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 580.7881390359253,
+        "max": 580.7881390359253,
+        "mean": 580.7881390359253,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 580.7881390359253,
+        "iqr": 0.0,
+        "q1": 580.7881390359253,
+        "q3": 580.7881390359253,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 580.7881390359253,
+        "hd15iqr": 580.7881390359253,
+        "ops": 0.0017217982475674213,
+        "total": 580.7881390359253,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_tsp_prob-kroD100_Ncity-16_enc-stdbinary-square]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_tsp_prob-kroD100_Ncity-16_enc-stdbinary-square]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "discreteoptimization",
+            "ham_primary_type": "tsp",
+            "ham_problem": "TSP_Ncity-16",
+            "ham_instance": "/tsp_prob-kroD100_Ncity-16_enc-stdbinary,",
+            "ham_qubits": 64,
+            "ham_terms": 3841
+          },
+          "square"
+        ]
+      },
+      "param": "ham_tsp_prob-kroD100_Ncity-16_enc-stdbinary-square",
+      "extra_info": {
+        "input_num_qubits": 64,
+        "ham_category": "discreteoptimization",
+        "ham_primary_type": "tsp",
+        "ham_problem": "TSP_Ncity-16",
+        "ham_instance": "/tsp_prob-kroD100_Ncity-16_enc-stdbinary,",
+        "ham_qubits": 64,
+        "ham_terms": 3841,
+        "output_num_qubits": 64,
+        "output_circuit_operations": {
+          "cx": 23360,
+          "rz": 3488,
+          "swap": 3225,
+          "rzz": 352
+        },
+        "output_gate_count_2q": 23360,
+        "output_depth_2q": 22998
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 2122.2698608690407,
+        "max": 2122.2698608690407,
+        "mean": 2122.2698608690407,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 2122.2698608690407,
+        "iqr": 0.0,
+        "q1": 2122.2698608690407,
+        "q3": 2122.2698608690407,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 2122.2698608690407,
+        "hd15iqr": 2122.2698608690407,
+        "ops": 0.00047119361134898913,
+        "total": 2122.2698608690407,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_tsp_prob-kroD100_Ncity-16_enc-stdbinary-heavy-hex]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_tsp_prob-kroD100_Ncity-16_enc-stdbinary-heavy-hex]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "discreteoptimization",
+            "ham_primary_type": "tsp",
+            "ham_problem": "TSP_Ncity-16",
+            "ham_instance": "/tsp_prob-kroD100_Ncity-16_enc-stdbinary,",
+            "ham_qubits": 64,
+            "ham_terms": 3841
+          },
+          "heavy-hex"
+        ]
+      },
+      "param": "ham_tsp_prob-kroD100_Ncity-16_enc-stdbinary-heavy-hex",
+      "extra_info": {
+        "input_num_qubits": 64,
+        "ham_category": "discreteoptimization",
+        "ham_primary_type": "tsp",
+        "ham_problem": "TSP_Ncity-16",
+        "ham_instance": "/tsp_prob-kroD100_Ncity-16_enc-stdbinary,",
+        "ham_qubits": 64,
+        "ham_terms": 3841,
+        "output_num_qubits": 115,
+        "output_circuit_operations": {
+          "cx": 23360,
+          "swap": 8558,
+          "rz": 3488,
+          "rzz": 352
+        },
+        "output_gate_count_2q": 23360,
+        "output_depth_2q": 22872
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 713.3602763910312,
+        "max": 713.3602763910312,
+        "mean": 713.3602763910312,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 713.3602763910312,
+        "iqr": 0.0,
+        "q1": 713.3602763910312,
+        "q3": 713.3602763910312,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 713.3602763910312,
+        "hd15iqr": 713.3602763910312,
+        "ops": 0.0014018162113807499,
+        "total": 713.3602763910312,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_2-uf100-0396.cnf-46-res-heavy-hex]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_2-uf100-0396.cnf-46-res-heavy-hex]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "binaryoptimization",
+            "ham_primary_type": "max3sat",
+            "ham_problem": "uf100-ham",
+            "ham_instance": "/2-uf100-0396.cnf-46-res,",
+            "ham_qubits": 46,
+            "ham_terms": 272
+          },
+          "heavy-hex"
+        ]
+      },
+      "param": "ham_2-uf100-0396.cnf-46-res-heavy-hex",
+      "extra_info": {
+        "input_num_qubits": 46,
+        "ham_category": "binaryoptimization",
+        "ham_primary_type": "max3sat",
+        "ham_problem": "uf100-ham",
+        "ham_instance": "/2-uf100-0396.cnf-46-res,",
+        "ham_qubits": 46,
+        "ham_terms": 272,
+        "output_num_qubits": 57,
+        "output_circuit_operations": {
+          "swap": 663,
+          "cx": 192,
+          "rzz": 178,
+          "rz": 93
+        },
+        "output_gate_count_2q": 192,
+        "output_depth_2q": 133
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 822.5043339249678,
+        "max": 822.5043339249678,
+        "mean": 822.5043339249678,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 822.5043339249678,
+        "iqr": 0.0,
+        "q1": 822.5043339249678,
+        "q3": 822.5043339249678,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 822.5043339249678,
+        "hd15iqr": 822.5043339249678,
+        "ops": 0.00121579906482441,
+        "total": 822.5043339249678,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_4-uf100-0246.cnf-70-res-linear]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_4-uf100-0246.cnf-70-res-linear]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "binaryoptimization",
+            "ham_primary_type": "max3sat",
+            "ham_problem": "uf100-ham",
+            "ham_instance": "/4-uf100-0246.cnf-70-res,",
+            "ham_qubits": 70,
+            "ham_terms": 689
+          },
+          "linear"
+        ]
+      },
+      "param": "ham_4-uf100-0246.cnf-70-res-linear",
+      "extra_info": {
+        "input_num_qubits": 70,
+        "ham_category": "binaryoptimization",
+        "ham_primary_type": "max3sat",
+        "ham_problem": "uf100-ham",
+        "ham_instance": "/4-uf100-0246.cnf-70-res,",
+        "ham_qubits": 70,
+        "ham_terms": 689,
+        "output_num_qubits": 70,
+        "output_circuit_operations": {
+          "swap": 8187,
+          "cx": 620,
+          "rzz": 469,
+          "rz": 219
+        },
+        "output_gate_count_2q": 620,
+        "output_depth_2q": 430
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 2213.5027234978043,
+        "max": 2213.5027234978043,
+        "mean": 2213.5027234978043,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 2213.5027234978043,
+        "iqr": 0.0,
+        "q1": 2213.5027234978043,
+        "q3": 2213.5027234978043,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 2213.5027234978043,
+        "hd15iqr": 2213.5027234978043,
+        "ops": 0.0004517726539860713,
+        "total": 2213.5027234978043,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_tsp_prob-kroD100_Ncity-16_enc-stdbinary-linear]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_tsp_prob-kroD100_Ncity-16_enc-stdbinary-linear]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "discreteoptimization",
+            "ham_primary_type": "tsp",
+            "ham_problem": "TSP_Ncity-16",
+            "ham_instance": "/tsp_prob-kroD100_Ncity-16_enc-stdbinary,",
+            "ham_qubits": 64,
+            "ham_terms": 3841
+          },
+          "linear"
+        ]
+      },
+      "param": "ham_tsp_prob-kroD100_Ncity-16_enc-stdbinary-linear",
+      "extra_info": {
+        "input_num_qubits": 64,
+        "ham_category": "discreteoptimization",
+        "ham_primary_type": "tsp",
+        "ham_problem": "TSP_Ncity-16",
+        "ham_instance": "/tsp_prob-kroD100_Ncity-16_enc-stdbinary,",
+        "ham_qubits": 64,
+        "ham_terms": 3841,
+        "output_num_qubits": 64,
+        "output_circuit_operations": {
+          "cx": 23360,
+          "swap": 19514,
+          "rz": 3488,
+          "rzz": 352
+        },
+        "output_gate_count_2q": 23360,
+        "output_depth_2q": 22761
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 482.174307476962,
+        "max": 482.174307476962,
+        "mean": 482.174307476962,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 482.174307476962,
+        "iqr": 0.0,
+        "q1": 482.174307476962,
+        "q3": 482.174307476962,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 482.174307476962,
+        "hd15iqr": 482.174307476962,
+        "ops": 0.0020739387903777502,
+        "total": 482.174307476962,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_tsp_prob-fl417_Ncity-16_enc-stdbinary-square]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_tsp_prob-fl417_Ncity-16_enc-stdbinary-square]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "discreteoptimization",
+            "ham_primary_type": "tsp",
+            "ham_problem": "TSP_Ncity-16",
+            "ham_instance": "/tsp_prob-fl417_Ncity-16_enc-stdbinary,",
+            "ham_qubits": 64,
+            "ham_terms": 3841
+          },
+          "square"
+        ]
+      },
+      "param": "ham_tsp_prob-fl417_Ncity-16_enc-stdbinary-square",
+      "extra_info": {
+        "input_num_qubits": 64,
+        "ham_category": "discreteoptimization",
+        "ham_primary_type": "tsp",
+        "ham_problem": "TSP_Ncity-16",
+        "ham_instance": "/tsp_prob-fl417_Ncity-16_enc-stdbinary,",
+        "ham_qubits": 64,
+        "ham_terms": 3841,
+        "output_num_qubits": 64,
+        "output_circuit_operations": {
+          "cx": 23360,
+          "rz": 3488,
+          "swap": 3383,
+          "rzz": 352
+        },
+        "output_gate_count_2q": 23360,
+        "output_depth_2q": 22978
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 2098.799872315023,
+        "max": 2098.799872315023,
+        "mean": 2098.799872315023,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 2098.799872315023,
+        "iqr": 0.0,
+        "q1": 2098.799872315023,
+        "q3": 2098.799872315023,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 2098.799872315023,
+        "hd15iqr": 2098.799872315023,
+        "ops": 0.00047646276960031336,
+        "total": 2098.799872315023,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_2-uf100-0396.cnf-46-res-linear]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_2-uf100-0396.cnf-46-res-linear]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "binaryoptimization",
+            "ham_primary_type": "max3sat",
+            "ham_problem": "uf100-ham",
+            "ham_instance": "/2-uf100-0396.cnf-46-res,",
+            "ham_qubits": 46,
+            "ham_terms": 272
+          },
+          "linear"
+        ]
+      },
+      "param": "ham_2-uf100-0396.cnf-46-res-linear",
+      "extra_info": {
+        "input_num_qubits": 46,
+        "ham_category": "binaryoptimization",
+        "ham_primary_type": "max3sat",
+        "ham_problem": "uf100-ham",
+        "ham_instance": "/2-uf100-0396.cnf-46-res,",
+        "ham_qubits": 46,
+        "ham_terms": 272,
+        "output_num_qubits": 46,
+        "output_circuit_operations": {
+          "swap": 1610,
+          "cx": 192,
+          "rzz": 178,
+          "rz": 93
+        },
+        "output_gate_count_2q": 192,
+        "output_depth_2q": 121
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 286.9980550610926,
+        "max": 286.9980550610926,
+        "mean": 286.9980550610926,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 286.9980550610926,
+        "iqr": 0.0,
+        "q1": 286.9980550610926,
+        "q3": 286.9980550610926,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 286.9980550610926,
+        "hd15iqr": 286.9980550610926,
+        "ops": 0.003484344170162172,
+        "total": 286.9980550610926,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_2-uf100-0601.cnf-46-res-heavy-hex]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_2-uf100-0601.cnf-46-res-heavy-hex]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "binaryoptimization",
+            "ham_primary_type": "max3sat",
+            "ham_problem": "uf100-ham",
+            "ham_instance": "/2-uf100-0601.cnf-46-res,",
+            "ham_qubits": 46,
+            "ham_terms": 285
+          },
+          "heavy-hex"
+        ]
+      },
+      "param": "ham_2-uf100-0601.cnf-46-res-heavy-hex",
+      "extra_info": {
+        "input_num_qubits": 46,
+        "ham_category": "binaryoptimization",
+        "ham_primary_type": "max3sat",
+        "ham_problem": "uf100-ham",
+        "ham_instance": "/2-uf100-0601.cnf-46-res,",
+        "ham_qubits": 46,
+        "ham_terms": 285,
+        "output_num_qubits": 57,
+        "output_circuit_operations": {
+          "swap": 698,
+          "cx": 200,
+          "rzz": 191,
+          "rz": 93
+        },
+        "output_gate_count_2q": 200,
+        "output_depth_2q": 120
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 556.5517025969457,
+        "max": 556.5517025969457,
+        "mean": 556.5517025969457,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 556.5517025969457,
+        "iqr": 0.0,
+        "q1": 556.5517025969457,
+        "q3": 556.5517025969457,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 556.5517025969457,
+        "hd15iqr": 556.5517025969457,
+        "ops": 0.001796778260373411,
+        "total": 556.5517025969457,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-46_U-2_enc-gray_d-4-heavy-hex]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-46_U-2_enc-gray_d-4-heavy-hex]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "bosehubbard",
+            "ham_problem": "BH_D-1_d-4",
+            "ham_instance": "/bh_graph-1D-grid-pbc-qubitnodes_Lx-46_U-2_enc-gray_d-4,",
+            "ham_qubits": 92,
+            "ham_terms": 1611
+          },
+          "heavy-hex"
+        ]
+      },
+      "param": "ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-46_U-2_enc-gray_d-4-heavy-hex",
+      "extra_info": {
+        "input_num_qubits": 92,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "bosehubbard",
+        "ham_problem": "BH_D-1_d-4",
+        "ham_instance": "/bh_graph-1D-grid-pbc-qubitnodes_Lx-46_U-2_enc-gray_d-4,",
+        "ham_qubits": 92,
+        "ham_terms": 1611,
+        "output_num_qubits": 115,
+        "output_circuit_operations": {
+          "cx": 5152,
+          "h": 2208,
+          "swap": 1454,
+          "rz": 1196,
+          "sx": 1104,
+          "sxdg": 1104,
+          "rxx": 184,
+          "ryy": 184,
+          "rzz": 46
+        },
+        "output_gate_count_2q": 5152,
+        "output_depth_2q": 5144
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 38.13098717085086,
+        "max": 38.13098717085086,
+        "mean": 38.13098717085086,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 38.13098717085086,
+        "iqr": 0.0,
+        "q1": 38.13098717085086,
+        "q3": 38.13098717085086,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 38.13098717085086,
+        "hd15iqr": 38.13098717085086,
+        "ops": 0.026225389747172548,
+        "total": 38.13098717085086,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_tsp_prob-pr76_Ncity-10_enc-unary-linear]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_tsp_prob-pr76_Ncity-10_enc-unary-linear]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "discreteoptimization",
+            "ham_primary_type": "tsp",
+            "ham_problem": "TSP_Ncity-10",
+            "ham_instance": "/tsp_prob-pr76_Ncity-10_enc-unary,",
+            "ham_qubits": 100,
+            "ham_terms": 1001
+          },
+          "linear"
+        ]
+      },
+      "param": "ham_tsp_prob-pr76_Ncity-10_enc-unary-linear",
+      "extra_info": {
+        "input_num_qubits": 100,
+        "ham_category": "discreteoptimization",
+        "ham_primary_type": "tsp",
+        "ham_problem": "TSP_Ncity-10",
+        "ham_instance": "/tsp_prob-pr76_Ncity-10_enc-unary,",
+        "ham_qubits": 100,
+        "ham_terms": 1001,
+        "output_num_qubits": 100,
+        "output_circuit_operations": {
+          "swap": 3427,
+          "rzz": 900,
+          "rz": 100
+        },
+        "output_gate_count_2q": 0,
+        "output_depth_2q": 0
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 1947.8074284680188,
+        "max": 1947.8074284680188,
+        "mean": 1947.8074284680188,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 1947.8074284680188,
+        "iqr": 0.0,
+        "q1": 1947.8074284680188,
+        "q3": 1947.8074284680188,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 1947.8074284680188,
+        "hd15iqr": 1947.8074284680188,
+        "ops": 0.0005133977750493106,
+        "total": 1947.8074284680188,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_bh_graph-1D-grid-nonpbc-qubitnodes_Lx-12_U-40_enc-unary_d-4-linear]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_bh_graph-1D-grid-nonpbc-qubitnodes_Lx-12_U-40_enc-unary_d-4-linear]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "bosehubbard",
+            "ham_problem": "BH_D-1_d-4",
+            "ham_instance": "/bh_graph-1D-grid-nonpbc-qubitnodes_Lx-12_U-40_enc-unary_d-4,",
+            "ham_qubits": 48,
+            "ham_terms": 817
+          },
+          "linear"
+        ]
+      },
+      "param": "ham_bh_graph-1D-grid-nonpbc-qubitnodes_Lx-12_U-40_enc-unary_d-4-linear",
+      "extra_info": {
+        "input_num_qubits": 48,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "bosehubbard",
+        "ham_problem": "BH_D-1_d-4",
+        "ham_instance": "/bh_graph-1D-grid-nonpbc-qubitnodes_Lx-12_U-40_enc-unary_d-4,",
+        "ham_qubits": 48,
+        "ham_terms": 817,
+        "output_num_qubits": 48,
+        "output_circuit_operations": {
+          "cx": 4752,
+          "h": 3168,
+          "sx": 1584,
+          "sxdg": 1584,
+          "swap": 1311,
+          "rz": 816
+        },
+        "output_gate_count_2q": 4752,
+        "output_depth_2q": 4742
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 14.887170247966424,
+        "max": 14.887170247966424,
+        "mean": 14.887170247966424,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 14.887170247966424,
+        "iqr": 0.0,
+        "q1": 14.887170247966424,
+        "q3": 14.887170247966424,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 14.887170247966424,
+        "hd15iqr": 14.887170247966424,
+        "ops": 0.06717193283502614,
+        "total": 14.887170247966424,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-24_U-20_enc-stdbinary_d-4-square]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-24_U-20_enc-stdbinary_d-4-square]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "bosehubbard",
+            "ham_problem": "BH_D-1_d-4",
+            "ham_instance": "/bh_graph-1D-grid-pbc-qubitnodes_Lx-24_U-20_enc-stdbinary_d-4,",
+            "ham_qubits": 48,
+            "ham_terms": 841
+          },
+          "square"
+        ]
+      },
+      "param": "ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-24_U-20_enc-stdbinary_d-4-square",
+      "extra_info": {
+        "input_num_qubits": 48,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "bosehubbard",
+        "ham_problem": "BH_D-1_d-4",
+        "ham_instance": "/bh_graph-1D-grid-pbc-qubitnodes_Lx-24_U-20_enc-stdbinary_d-4,",
+        "ham_qubits": 48,
+        "ham_terms": 841,
+        "output_num_qubits": 49,
+        "output_circuit_operations": {
+          "cx": 3744,
+          "h": 2208,
+          "sx": 1104,
+          "sxdg": 1104,
+          "rz": 768,
+          "swap": 83,
+          "rxx": 24,
+          "ryy": 24,
+          "rzz": 24
+        },
+        "output_gate_count_2q": 3744,
+        "output_depth_2q": 3732
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 180.44565690285526,
+        "max": 180.44565690285526,
+        "mean": 180.44565690285526,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 180.44565690285526,
+        "iqr": 0.0,
+        "q1": 180.44565690285526,
+        "q3": 180.44565690285526,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 180.44565690285526,
+        "hd15iqr": 180.44565690285526,
+        "ops": 0.005541834683992201,
+        "total": 180.44565690285526,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-24_U-20_enc-stdbinary_d-4-heavy-hex]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-24_U-20_enc-stdbinary_d-4-heavy-hex]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "bosehubbard",
+            "ham_problem": "BH_D-1_d-4",
+            "ham_instance": "/bh_graph-1D-grid-pbc-qubitnodes_Lx-24_U-20_enc-stdbinary_d-4,",
+            "ham_qubits": 48,
+            "ham_terms": 841
+          },
+          "heavy-hex"
+        ]
+      },
+      "param": "ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-24_U-20_enc-stdbinary_d-4-heavy-hex",
+      "extra_info": {
+        "input_num_qubits": 48,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "bosehubbard",
+        "ham_problem": "BH_D-1_d-4",
+        "ham_instance": "/bh_graph-1D-grid-pbc-qubitnodes_Lx-24_U-20_enc-stdbinary_d-4,",
+        "ham_qubits": 48,
+        "ham_terms": 841,
+        "output_num_qubits": 57,
+        "output_circuit_operations": {
+          "cx": 3744,
+          "h": 2208,
+          "sx": 1104,
+          "sxdg": 1104,
+          "rz": 768,
+          "swap": 318,
+          "rxx": 24,
+          "ryy": 24,
+          "rzz": 24
+        },
+        "output_gate_count_2q": 3744,
+        "output_depth_2q": 3743
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 5.273549254052341,
+        "max": 5.273549254052341,
+        "mean": 5.273549254052341,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 5.273549254052341,
+        "iqr": 0.0,
+        "q1": 5.273549254052341,
+        "q3": 5.273549254052341,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 5.273549254052341,
+        "hd15iqr": 5.273549254052341,
+        "ops": 0.18962561110651852,
+        "total": 5.273549254052341,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_graph-2D-triag-pbc-qubitnodes_Lx-13_Ly-13_h-0.1-linear]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_graph-2D-triag-pbc-qubitnodes_Lx-13_Ly-13_h-0.1-linear]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "tfim",
+            "ham_problem": "tfim",
+            "ham_instance": "/graph-2D-triag-pbc-qubitnodes_Lx-13_Ly-13_h-0.1,",
+            "ham_qubits": 91,
+            "ham_terms": 364
+          },
+          "linear"
+        ]
+      },
+      "param": "ham_graph-2D-triag-pbc-qubitnodes_Lx-13_Ly-13_h-0.1-linear",
+      "extra_info": {
+        "input_num_qubits": 91,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "tfim",
+        "ham_problem": "tfim",
+        "ham_instance": "/graph-2D-triag-pbc-qubitnodes_Lx-13_Ly-13_h-0.1,",
+        "ham_qubits": 91,
+        "ham_terms": 364,
+        "output_num_qubits": 91,
+        "output_circuit_operations": {
+          "swap": 1604,
+          "rzz": 273,
+          "rx": 91
+        },
+        "output_gate_count_2q": 0,
+        "output_depth_2q": 0
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 713.034820534056,
+        "max": 713.034820534056,
+        "mean": 713.034820534056,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 713.034820534056,
+        "iqr": 0.0,
+        "q1": 713.034820534056,
+        "q3": 713.034820534056,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 713.034820534056,
+        "hd15iqr": 713.034820534056,
+        "ops": 0.0014024560529190004,
+        "total": 713.034820534056,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-46_U-2_enc-gray_d-4-square]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-46_U-2_enc-gray_d-4-square]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "bosehubbard",
+            "ham_problem": "BH_D-1_d-4",
+            "ham_instance": "/bh_graph-1D-grid-pbc-qubitnodes_Lx-46_U-2_enc-gray_d-4,",
+            "ham_qubits": 92,
+            "ham_terms": 1611
+          },
+          "square"
+        ]
+      },
+      "param": "ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-46_U-2_enc-gray_d-4-square",
+      "extra_info": {
+        "input_num_qubits": 92,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "bosehubbard",
+        "ham_problem": "BH_D-1_d-4",
+        "ham_instance": "/bh_graph-1D-grid-pbc-qubitnodes_Lx-46_U-2_enc-gray_d-4,",
+        "ham_qubits": 92,
+        "ham_terms": 1611,
+        "output_num_qubits": 100,
+        "output_circuit_operations": {
+          "cx": 5152,
+          "h": 2208,
+          "rz": 1196,
+          "sx": 1104,
+          "sxdg": 1104,
+          "swap": 901,
+          "rxx": 184,
+          "ryy": 184,
+          "rzz": 46
+        },
+        "output_gate_count_2q": 5152,
+        "output_depth_2q": 5145
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 126.28175007784739,
+        "max": 126.28175007784739,
+        "mean": 126.28175007784739,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 126.28175007784739,
+        "iqr": 0.0,
+        "q1": 126.28175007784739,
+        "q3": 126.28175007784739,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 126.28175007784739,
+        "hd15iqr": 126.28175007784739,
+        "ops": 0.00791880061357672,
+        "total": 126.28175007784739,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_tsp_prob-st70_Ncity-10_enc-unary-linear]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_tsp_prob-st70_Ncity-10_enc-unary-linear]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "discreteoptimization",
+            "ham_primary_type": "tsp",
+            "ham_problem": "TSP_Ncity-10",
+            "ham_instance": "/tsp_prob-st70_Ncity-10_enc-unary,",
+            "ham_qubits": 100,
+            "ham_terms": 1001
+          },
+          "linear"
+        ]
+      },
+      "param": "ham_tsp_prob-st70_Ncity-10_enc-unary-linear",
+      "extra_info": {
+        "input_num_qubits": 100,
+        "ham_category": "discreteoptimization",
+        "ham_primary_type": "tsp",
+        "ham_problem": "TSP_Ncity-10",
+        "ham_instance": "/tsp_prob-st70_Ncity-10_enc-unary,",
+        "ham_qubits": 100,
+        "ham_terms": 1001,
+        "output_num_qubits": 100,
+        "output_circuit_operations": {
+          "swap": 3249,
+          "rzz": 900,
+          "rz": 100
+        },
+        "output_gate_count_2q": 0,
+        "output_depth_2q": 0
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 3078.904143481981,
+        "max": 3078.904143481981,
+        "mean": 3078.904143481981,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 3078.904143481981,
+        "iqr": 0.0,
+        "q1": 3078.904143481981,
+        "q3": 3078.904143481981,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 3078.904143481981,
+        "hd15iqr": 3078.904143481981,
+        "ops": 0.000324790884483037,
+        "total": 3078.904143481981,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-24_U-20_enc-stdbinary_d-4-linear]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-24_U-20_enc-stdbinary_d-4-linear]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "bosehubbard",
+            "ham_problem": "BH_D-1_d-4",
+            "ham_instance": "/bh_graph-1D-grid-pbc-qubitnodes_Lx-24_U-20_enc-stdbinary_d-4,",
+            "ham_qubits": 48,
+            "ham_terms": 841
+          },
+          "linear"
+        ]
+      },
+      "param": "ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-24_U-20_enc-stdbinary_d-4-linear",
+      "extra_info": {
+        "input_num_qubits": 48,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "bosehubbard",
+        "ham_problem": "BH_D-1_d-4",
+        "ham_instance": "/bh_graph-1D-grid-pbc-qubitnodes_Lx-24_U-20_enc-stdbinary_d-4,",
+        "ham_qubits": 48,
+        "ham_terms": 841,
+        "output_num_qubits": 48,
+        "output_circuit_operations": {
+          "cx": 3744,
+          "h": 2208,
+          "sx": 1104,
+          "sxdg": 1104,
+          "rz": 768,
+          "swap": 187,
+          "rxx": 24,
+          "ryy": 24,
+          "rzz": 24
+        },
+        "output_gate_count_2q": 3744,
+        "output_depth_2q": 3732
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 2.824835059000179,
+        "max": 2.824835059000179,
+        "mean": 2.824835059000179,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 2.824835059000179,
+        "iqr": 0.0,
+        "q1": 2.824835059000179,
+        "q3": 2.824835059000179,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 2.824835059000179,
+        "hd15iqr": 2.824835059000179,
+        "ops": 0.3540029697712473,
+        "total": 2.824835059000179,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_tsp_prob-lin105_Ncity-7_enc-unary-heavy-hex]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_tsp_prob-lin105_Ncity-7_enc-unary-heavy-hex]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "discreteoptimization",
+            "ham_primary_type": "tsp",
+            "ham_problem": "TSP_Ncity-7",
+            "ham_instance": "/tsp_prob-lin105_Ncity-7_enc-unary,",
+            "ham_qubits": 49,
+            "ham_terms": 344
+          },
+          "heavy-hex"
+        ]
+      },
+      "param": "ham_tsp_prob-lin105_Ncity-7_enc-unary-heavy-hex",
+      "extra_info": {
+        "input_num_qubits": 49,
+        "ham_category": "discreteoptimization",
+        "ham_primary_type": "tsp",
+        "ham_problem": "TSP_Ncity-7",
+        "ham_instance": "/tsp_prob-lin105_Ncity-7_enc-unary,",
+        "ham_qubits": 49,
+        "ham_terms": 344,
+        "output_num_qubits": 57,
+        "output_circuit_operations": {
+          "swap": 490,
+          "rzz": 294,
+          "rz": 49
+        },
+        "output_gate_count_2q": 0,
+        "output_depth_2q": 0
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 1230.9692218999844,
+        "max": 1230.9692218999844,
+        "mean": 1230.9692218999844,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 1230.9692218999844,
+        "iqr": 0.0,
+        "q1": 1230.9692218999844,
+        "q3": 1230.9692218999844,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 1230.9692218999844,
+        "hd15iqr": 1230.9692218999844,
+        "ops": 0.0008123679960547783,
+        "total": 1230.9692218999844,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-10_U-30_enc-unary_d-8-heavy-hex]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-10_U-30_enc-unary_d-8-heavy-hex]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "bosehubbard",
+            "ham_problem": "BH_D-1_d-8",
+            "ham_instance": "/bh_graph-1D-grid-pbc-qubitnodes_Lx-10_U-30_enc-unary_d-8,",
+            "ham_qubits": 80,
+            "ham_terms": 3981
+          },
+          "heavy-hex"
+        ]
+      },
+      "param": "ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-10_U-30_enc-unary_d-8-heavy-hex",
+      "extra_info": {
+        "input_num_qubits": 80,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "bosehubbard",
+        "ham_problem": "BH_D-1_d-8",
+        "ham_instance": "/bh_graph-1D-grid-pbc-qubitnodes_Lx-10_U-30_enc-unary_d-8,",
+        "ham_qubits": 80,
+        "ham_terms": 3981,
+        "output_num_qubits": 115,
+        "output_circuit_operations": {
+          "cx": 23520,
+          "h": 15680,
+          "swap": 8483,
+          "sx": 7840,
+          "sxdg": 7840,
+          "rz": 3980
+        },
+        "output_gate_count_2q": 23520,
+        "output_depth_2q": 23174
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 1207.2573756889906,
+        "max": 1207.2573756889906,
+        "mean": 1207.2573756889906,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 1207.2573756889906,
+        "iqr": 0.0,
+        "q1": 1207.2573756889906,
+        "q3": 1207.2573756889906,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 1207.2573756889906,
+        "hd15iqr": 1207.2573756889906,
+        "ops": 0.0008283237859112625,
+        "total": 1207.2573756889906,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-10_U-30_enc-unary_d-8-linear]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-10_U-30_enc-unary_d-8-linear]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "bosehubbard",
+            "ham_problem": "BH_D-1_d-8",
+            "ham_instance": "/bh_graph-1D-grid-pbc-qubitnodes_Lx-10_U-30_enc-unary_d-8,",
+            "ham_qubits": 80,
+            "ham_terms": 3981
+          },
+          "linear"
+        ]
+      },
+      "param": "ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-10_U-30_enc-unary_d-8-linear",
+      "extra_info": {
+        "input_num_qubits": 80,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "bosehubbard",
+        "ham_problem": "BH_D-1_d-8",
+        "ham_instance": "/bh_graph-1D-grid-pbc-qubitnodes_Lx-10_U-30_enc-unary_d-8,",
+        "ham_qubits": 80,
+        "ham_terms": 3981,
+        "output_num_qubits": 80,
+        "output_circuit_operations": {
+          "cx": 23520,
+          "h": 15680,
+          "swap": 11338,
+          "sx": 7840,
+          "sxdg": 7840,
+          "rz": 3980
+        },
+        "output_gate_count_2q": 23520,
+        "output_depth_2q": 23311
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 548.4419342509937,
+        "max": 548.4419342509937,
+        "mean": 548.4419342509937,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 548.4419342509937,
+        "iqr": 0.0,
+        "q1": 548.4419342509937,
+        "q3": 548.4419342509937,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 548.4419342509937,
+        "hd15iqr": 548.4419342509937,
+        "ops": 0.0018233470811558174,
+        "total": 548.4419342509937,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_tsp_prob-d198_Ncity-8_enc-unary-heavy-hex]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_tsp_prob-d198_Ncity-8_enc-unary-heavy-hex]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "discreteoptimization",
+            "ham_primary_type": "tsp",
+            "ham_problem": "TSP_Ncity-8",
+            "ham_instance": "/tsp_prob-d198_Ncity-8_enc-unary,",
+            "ham_qubits": 64,
+            "ham_terms": 513
+          },
+          "heavy-hex"
+        ]
+      },
+      "param": "ham_tsp_prob-d198_Ncity-8_enc-unary-heavy-hex",
+      "extra_info": {
+        "input_num_qubits": 64,
+        "ham_category": "discreteoptimization",
+        "ham_primary_type": "tsp",
+        "ham_problem": "TSP_Ncity-8",
+        "ham_instance": "/tsp_prob-d198_Ncity-8_enc-unary,",
+        "ham_qubits": 64,
+        "ham_terms": 513,
+        "output_num_qubits": 115,
+        "output_circuit_operations": {
+          "swap": 764,
+          "rzz": 448,
+          "rz": 64
+        },
+        "output_gate_count_2q": 0,
+        "output_depth_2q": 0
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 1631.0629450760316,
+        "max": 1631.0629450760316,
+        "mean": 1631.0629450760316,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 1631.0629450760316,
+        "iqr": 0.0,
+        "q1": 1631.0629450760316,
+        "q3": 1631.0629450760316,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 1631.0629450760316,
+        "hd15iqr": 1631.0629450760316,
+        "ops": 0.000613097123577524,
+        "total": 1631.0629450760316,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_tsp_prob-d198_Ncity-8_enc-unary-linear]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_tsp_prob-d198_Ncity-8_enc-unary-linear]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "discreteoptimization",
+            "ham_primary_type": "tsp",
+            "ham_problem": "TSP_Ncity-8",
+            "ham_instance": "/tsp_prob-d198_Ncity-8_enc-unary,",
+            "ham_qubits": 64,
+            "ham_terms": 513
+          },
+          "linear"
+        ]
+      },
+      "param": "ham_tsp_prob-d198_Ncity-8_enc-unary-linear",
+      "extra_info": {
+        "input_num_qubits": 64,
+        "ham_category": "discreteoptimization",
+        "ham_primary_type": "tsp",
+        "ham_problem": "TSP_Ncity-8",
+        "ham_instance": "/tsp_prob-d198_Ncity-8_enc-unary,",
+        "ham_qubits": 64,
+        "ham_terms": 513,
+        "output_num_qubits": 64,
+        "output_circuit_operations": {
+          "swap": 1265,
+          "rzz": 448,
+          "rz": 64
+        },
+        "output_gate_count_2q": 0,
+        "output_depth_2q": 0
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 994.3409487539902,
+        "max": 994.3409487539902,
+        "mean": 994.3409487539902,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 994.3409487539902,
+        "iqr": 0.0,
+        "q1": 994.3409487539902,
+        "q3": 994.3409487539902,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 994.3409487539902,
+        "hd15iqr": 994.3409487539902,
+        "ops": 0.001005691258368773,
+        "total": 994.3409487539902,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_tsp_prob-fl417_Ncity-16_enc-stdbinary-heavy-hex]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_tsp_prob-fl417_Ncity-16_enc-stdbinary-heavy-hex]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "discreteoptimization",
+            "ham_primary_type": "tsp",
+            "ham_problem": "TSP_Ncity-16",
+            "ham_instance": "/tsp_prob-fl417_Ncity-16_enc-stdbinary,",
+            "ham_qubits": 64,
+            "ham_terms": 3841
+          },
+          "heavy-hex"
+        ]
+      },
+      "param": "ham_tsp_prob-fl417_Ncity-16_enc-stdbinary-heavy-hex",
+      "extra_info": {
+        "input_num_qubits": 64,
+        "ham_category": "discreteoptimization",
+        "ham_primary_type": "tsp",
+        "ham_problem": "TSP_Ncity-16",
+        "ham_instance": "/tsp_prob-fl417_Ncity-16_enc-stdbinary,",
+        "ham_qubits": 64,
+        "ham_terms": 3841,
+        "output_num_qubits": 115,
+        "output_circuit_operations": {
+          "cx": 23360,
+          "swap": 10566,
+          "rz": 3488,
+          "rzz": 352
+        },
+        "output_gate_count_2q": 23360,
+        "output_depth_2q": 22964
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 652.8530578031205,
+        "max": 652.8530578031205,
+        "mean": 652.8530578031205,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 652.8530578031205,
+        "iqr": 0.0,
+        "q1": 652.8530578031205,
+        "q3": 652.8530578031205,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 652.8530578031205,
+        "hd15iqr": 652.8530578031205,
+        "ops": 0.001531738249591791,
+        "total": 652.8530578031205,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_tsp_prob-fl417_Ncity-16_enc-stdbinary-linear]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_tsp_prob-fl417_Ncity-16_enc-stdbinary-linear]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "discreteoptimization",
+            "ham_primary_type": "tsp",
+            "ham_problem": "TSP_Ncity-16",
+            "ham_instance": "/tsp_prob-fl417_Ncity-16_enc-stdbinary,",
+            "ham_qubits": 64,
+            "ham_terms": 3841
+          },
+          "linear"
+        ]
+      },
+      "param": "ham_tsp_prob-fl417_Ncity-16_enc-stdbinary-linear",
+      "extra_info": {
+        "input_num_qubits": 64,
+        "ham_category": "discreteoptimization",
+        "ham_primary_type": "tsp",
+        "ham_problem": "TSP_Ncity-16",
+        "ham_instance": "/tsp_prob-fl417_Ncity-16_enc-stdbinary,",
+        "ham_qubits": 64,
+        "ham_terms": 3841,
+        "output_num_qubits": 64,
+        "output_circuit_operations": {
+          "cx": 23360,
+          "swap": 17778,
+          "rz": 3488,
+          "rzz": 352
+        },
+        "output_gate_count_2q": 23360,
+        "output_depth_2q": 22783
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 523.2817734640557,
+        "max": 523.2817734640557,
+        "mean": 523.2817734640557,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 523.2817734640557,
+        "iqr": 0.0,
+        "q1": 523.2817734640557,
+        "q3": 523.2817734640557,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 523.2817734640557,
+        "hd15iqr": 523.2817734640557,
+        "ops": 0.001911016302708449,
+        "total": 523.2817734640557,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_fh-graph-1D-grid-pbc-qubitnodes_Lx-50_U-2_enc-jw-linear]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_fh-graph-1D-grid-pbc-qubitnodes_Lx-50_U-2_enc-jw-linear]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "fermihubbard",
+            "ham_problem": "FH_D-1",
+            "ham_instance": "/fh-graph-1D-grid-pbc-qubitnodes_Lx-50_U-2_enc-jw,",
+            "ham_qubits": 100,
+            "ham_terms": 351
+          },
+          "linear"
+        ]
+      },
+      "param": "ham_fh-graph-1D-grid-pbc-qubitnodes_Lx-50_U-2_enc-jw-linear",
+      "extra_info": {
+        "input_num_qubits": 100,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "fermihubbard",
+        "ham_problem": "FH_D-1",
+        "ham_instance": "/fh-graph-1D-grid-pbc-qubitnodes_Lx-50_U-2_enc-jw,",
+        "ham_qubits": 100,
+        "ham_terms": 351,
+        "output_num_qubits": 100,
+        "output_circuit_operations": {
+          "swap": 472,
+          "cx": 392,
+          "rz": 104,
+          "rxx": 98,
+          "ryy": 98,
+          "rzz": 50,
+          "h": 8,
+          "sx": 4,
+          "sxdg": 4
+        },
+        "output_gate_count_2q": 392,
+        "output_depth_2q": 392
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 10.031439929967746,
+        "max": 10.031439929967746,
+        "mean": 10.031439929967746,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 10.031439929967746,
+        "iqr": 0.0,
+        "q1": 10.031439929967746,
+        "q3": 10.031439929967746,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 10.031439929967746,
+        "hd15iqr": 10.031439929967746,
+        "ops": 0.09968658607151877,
+        "total": 10.031439929967746,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-60_U-10_enc-stdbinary_d-4-square]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-60_U-10_enc-stdbinary_d-4-square]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "bosehubbard",
+            "ham_problem": "BH_D-1_d-4",
+            "ham_instance": "/bh_graph-1D-grid-pbc-qubitnodes_Lx-60_U-10_enc-stdbinary_d-4,",
+            "ham_qubits": 120,
+            "ham_terms": 2101
+          },
+          "square"
+        ]
+      },
+      "param": "ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-60_U-10_enc-stdbinary_d-4-square",
+      "extra_info": {
+        "input_num_qubits": 120,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "bosehubbard",
+        "ham_problem": "BH_D-1_d-4",
+        "ham_instance": "/bh_graph-1D-grid-pbc-qubitnodes_Lx-60_U-10_enc-stdbinary_d-4,",
+        "ham_qubits": 120,
+        "ham_terms": 2101,
+        "output_num_qubits": 121,
+        "output_circuit_operations": {
+          "cx": 9360,
+          "h": 5520,
+          "sx": 2760,
+          "sxdg": 2760,
+          "rz": 1920,
+          "swap": 322,
+          "rxx": 60,
+          "ryy": 60,
+          "rzz": 60
+        },
+        "output_gate_count_2q": 9360,
+        "output_depth_2q": 9348
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 160.37829956691712,
+        "max": 160.37829956691712,
+        "mean": 160.37829956691712,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 160.37829956691712,
+        "iqr": 0.0,
+        "q1": 160.37829956691712,
+        "q3": 160.37829956691712,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 160.37829956691712,
+        "hd15iqr": 160.37829956691712,
+        "ops": 0.006235257529855244,
+        "total": 160.37829956691712,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-60_U-10_enc-stdbinary_d-4-heavy-hex]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-60_U-10_enc-stdbinary_d-4-heavy-hex]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "bosehubbard",
+            "ham_problem": "BH_D-1_d-4",
+            "ham_instance": "/bh_graph-1D-grid-pbc-qubitnodes_Lx-60_U-10_enc-stdbinary_d-4,",
+            "ham_qubits": 120,
+            "ham_terms": 2101
+          },
+          "heavy-hex"
+        ]
+      },
+      "param": "ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-60_U-10_enc-stdbinary_d-4-heavy-hex",
+      "extra_info": {
+        "input_num_qubits": 120,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "bosehubbard",
+        "ham_problem": "BH_D-1_d-4",
+        "ham_instance": "/bh_graph-1D-grid-pbc-qubitnodes_Lx-60_U-10_enc-stdbinary_d-4,",
+        "ham_qubits": 120,
+        "ham_terms": 2101,
+        "output_num_qubits": 193,
+        "output_circuit_operations": {
+          "cx": 9360,
+          "h": 5520,
+          "sx": 2760,
+          "sxdg": 2760,
+          "rz": 1920,
+          "swap": 798,
+          "rxx": 60,
+          "ryy": 60,
+          "rzz": 60
+        },
+        "output_gate_count_2q": 9360,
+        "output_depth_2q": 9348
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 56.04910874692723,
+        "max": 56.04910874692723,
+        "mean": 56.04910874692723,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 56.04910874692723,
+        "iqr": 0.0,
+        "q1": 56.04910874692723,
+        "q3": 56.04910874692723,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 56.04910874692723,
+        "hd15iqr": 56.04910874692723,
+        "ops": 0.017841496900783866,
+        "total": 56.04910874692723,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_fh-graph-1D-grid-nonpbc-qubitnodes_Lx-90_U-2_enc-jw-linear]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_fh-graph-1D-grid-nonpbc-qubitnodes_Lx-90_U-2_enc-jw-linear]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "fermihubbard",
+            "ham_problem": "FH_D-1",
+            "ham_instance": "/fh-graph-1D-grid-nonpbc-qubitnodes_Lx-90_U-2_enc-jw,",
+            "ham_qubits": 180,
+            "ham_terms": 627
+          },
+          "linear"
+        ]
+      },
+      "param": "ham_fh-graph-1D-grid-nonpbc-qubitnodes_Lx-90_U-2_enc-jw-linear",
+      "extra_info": {
+        "input_num_qubits": 180,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "fermihubbard",
+        "ham_problem": "FH_D-1",
+        "ham_instance": "/fh-graph-1D-grid-nonpbc-qubitnodes_Lx-90_U-2_enc-jw,",
+        "ham_qubits": 180,
+        "ham_terms": 627,
+        "output_num_qubits": 180,
+        "output_circuit_operations": {
+          "rz": 180,
+          "rxx": 178,
+          "ryy": 178,
+          "swap": 178,
+          "rzz": 90
+        },
+        "output_gate_count_2q": 0,
+        "output_depth_2q": 0
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 11.634547082940117,
+        "max": 11.634547082940117,
+        "mean": 11.634547082940117,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 11.634547082940117,
+        "iqr": 0.0,
+        "q1": 11.634547082940117,
+        "q3": 11.634547082940117,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 11.634547082940117,
+        "hd15iqr": 11.634547082940117,
+        "ops": 0.08595091780292098,
+        "total": 11.634547082940117,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_graph-2D-grid-nonpbc-qubitnodes_Lx-5_Ly-58_h-2-linear]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_graph-2D-grid-nonpbc-qubitnodes_Lx-5_Ly-58_h-2-linear]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "heisenberg",
+            "ham_problem": "heis",
+            "ham_instance": "/graph-2D-grid-nonpbc-qubitnodes_Lx-5_Ly-58_h-2,",
+            "ham_qubits": 290,
+            "ham_terms": 1841
+          },
+          "linear"
+        ]
+      },
+      "param": "ham_graph-2D-grid-nonpbc-qubitnodes_Lx-5_Ly-58_h-2-linear",
+      "extra_info": {
+        "input_num_qubits": 290,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "heisenberg",
+        "ham_problem": "heis",
+        "ham_instance": "/graph-2D-grid-nonpbc-qubitnodes_Lx-5_Ly-58_h-2,",
+        "ham_qubits": 290,
+        "ham_terms": 1841,
+        "output_num_qubits": 290,
+        "output_circuit_operations": {
+          "swap": 1470,
+          "rxx": 517,
+          "ryy": 517,
+          "rzz": 517,
+          "rz": 290
+        },
+        "output_gate_count_2q": 0,
+        "output_depth_2q": 0
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 536.5944176949561,
+        "max": 536.5944176949561,
+        "mean": 536.5944176949561,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 536.5944176949561,
+        "iqr": 0.0,
+        "q1": 536.5944176949561,
+        "q3": 536.5944176949561,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 536.5944176949561,
+        "hd15iqr": 536.5944176949561,
+        "ops": 0.0018636049258501258,
+        "total": 536.5944176949561,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_graph-2D-grid-pbc-qubitnodes_Lx-2_Ly-185_h-0.5-square]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_graph-2D-grid-pbc-qubitnodes_Lx-2_Ly-185_h-0.5-square]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "heisenberg",
+            "ham_problem": "heis",
+            "ham_instance": "/graph-2D-grid-pbc-qubitnodes_Lx-2_Ly-185_h-0.5,",
+            "ham_qubits": 370,
+            "ham_terms": 2035
+          },
+          "square"
+        ]
+      },
+      "param": "ham_graph-2D-grid-pbc-qubitnodes_Lx-2_Ly-185_h-0.5-square",
+      "extra_info": {
+        "input_num_qubits": 370,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "heisenberg",
+        "ham_problem": "heis",
+        "ham_instance": "/graph-2D-grid-pbc-qubitnodes_Lx-2_Ly-185_h-0.5,",
+        "ham_qubits": 370,
+        "ham_terms": 2035,
+        "output_num_qubits": 400,
+        "output_circuit_operations": {
+          "swap": 1291,
+          "rxx": 555,
+          "ryy": 555,
+          "rzz": 555,
+          "rz": 370
+        },
+        "output_gate_count_2q": 0,
+        "output_depth_2q": 0
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 1655.0746025140397,
+        "max": 1655.0746025140397,
+        "mean": 1655.0746025140397,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 1655.0746025140397,
+        "iqr": 0.0,
+        "q1": 1655.0746025140397,
+        "q3": 1655.0746025140397,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 1655.0746025140397,
+        "hd15iqr": 1655.0746025140397,
+        "ops": 0.0006042023715915955,
+        "total": 1655.0746025140397,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_graph-2D-grid-pbc-qubitnodes_Lx-2_Ly-185_h-0.5-heavy-hex]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_graph-2D-grid-pbc-qubitnodes_Lx-2_Ly-185_h-0.5-heavy-hex]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "heisenberg",
+            "ham_problem": "heis",
+            "ham_instance": "/graph-2D-grid-pbc-qubitnodes_Lx-2_Ly-185_h-0.5,",
+            "ham_qubits": 370,
+            "ham_terms": 2035
+          },
+          "heavy-hex"
+        ]
+      },
+      "param": "ham_graph-2D-grid-pbc-qubitnodes_Lx-2_Ly-185_h-0.5-heavy-hex",
+      "extra_info": {
+        "input_num_qubits": 370,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "heisenberg",
+        "ham_problem": "heis",
+        "ham_instance": "/graph-2D-grid-pbc-qubitnodes_Lx-2_Ly-185_h-0.5,",
+        "ham_qubits": 370,
+        "ham_terms": 2035,
+        "output_num_qubits": 409,
+        "output_circuit_operations": {
+          "swap": 2273,
+          "rxx": 555,
+          "ryy": 555,
+          "rzz": 555,
+          "rz": 370
+        },
+        "output_gate_count_2q": 0,
+        "output_depth_2q": 0
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 188.87132953410037,
+        "max": 188.87132953410037,
+        "mean": 188.87132953410037,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 188.87132953410037,
+        "iqr": 0.0,
+        "q1": 188.87132953410037,
+        "q3": 188.87132953410037,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 188.87132953410037,
+        "hd15iqr": 188.87132953410037,
+        "ops": 0.005294609840819974,
+        "total": 188.87132953410037,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_tsp_prob-lin105_Ncity-7_enc-unary-linear]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_tsp_prob-lin105_Ncity-7_enc-unary-linear]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "discreteoptimization",
+            "ham_primary_type": "tsp",
+            "ham_problem": "TSP_Ncity-7",
+            "ham_instance": "/tsp_prob-lin105_Ncity-7_enc-unary,",
+            "ham_qubits": 49,
+            "ham_terms": 344
+          },
+          "linear"
+        ]
+      },
+      "param": "ham_tsp_prob-lin105_Ncity-7_enc-unary-linear",
+      "extra_info": {
+        "input_num_qubits": 49,
+        "ham_category": "discreteoptimization",
+        "ham_primary_type": "tsp",
+        "ham_problem": "TSP_Ncity-7",
+        "ham_instance": "/tsp_prob-lin105_Ncity-7_enc-unary,",
+        "ham_qubits": 49,
+        "ham_terms": 344,
+        "output_num_qubits": 49,
+        "output_circuit_operations": {
+          "swap": 641,
+          "rzz": 294,
+          "rz": 49
+        },
+        "output_gate_count_2q": 0,
+        "output_depth_2q": 0
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 300.36775276297703,
+        "max": 300.36775276297703,
+        "mean": 300.36775276297703,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 300.36775276297703,
+        "iqr": 0.0,
+        "q1": 300.36775276297703,
+        "q3": 300.36775276297703,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 300.36775276297703,
+        "hd15iqr": 300.36775276297703,
+        "ops": 0.0033292521943562602,
+        "total": 300.36775276297703,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_gnp-k_5_n-60_rinst-19-square]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_gnp-k_5_n-60_rinst-19-square]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "binaryoptimization",
+            "ham_primary_type": "qmaxcut",
+            "ham_problem": "graph-gnp_k-5",
+            "ham_instance": "/gnp-k_5_n-60_rinst-19,",
+            "ham_qubits": 60,
+            "ham_terms": 1972
+          },
+          "square"
+        ]
+      },
+      "param": "ham_gnp-k_5_n-60_rinst-19-square",
+      "extra_info": {
+        "input_num_qubits": 60,
+        "ham_category": "binaryoptimization",
+        "ham_primary_type": "qmaxcut",
+        "ham_problem": "graph-gnp_k-5",
+        "ham_instance": "/gnp-k_5_n-60_rinst-19,",
+        "ham_qubits": 60,
+        "ham_terms": 1972,
+        "output_num_qubits": 64,
+        "output_circuit_operations": {
+          "swap": 2789,
+          "rxx": 657,
+          "ryy": 657,
+          "rzz": 657
+        },
+        "output_gate_count_2q": 0,
+        "output_depth_2q": 0
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 1450.5532432128675,
+        "max": 1450.5532432128675,
+        "mean": 1450.5532432128675,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 1450.5532432128675,
+        "iqr": 0.0,
+        "q1": 1450.5532432128675,
+        "q3": 1450.5532432128675,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 1450.5532432128675,
+        "hd15iqr": 1450.5532432128675,
+        "ops": 0.0006893921368822522,
+        "total": 1450.5532432128675,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_gnp-k_5_n-60_rinst-19-heavy-hex]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_gnp-k_5_n-60_rinst-19-heavy-hex]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "binaryoptimization",
+            "ham_primary_type": "qmaxcut",
+            "ham_problem": "graph-gnp_k-5",
+            "ham_instance": "/gnp-k_5_n-60_rinst-19,",
+            "ham_qubits": 60,
+            "ham_terms": 1972
+          },
+          "heavy-hex"
+        ]
+      },
+      "param": "ham_gnp-k_5_n-60_rinst-19-heavy-hex",
+      "extra_info": {
+        "input_num_qubits": 60,
+        "ham_category": "binaryoptimization",
+        "ham_primary_type": "qmaxcut",
+        "ham_problem": "graph-gnp_k-5",
+        "ham_instance": "/gnp-k_5_n-60_rinst-19,",
+        "ham_qubits": 60,
+        "ham_terms": 1972,
+        "output_num_qubits": 115,
+        "output_circuit_operations": {
+          "swap": 5411,
+          "rxx": 657,
+          "ryy": 657,
+          "rzz": 657
+        },
+        "output_gate_count_2q": 0,
+        "output_depth_2q": 0
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 523.1472334980499,
+        "max": 523.1472334980499,
+        "mean": 523.1472334980499,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 523.1472334980499,
+        "iqr": 0.0,
+        "q1": 523.1472334980499,
+        "q3": 523.1472334980499,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 523.1472334980499,
+        "hd15iqr": 523.1472334980499,
+        "ops": 0.0019115077667781026,
+        "total": 523.1472334980499,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_graph-2D-grid-pbc-qubitnodes_Lx-4_Ly-148_h-6-linear]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_graph-2D-grid-pbc-qubitnodes_Lx-4_Ly-148_h-6-linear]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "tfim",
+            "ham_problem": "tfim",
+            "ham_instance": "/graph-2D-grid-pbc-qubitnodes_Lx-4_Ly-148_h-6,",
+            "ham_qubits": 592,
+            "ham_terms": 1776
+          },
+          "linear"
+        ]
+      },
+      "param": "ham_graph-2D-grid-pbc-qubitnodes_Lx-4_Ly-148_h-6-linear",
+      "extra_info": {
+        "input_num_qubits": 592,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "tfim",
+        "ham_problem": "tfim",
+        "ham_instance": "/graph-2D-grid-pbc-qubitnodes_Lx-4_Ly-148_h-6,",
+        "ham_qubits": 592,
+        "ham_terms": 1776,
+        "output_num_qubits": 592,
+        "output_circuit_operations": {
+          "swap": 5649,
+          "rzz": 1184,
+          "rx": 592
+        },
+        "output_gate_count_2q": 0,
+        "output_depth_2q": 0
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 1848.468599896878,
+        "max": 1848.468599896878,
+        "mean": 1848.468599896878,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 1848.468599896878,
+        "iqr": 0.0,
+        "q1": 1848.468599896878,
+        "q3": 1848.468599896878,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 1848.468599896878,
+        "hd15iqr": 1848.468599896878,
+        "ops": 0.0005409883619639456,
+        "total": 1848.468599896878,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_dsjc1000.1,n-36,rinst-4-heavy-hex]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_dsjc1000.1,n-36,rinst-4-heavy-hex]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "discreteoptimization",
+            "ham_primary_type": "maxkcut",
+            "ham_problem": "ham-binary-color02-dsjc1000.1_k-3",
+            "ham_instance": "/dsjc1000.1,n-36,rinst-4,",
+            "ham_qubits": 72,
+            "ham_terms": 676
+          },
+          "heavy-hex"
+        ]
+      },
+      "param": "ham_dsjc1000.1,n-36,rinst-4-heavy-hex",
+      "extra_info": {
+        "input_num_qubits": 72,
+        "ham_category": "discreteoptimization",
+        "ham_primary_type": "maxkcut",
+        "ham_problem": "ham-binary-color02-dsjc1000.1_k-3",
+        "ham_instance": "/dsjc1000.1,n-36,rinst-4,",
+        "ham_qubits": 72,
+        "ham_terms": 676,
+        "output_num_qubits": 115,
+        "output_circuit_operations": {
+          "swap": 1659,
+          "cx": 1386,
+          "rz": 387,
+          "rzz": 288
+        },
+        "output_gate_count_2q": 1386,
+        "output_depth_2q": 926
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 1145.4147831790615,
+        "max": 1145.4147831790615,
+        "mean": 1145.4147831790615,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 1145.4147831790615,
+        "iqr": 0.0,
+        "q1": 1145.4147831790615,
+        "q3": 1145.4147831790615,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 1145.4147831790615,
+        "hd15iqr": 1145.4147831790615,
+        "ops": 0.0008730461791531383,
+        "total": 1145.4147831790615,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_dsjc1000.1,n-36,rinst-4-linear]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_dsjc1000.1,n-36,rinst-4-linear]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "discreteoptimization",
+            "ham_primary_type": "maxkcut",
+            "ham_problem": "ham-binary-color02-dsjc1000.1_k-3",
+            "ham_instance": "/dsjc1000.1,n-36,rinst-4,",
+            "ham_qubits": 72,
+            "ham_terms": 676
+          },
+          "linear"
+        ]
+      },
+      "param": "ham_dsjc1000.1,n-36,rinst-4-linear",
+      "extra_info": {
+        "input_num_qubits": 72,
+        "ham_category": "discreteoptimization",
+        "ham_primary_type": "maxkcut",
+        "ham_problem": "ham-binary-color02-dsjc1000.1_k-3",
+        "ham_instance": "/dsjc1000.1,n-36,rinst-4,",
+        "ham_qubits": 72,
+        "ham_terms": 676,
+        "output_num_qubits": 72,
+        "output_circuit_operations": {
+          "swap": 3069,
+          "cx": 1386,
+          "rz": 387,
+          "rzz": 288
+        },
+        "output_gate_count_2q": 1386,
+        "output_depth_2q": 893
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 422.05190106504597,
+        "max": 422.05190106504597,
+        "mean": 422.05190106504597,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 422.05190106504597,
+        "iqr": 0.0,
+        "q1": 422.05190106504597,
+        "q3": 422.05190106504597,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 422.05190106504597,
+        "hd15iqr": 422.05190106504597,
+        "ops": 0.002369376840802055,
+        "total": 422.05190106504597,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_fh-graph-1D-grid-pbc-qubitnodes_Lx-160_U-12_enc-parity-square]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_fh-graph-1D-grid-pbc-qubitnodes_Lx-160_U-12_enc-parity-square]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "fermihubbard",
+            "ham_problem": "FH_D-1",
+            "ham_instance": "/fh-graph-1D-grid-pbc-qubitnodes_Lx-160_U-12_enc-parity,",
+            "ham_qubits": 320,
+            "ham_terms": 1121
+          },
+          "square"
+        ]
+      },
+      "param": "ham_fh-graph-1D-grid-pbc-qubitnodes_Lx-160_U-12_enc-parity-square",
+      "extra_info": {
+        "input_num_qubits": 320,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "fermihubbard",
+        "ham_problem": "FH_D-1",
+        "ham_instance": "/fh-graph-1D-grid-pbc-qubitnodes_Lx-160_U-12_enc-parity,",
+        "ham_qubits": 320,
+        "ham_terms": 1121,
+        "output_num_qubits": 324,
+        "output_circuit_operations": {
+          "cx": 3496,
+          "h": 1898,
+          "swap": 1616,
+          "rz": 482,
+          "rzz": 319,
+          "rx": 318,
+          "sx": 4,
+          "sxdg": 4,
+          "rzx": 1
+        },
+        "output_gate_count_2q": 3496,
+        "output_depth_2q": 3492
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 262.1521415191237,
+        "max": 262.1521415191237,
+        "mean": 262.1521415191237,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 262.1521415191237,
+        "iqr": 0.0,
+        "q1": 262.1521415191237,
+        "q3": 262.1521415191237,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 262.1521415191237,
+        "hd15iqr": 262.1521415191237,
+        "ops": 0.0038145787946082875,
+        "total": 262.1521415191237,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_fh-graph-2D-grid-pbc-qubitnodes_Lx-5_Ly-72_U-0_enc-parity-linear]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_fh-graph-2D-grid-pbc-qubitnodes_Lx-5_Ly-72_U-0_enc-parity-linear]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "fermihubbard",
+            "ham_problem": "FH_D-2",
+            "ham_instance": "/fh-graph-2D-grid-pbc-qubitnodes_Lx-5_Ly-72_U-0_enc-parity,",
+            "ham_qubits": 720,
+            "ham_terms": 2880
+          },
+          "linear"
+        ]
+      },
+      "param": "ham_fh-graph-2D-grid-pbc-qubitnodes_Lx-5_Ly-72_U-0_enc-parity-linear",
+      "extra_info": {
+        "input_num_qubits": 720,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "fermihubbard",
+        "ham_problem": "FH_D-2",
+        "ham_instance": "/fh-graph-2D-grid-pbc-qubitnodes_Lx-5_Ly-72_U-0_enc-parity,",
+        "ham_qubits": 720,
+        "ham_terms": 2880,
+        "output_num_qubits": 720,
+        "output_circuit_operations": {
+          "cx": 32998,
+          "h": 28682,
+          "rz": 2161,
+          "sx": 1444,
+          "sxdg": 1444,
+          "rx": 718,
+          "rzx": 1
+        },
+        "output_gate_count_2q": 32998,
+        "output_depth_2q": 32997
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 9.28090020804666,
+        "max": 9.28090020804666,
+        "mean": 9.28090020804666,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 9.28090020804666,
+        "iqr": 0.0,
+        "q1": 9.28090020804666,
+        "q3": 9.28090020804666,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 9.28090020804666,
+        "hd15iqr": 9.28090020804666,
+        "ops": 0.10774816855944504,
+        "total": 9.28090020804666,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_graph-2D-grid-nonpbc-qubitnodes_Lx-5_Ly-186_h-0.5-linear]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_graph-2D-grid-nonpbc-qubitnodes_Lx-5_Ly-186_h-0.5-linear]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "heisenberg",
+            "ham_problem": "heis",
+            "ham_instance": "/graph-2D-grid-nonpbc-qubitnodes_Lx-5_Ly-186_h-0.5,",
+            "ham_qubits": 930,
+            "ham_terms": 5937
+          },
+          "linear"
+        ]
+      },
+      "param": "ham_graph-2D-grid-nonpbc-qubitnodes_Lx-5_Ly-186_h-0.5-linear",
+      "extra_info": {
+        "input_num_qubits": 930,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "heisenberg",
+        "ham_problem": "heis",
+        "ham_instance": "/graph-2D-grid-nonpbc-qubitnodes_Lx-5_Ly-186_h-0.5,",
+        "ham_qubits": 930,
+        "ham_terms": 5937,
+        "output_num_qubits": 930,
+        "output_circuit_operations": {
+          "swap": 4850,
+          "rxx": 1669,
+          "ryy": 1669,
+          "rzz": 1669,
+          "rz": 930
+        },
+        "output_gate_count_2q": 0,
+        "output_depth_2q": 0
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 1286.3409473269712,
+        "max": 1286.3409473269712,
+        "mean": 1286.3409473269712,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 1286.3409473269712,
+        "iqr": 0.0,
+        "q1": 1286.3409473269712,
+        "q3": 1286.3409473269712,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 1286.3409473269712,
+        "hd15iqr": 1286.3409473269712,
+        "ops": 0.000777398870865465,
+        "total": 1286.3409473269712,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_2-uf100-0601.cnf-46-res-linear]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_2-uf100-0601.cnf-46-res-linear]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "binaryoptimization",
+            "ham_primary_type": "max3sat",
+            "ham_problem": "uf100-ham",
+            "ham_instance": "/2-uf100-0601.cnf-46-res,",
+            "ham_qubits": 46,
+            "ham_terms": 285
+          },
+          "linear"
+        ]
+      },
+      "param": "ham_2-uf100-0601.cnf-46-res-linear",
+      "extra_info": {
+        "input_num_qubits": 46,
+        "ham_category": "binaryoptimization",
+        "ham_primary_type": "max3sat",
+        "ham_problem": "uf100-ham",
+        "ham_instance": "/2-uf100-0601.cnf-46-res,",
+        "ham_qubits": 46,
+        "ham_terms": 285,
+        "output_num_qubits": 46,
+        "output_circuit_operations": {
+          "swap": 1770,
+          "cx": 200,
+          "rzz": 191,
+          "rz": 93
+        },
+        "output_gate_count_2q": 200,
+        "output_depth_2q": 129
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 776.1355036969762,
+        "max": 776.1355036969762,
+        "mean": 776.1355036969762,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 776.1355036969762,
+        "iqr": 0.0,
+        "q1": 776.1355036969762,
+        "q3": 776.1355036969762,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 776.1355036969762,
+        "hd15iqr": 776.1355036969762,
+        "ops": 0.0012884348096906882,
+        "total": 776.1355036969762,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_bh_graph-1D-grid-nonpbc-qubitnodes_Lx-12_U-40_enc-unary_d-4-square]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_bh_graph-1D-grid-nonpbc-qubitnodes_Lx-12_U-40_enc-unary_d-4-square]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "bosehubbard",
+            "ham_problem": "BH_D-1_d-4",
+            "ham_instance": "/bh_graph-1D-grid-nonpbc-qubitnodes_Lx-12_U-40_enc-unary_d-4,",
+            "ham_qubits": 48,
+            "ham_terms": 817
+          },
+          "square"
+        ]
+      },
+      "param": "ham_bh_graph-1D-grid-nonpbc-qubitnodes_Lx-12_U-40_enc-unary_d-4-square",
+      "extra_info": {
+        "input_num_qubits": 48,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "bosehubbard",
+        "ham_problem": "BH_D-1_d-4",
+        "ham_instance": "/bh_graph-1D-grid-nonpbc-qubitnodes_Lx-12_U-40_enc-unary_d-4,",
+        "ham_qubits": 48,
+        "ham_terms": 817,
+        "output_num_qubits": 49,
+        "output_circuit_operations": {
+          "cx": 4752,
+          "h": 3168,
+          "sx": 1584,
+          "sxdg": 1584,
+          "rz": 816,
+          "swap": 570
+        },
+        "output_gate_count_2q": 4752,
+        "output_depth_2q": 4662
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 88.1238458531443,
+        "max": 88.1238458531443,
+        "mean": 88.1238458531443,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 88.1238458531443,
+        "iqr": 0.0,
+        "q1": 88.1238458531443,
+        "q3": 88.1238458531443,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 88.1238458531443,
+        "hd15iqr": 88.1238458531443,
+        "ops": 0.011347666347499966,
+        "total": 88.1238458531443,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_bh_graph-1D-grid-nonpbc-qubitnodes_Lx-12_U-40_enc-unary_d-4-heavy-hex]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_bh_graph-1D-grid-nonpbc-qubitnodes_Lx-12_U-40_enc-unary_d-4-heavy-hex]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "bosehubbard",
+            "ham_problem": "BH_D-1_d-4",
+            "ham_instance": "/bh_graph-1D-grid-nonpbc-qubitnodes_Lx-12_U-40_enc-unary_d-4,",
+            "ham_qubits": 48,
+            "ham_terms": 817
+          },
+          "heavy-hex"
+        ]
+      },
+      "param": "ham_bh_graph-1D-grid-nonpbc-qubitnodes_Lx-12_U-40_enc-unary_d-4-heavy-hex",
+      "extra_info": {
+        "input_num_qubits": 48,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "bosehubbard",
+        "ham_problem": "BH_D-1_d-4",
+        "ham_instance": "/bh_graph-1D-grid-nonpbc-qubitnodes_Lx-12_U-40_enc-unary_d-4,",
+        "ham_qubits": 48,
+        "ham_terms": 817,
+        "output_num_qubits": 57,
+        "output_circuit_operations": {
+          "cx": 4752,
+          "h": 3168,
+          "sx": 1584,
+          "sxdg": 1584,
+          "swap": 1167,
+          "rz": 816
+        },
+        "output_gate_count_2q": 4752,
+        "output_depth_2q": 4690
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 30.017960374010727,
+        "max": 30.017960374010727,
+        "mean": 30.017960374010727,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 30.017960374010727,
+        "iqr": 0.0,
+        "q1": 30.017960374010727,
+        "q3": 30.017960374010727,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 30.017960374010727,
+        "hd15iqr": 30.017960374010727,
+        "ops": 0.033313389302285536,
+        "total": 30.017960374010727,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_bh_graph-2D-triag-pbc-qubitnodes_Lx-10_Ly-10_U-30_enc-stdbinary_d-4-heavy-hex]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_bh_graph-2D-triag-pbc-qubitnodes_Lx-10_Ly-10_U-30_enc-stdbinary_d-4-heavy-hex]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "bosehubbard",
+            "ham_problem": "BH_D-2_d-4",
+            "ham_instance": "/bh_graph-2D-triag-pbc-qubitnodes_Lx-10_Ly-10_U-30_enc-stdbinary_d-4,",
+            "ham_qubits": 100,
+            "ham_terms": 4951
+          },
+          "heavy-hex"
+        ]
+      },
+      "param": "ham_bh_graph-2D-triag-pbc-qubitnodes_Lx-10_Ly-10_U-30_enc-stdbinary_d-4-heavy-hex",
+      "extra_info": {
+        "input_num_qubits": 100,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "bosehubbard",
+        "ham_problem": "BH_D-2_d-4",
+        "ham_instance": "/bh_graph-2D-triag-pbc-qubitnodes_Lx-10_Ly-10_U-30_enc-stdbinary_d-4,",
+        "ham_qubits": 100,
+        "ham_terms": 4951,
+        "output_num_qubits": 115,
+        "output_circuit_operations": {
+          "cx": 23400,
+          "h": 13800,
+          "swap": 12673,
+          "sx": 6900,
+          "sxdg": 6900,
+          "rz": 4600,
+          "rxx": 150,
+          "ryy": 150,
+          "rzz": 50
+        },
+        "output_gate_count_2q": 23400,
+        "output_depth_2q": 22652
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 1854.0442221330013,
+        "max": 1854.0442221330013,
+        "mean": 1854.0442221330013,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 1854.0442221330013,
+        "iqr": 0.0,
+        "q1": 1854.0442221330013,
+        "q3": 1854.0442221330013,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 1854.0442221330013,
+        "hd15iqr": 1854.0442221330013,
+        "ops": 0.000539361460779798,
+        "total": 1854.0442221330013,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_bh_graph-2D-triag-pbc-qubitnodes_Lx-10_Ly-10_U-30_enc-stdbinary_d-4-linear]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_bh_graph-2D-triag-pbc-qubitnodes_Lx-10_Ly-10_U-30_enc-stdbinary_d-4-linear]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "bosehubbard",
+            "ham_problem": "BH_D-2_d-4",
+            "ham_instance": "/bh_graph-2D-triag-pbc-qubitnodes_Lx-10_Ly-10_U-30_enc-stdbinary_d-4,",
+            "ham_qubits": 100,
+            "ham_terms": 4951
+          },
+          "linear"
+        ]
+      },
+      "param": "ham_bh_graph-2D-triag-pbc-qubitnodes_Lx-10_Ly-10_U-30_enc-stdbinary_d-4-linear",
+      "extra_info": {
+        "input_num_qubits": 100,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "bosehubbard",
+        "ham_problem": "BH_D-2_d-4",
+        "ham_instance": "/bh_graph-2D-triag-pbc-qubitnodes_Lx-10_Ly-10_U-30_enc-stdbinary_d-4,",
+        "ham_qubits": 100,
+        "ham_terms": 4951,
+        "output_num_qubits": 100,
+        "output_circuit_operations": {
+          "swap": 27668,
+          "cx": 23400,
+          "h": 13800,
+          "sx": 6900,
+          "sxdg": 6900,
+          "rz": 4600,
+          "rxx": 150,
+          "ryy": 150,
+          "rzz": 50
+        },
+        "output_gate_count_2q": 23400,
+        "output_depth_2q": 22642
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 1852.2028374520596,
+        "max": 1852.2028374520596,
+        "mean": 1852.2028374520596,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 1852.2028374520596,
+        "iqr": 0.0,
+        "q1": 1852.2028374520596,
+        "q3": 1852.2028374520596,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 1852.2028374520596,
+        "hd15iqr": 1852.2028374520596,
+        "ops": 0.0005398976719934341,
+        "total": 1852.2028374520596,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_gnp-k_5_n-60_rinst-19-linear]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_gnp-k_5_n-60_rinst-19-linear]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "binaryoptimization",
+            "ham_primary_type": "qmaxcut",
+            "ham_problem": "graph-gnp_k-5",
+            "ham_instance": "/gnp-k_5_n-60_rinst-19,",
+            "ham_qubits": 60,
+            "ham_terms": 1972
+          },
+          "linear"
+        ]
+      },
+      "param": "ham_gnp-k_5_n-60_rinst-19-linear",
+      "extra_info": {
+        "input_num_qubits": 60,
+        "ham_category": "binaryoptimization",
+        "ham_primary_type": "qmaxcut",
+        "ham_problem": "graph-gnp_k-5",
+        "ham_instance": "/gnp-k_5_n-60_rinst-19,",
+        "ham_qubits": 60,
+        "ham_terms": 1972,
+        "output_num_qubits": 60,
+        "output_circuit_operations": {
+          "swap": 14339,
+          "rxx": 657,
+          "ryy": 657,
+          "rzz": 657
+        },
+        "output_gate_count_2q": 0,
+        "output_depth_2q": 0
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 419.12166996789165,
+        "max": 419.12166996789165,
+        "mean": 419.12166996789165,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 419.12166996789165,
+        "iqr": 0.0,
+        "q1": 419.12166996789165,
+        "q3": 419.12166996789165,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 419.12166996789165,
+        "hd15iqr": 419.12166996789165,
+        "ops": 0.0023859420107688743,
+        "total": 419.12166996789165,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_bh_graph-2D-grid-nonpbc-qubitnodes_Lx-7_Ly-7_U-70_enc-gray_d-4-square]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_bh_graph-2D-grid-nonpbc-qubitnodes_Lx-7_Ly-7_U-70_enc-gray_d-4-square]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "bosehubbard",
+            "ham_problem": "BH_D-2_d-4",
+            "ham_instance": "/bh_graph-2D-grid-nonpbc-qubitnodes_Lx-7_Ly-7_U-70_enc-gray_d-4,",
+            "ham_qubits": 98,
+            "ham_terms": 2836
+          },
+          "square"
+        ]
+      },
+      "param": "ham_bh_graph-2D-grid-nonpbc-qubitnodes_Lx-7_Ly-7_U-70_enc-gray_d-4-square",
+      "extra_info": {
+        "input_num_qubits": 98,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "bosehubbard",
+        "ham_problem": "BH_D-2_d-4",
+        "ham_instance": "/bh_graph-2D-grid-nonpbc-qubitnodes_Lx-7_Ly-7_U-70_enc-gray_d-4,",
+        "ham_qubits": 98,
+        "ham_terms": 2836,
+        "output_num_qubits": 100,
+        "output_circuit_operations": {
+          "cx": 9408,
+          "h": 4032,
+          "swap": 2310,
+          "rz": 2114,
+          "sx": 2016,
+          "sxdg": 2016,
+          "rxx": 336,
+          "ryy": 336,
+          "rzz": 49
+        },
+        "output_gate_count_2q": 9408,
+        "output_depth_2q": 9183
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 1178.0684590979945,
+        "max": 1178.0684590979945,
+        "mean": 1178.0684590979945,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 1178.0684590979945,
+        "iqr": 0.0,
+        "q1": 1178.0684590979945,
+        "q3": 1178.0684590979945,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 1178.0684590979945,
+        "hd15iqr": 1178.0684590979945,
+        "ops": 0.0008488471041535776,
+        "total": 1178.0684590979945,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_bh_graph-2D-grid-nonpbc-qubitnodes_Lx-7_Ly-7_U-70_enc-gray_d-4-heavy-hex]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_bh_graph-2D-grid-nonpbc-qubitnodes_Lx-7_Ly-7_U-70_enc-gray_d-4-heavy-hex]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "bosehubbard",
+            "ham_problem": "BH_D-2_d-4",
+            "ham_instance": "/bh_graph-2D-grid-nonpbc-qubitnodes_Lx-7_Ly-7_U-70_enc-gray_d-4,",
+            "ham_qubits": 98,
+            "ham_terms": 2836
+          },
+          "heavy-hex"
+        ]
+      },
+      "param": "ham_bh_graph-2D-grid-nonpbc-qubitnodes_Lx-7_Ly-7_U-70_enc-gray_d-4-heavy-hex",
+      "extra_info": {
+        "input_num_qubits": 98,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "bosehubbard",
+        "ham_problem": "BH_D-2_d-4",
+        "ham_instance": "/bh_graph-2D-grid-nonpbc-qubitnodes_Lx-7_Ly-7_U-70_enc-gray_d-4,",
+        "ham_qubits": 98,
+        "ham_terms": 2836,
+        "output_num_qubits": 115,
+        "output_circuit_operations": {
+          "cx": 9408,
+          "swap": 6130,
+          "h": 4032,
+          "rz": 2114,
+          "sx": 2016,
+          "sxdg": 2016,
+          "rxx": 336,
+          "ryy": 336,
+          "rzz": 49
+        },
+        "output_gate_count_2q": 9408,
+        "output_depth_2q": 9184
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 311.4217307281215,
+        "max": 311.4217307281215,
+        "mean": 311.4217307281215,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 311.4217307281215,
+        "iqr": 0.0,
+        "q1": 311.4217307281215,
+        "q3": 311.4217307281215,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 311.4217307281215,
+        "hd15iqr": 311.4217307281215,
+        "ops": 0.0032110797074499067,
+        "total": 311.4217307281215,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_fh-graph-1D-grid-pbc-qubitnodes_Lx-160_U-12_enc-parity-heavy-hex]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_fh-graph-1D-grid-pbc-qubitnodes_Lx-160_U-12_enc-parity-heavy-hex]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "fermihubbard",
+            "ham_problem": "FH_D-1",
+            "ham_instance": "/fh-graph-1D-grid-pbc-qubitnodes_Lx-160_U-12_enc-parity,",
+            "ham_qubits": 320,
+            "ham_terms": 1121
+          },
+          "heavy-hex"
+        ]
+      },
+      "param": "ham_fh-graph-1D-grid-pbc-qubitnodes_Lx-160_U-12_enc-parity-heavy-hex",
+      "extra_info": {
+        "input_num_qubits": 320,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "fermihubbard",
+        "ham_problem": "FH_D-1",
+        "ham_instance": "/fh-graph-1D-grid-pbc-qubitnodes_Lx-160_U-12_enc-parity,",
+        "ham_qubits": 320,
+        "ham_terms": 1121,
+        "output_num_qubits": 409,
+        "output_circuit_operations": {
+          "swap": 3589,
+          "cx": 3496,
+          "h": 1898,
+          "rz": 482,
+          "rzz": 319,
+          "rx": 318,
+          "sx": 4,
+          "sxdg": 4,
+          "rzx": 1
+        },
+        "output_gate_count_2q": 3496,
+        "output_depth_2q": 3492
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 92.63324758107774,
+        "max": 92.63324758107774,
+        "mean": 92.63324758107774,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 92.63324758107774,
+        "iqr": 0.0,
+        "q1": 92.63324758107774,
+        "q3": 92.63324758107774,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 92.63324758107774,
+        "hd15iqr": 92.63324758107774,
+        "ops": 0.010795260083316681,
+        "total": 92.63324758107774,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_fh-graph-1D-grid-pbc-qubitnodes_Lx-160_U-12_enc-parity-linear]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_fh-graph-1D-grid-pbc-qubitnodes_Lx-160_U-12_enc-parity-linear]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "fermihubbard",
+            "ham_problem": "FH_D-1",
+            "ham_instance": "/fh-graph-1D-grid-pbc-qubitnodes_Lx-160_U-12_enc-parity,",
+            "ham_qubits": 320,
+            "ham_terms": 1121
+          },
+          "linear"
+        ]
+      },
+      "param": "ham_fh-graph-1D-grid-pbc-qubitnodes_Lx-160_U-12_enc-parity-linear",
+      "extra_info": {
+        "input_num_qubits": 320,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "fermihubbard",
+        "ham_problem": "FH_D-1",
+        "ham_instance": "/fh-graph-1D-grid-pbc-qubitnodes_Lx-160_U-12_enc-parity,",
+        "ham_qubits": 320,
+        "ham_terms": 1121,
+        "output_num_qubits": 320,
+        "output_circuit_operations": {
+          "swap": 7036,
+          "cx": 3496,
+          "h": 1898,
+          "rz": 482,
+          "rzz": 319,
+          "rx": 318,
+          "sx": 4,
+          "sxdg": 4,
+          "rzx": 1
+        },
+        "output_gate_count_2q": 3496,
+        "output_depth_2q": 3492
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 62.47258147597313,
+        "max": 62.47258147597313,
+        "mean": 62.47258147597313,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 62.47258147597313,
+        "iqr": 0.0,
+        "q1": 62.47258147597313,
+        "q3": 62.47258147597313,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 62.47258147597313,
+        "hd15iqr": 62.47258147597313,
+        "ops": 0.01600702222277462,
+        "total": 62.47258147597313,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_graph-2D-grid-pbc-qubitnodes_Lx-2_Ly-185_h-0.5-linear]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_graph-2D-grid-pbc-qubitnodes_Lx-2_Ly-185_h-0.5-linear]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "heisenberg",
+            "ham_problem": "heis",
+            "ham_instance": "/graph-2D-grid-pbc-qubitnodes_Lx-2_Ly-185_h-0.5,",
+            "ham_qubits": 370,
+            "ham_terms": 2035
+          },
+          "linear"
+        ]
+      },
+      "param": "ham_graph-2D-grid-pbc-qubitnodes_Lx-2_Ly-185_h-0.5-linear",
+      "extra_info": {
+        "input_num_qubits": 370,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "heisenberg",
+        "ham_problem": "heis",
+        "ham_instance": "/graph-2D-grid-pbc-qubitnodes_Lx-2_Ly-185_h-0.5,",
+        "ham_qubits": 370,
+        "ham_terms": 2035,
+        "output_num_qubits": 370,
+        "output_circuit_operations": {
+          "swap": 1207,
+          "rxx": 555,
+          "ryy": 555,
+          "rzz": 555,
+          "rz": 370
+        },
+        "output_gate_count_2q": 0,
+        "output_depth_2q": 0
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 198.9365328710992,
+        "max": 198.9365328710992,
+        "mean": 198.9365328710992,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 198.9365328710992,
+        "iqr": 0.0,
+        "q1": 198.9365328710992,
+        "q3": 198.9365328710992,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 198.9365328710992,
+        "hd15iqr": 198.9365328710992,
+        "ops": 0.005026728804246073,
+        "total": 198.9365328710992,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_graph-2D-grid-nonpbc-qubitnodes_Lx-4_Ly-133_h-0.1-heavy-hex]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_graph-2D-grid-nonpbc-qubitnodes_Lx-4_Ly-133_h-0.1-heavy-hex]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "heisenberg",
+            "ham_problem": "heis",
+            "ham_instance": "/graph-2D-grid-nonpbc-qubitnodes_Lx-4_Ly-133_h-0.1,",
+            "ham_qubits": 532,
+            "ham_terms": 3313
+          },
+          "heavy-hex"
+        ]
+      },
+      "param": "ham_graph-2D-grid-nonpbc-qubitnodes_Lx-4_Ly-133_h-0.1-heavy-hex",
+      "extra_info": {
+        "input_num_qubits": 532,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "heisenberg",
+        "ham_problem": "heis",
+        "ham_instance": "/graph-2D-grid-nonpbc-qubitnodes_Lx-4_Ly-133_h-0.1,",
+        "ham_qubits": 532,
+        "ham_terms": 3313,
+        "output_num_qubits": 547,
+        "output_circuit_operations": {
+          "swap": 2957,
+          "rxx": 927,
+          "ryy": 927,
+          "rzz": 927,
+          "rz": 532
+        },
+        "output_gate_count_2q": 0,
+        "output_depth_2q": 0
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 1147.0761577729136,
+        "max": 1147.0761577729136,
+        "mean": 1147.0761577729136,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 1147.0761577729136,
+        "iqr": 0.0,
+        "q1": 1147.0761577729136,
+        "q3": 1147.0761577729136,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 1147.0761577729136,
+        "hd15iqr": 1147.0761577729136,
+        "ops": 0.0008717816975130345,
+        "total": 1147.0761577729136,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_graph-2D-grid-nonpbc-qubitnodes_Lx-4_Ly-133_h-0.1-linear]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_graph-2D-grid-nonpbc-qubitnodes_Lx-4_Ly-133_h-0.1-linear]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "heisenberg",
+            "ham_problem": "heis",
+            "ham_instance": "/graph-2D-grid-nonpbc-qubitnodes_Lx-4_Ly-133_h-0.1,",
+            "ham_qubits": 532,
+            "ham_terms": 3313
+          },
+          "linear"
+        ]
+      },
+      "param": "ham_graph-2D-grid-nonpbc-qubitnodes_Lx-4_Ly-133_h-0.1-linear",
+      "extra_info": {
+        "input_num_qubits": 532,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "heisenberg",
+        "ham_problem": "heis",
+        "ham_instance": "/graph-2D-grid-nonpbc-qubitnodes_Lx-4_Ly-133_h-0.1,",
+        "ham_qubits": 532,
+        "ham_terms": 3313,
+        "output_num_qubits": 532,
+        "output_circuit_operations": {
+          "swap": 2256,
+          "rxx": 927,
+          "ryy": 927,
+          "rzz": 927,
+          "rz": 532
+        },
+        "output_gate_count_2q": 0,
+        "output_depth_2q": 0
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 1322.8951475168578,
+        "max": 1322.8951475168578,
+        "mean": 1322.8951475168578,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 1322.8951475168578,
+        "iqr": 0.0,
+        "q1": 1322.8951475168578,
+        "q3": 1322.8951475168578,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 1322.8951475168578,
+        "hd15iqr": 1322.8951475168578,
+        "ops": 0.0007559178079056768,
+        "total": 1322.8951475168578,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_bh_graph-2D-triag-pbc-qubitnodes_Lx-5_Ly-5_U-30_enc-unary_d-4-heavy-hex]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_bh_graph-2D-triag-pbc-qubitnodes_Lx-5_Ly-5_U-30_enc-unary_d-4-heavy-hex]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "bosehubbard",
+            "ham_problem": "BH_D-2_d-4",
+            "ham_instance": "/bh_graph-2D-triag-pbc-qubitnodes_Lx-5_Ly-5_U-30_enc-unary_d-4,",
+            "ham_qubits": 60,
+            "ham_terms": 3271
+          },
+          "heavy-hex"
+        ]
+      },
+      "param": "ham_bh_graph-2D-triag-pbc-qubitnodes_Lx-5_Ly-5_U-30_enc-unary_d-4-heavy-hex",
+      "extra_info": {
+        "input_num_qubits": 60,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "bosehubbard",
+        "ham_problem": "BH_D-2_d-4",
+        "ham_instance": "/bh_graph-2D-triag-pbc-qubitnodes_Lx-5_Ly-5_U-30_enc-unary_d-4,",
+        "ham_qubits": 60,
+        "ham_terms": 3271,
+        "output_num_qubits": 115,
+        "output_circuit_operations": {
+          "cx": 19440,
+          "h": 12960,
+          "swap": 8980,
+          "sx": 6480,
+          "sxdg": 6480,
+          "rz": 3270
+        },
+        "output_gate_count_2q": 19440,
+        "output_depth_2q": 18894
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 1582.7606502310373,
+        "max": 1582.7606502310373,
+        "mean": 1582.7606502310373,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 1582.7606502310373,
+        "iqr": 0.0,
+        "q1": 1582.7606502310373,
+        "q3": 1582.7606502310373,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 1582.7606502310373,
+        "hd15iqr": 1582.7606502310373,
+        "ops": 0.0006318074687123596,
+        "total": 1582.7606502310373,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_bh_graph-2D-triag-pbc-qubitnodes_Lx-5_Ly-5_U-30_enc-unary_d-4-linear]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_bh_graph-2D-triag-pbc-qubitnodes_Lx-5_Ly-5_U-30_enc-unary_d-4-linear]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "bosehubbard",
+            "ham_problem": "BH_D-2_d-4",
+            "ham_instance": "/bh_graph-2D-triag-pbc-qubitnodes_Lx-5_Ly-5_U-30_enc-unary_d-4,",
+            "ham_qubits": 60,
+            "ham_terms": 3271
+          },
+          "linear"
+        ]
+      },
+      "param": "ham_bh_graph-2D-triag-pbc-qubitnodes_Lx-5_Ly-5_U-30_enc-unary_d-4-linear",
+      "extra_info": {
+        "input_num_qubits": 60,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "bosehubbard",
+        "ham_problem": "BH_D-2_d-4",
+        "ham_instance": "/bh_graph-2D-triag-pbc-qubitnodes_Lx-5_Ly-5_U-30_enc-unary_d-4,",
+        "ham_qubits": 60,
+        "ham_terms": 3271,
+        "output_num_qubits": 60,
+        "output_circuit_operations": {
+          "cx": 19440,
+          "swap": 15435,
+          "h": 12960,
+          "sx": 6480,
+          "sxdg": 6480,
+          "rz": 3270
+        },
+        "output_gate_count_2q": 19440,
+        "output_depth_2q": 18734
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 1049.0895672759507,
+        "max": 1049.0895672759507,
+        "mean": 1049.0895672759507,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 1049.0895672759507,
+        "iqr": 0.0,
+        "q1": 1049.0895672759507,
+        "q3": 1049.0895672759507,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 1049.0895672759507,
+        "hd15iqr": 1049.0895672759507,
+        "ops": 0.0009532074583456055,
+        "total": 1049.0895672759507,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-60_U-10_enc-stdbinary_d-4-linear]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-60_U-10_enc-stdbinary_d-4-linear]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "bosehubbard",
+            "ham_problem": "BH_D-1_d-4",
+            "ham_instance": "/bh_graph-1D-grid-pbc-qubitnodes_Lx-60_U-10_enc-stdbinary_d-4,",
+            "ham_qubits": 120,
+            "ham_terms": 2101
+          },
+          "linear"
+        ]
+      },
+      "param": "ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-60_U-10_enc-stdbinary_d-4-linear",
+      "extra_info": {
+        "input_num_qubits": 120,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "bosehubbard",
+        "ham_problem": "BH_D-1_d-4",
+        "ham_instance": "/bh_graph-1D-grid-pbc-qubitnodes_Lx-60_U-10_enc-stdbinary_d-4,",
+        "ham_qubits": 120,
+        "ham_terms": 2101,
+        "output_num_qubits": 120,
+        "output_circuit_operations": {
+          "cx": 9360,
+          "h": 5520,
+          "sx": 2760,
+          "sxdg": 2760,
+          "rz": 1920,
+          "swap": 449,
+          "rxx": 60,
+          "ryy": 60,
+          "rzz": 60
+        },
+        "output_gate_count_2q": 9360,
+        "output_depth_2q": 9359
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 17.899565367028117,
+        "max": 17.899565367028117,
+        "mean": 17.899565367028117,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 17.899565367028117,
+        "iqr": 0.0,
+        "q1": 17.899565367028117,
+        "q3": 17.899565367028117,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 17.899565367028117,
+        "hd15iqr": 17.899565367028117,
+        "ops": 0.055867278310681744,
+        "total": 17.899565367028117,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_fh-graph-2D-grid-pbc-qubitnodes_Lx-5_Ly-72_U-0_enc-parity-heavy-hex]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_fh-graph-2D-grid-pbc-qubitnodes_Lx-5_Ly-72_U-0_enc-parity-heavy-hex]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "fermihubbard",
+            "ham_problem": "FH_D-2",
+            "ham_instance": "/fh-graph-2D-grid-pbc-qubitnodes_Lx-5_Ly-72_U-0_enc-parity,",
+            "ham_qubits": 720,
+            "ham_terms": 2880
+          },
+          "heavy-hex"
+        ]
+      },
+      "param": "ham_fh-graph-2D-grid-pbc-qubitnodes_Lx-5_Ly-72_U-0_enc-parity-heavy-hex",
+      "extra_info": {
+        "input_num_qubits": 720,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "fermihubbard",
+        "ham_problem": "FH_D-2",
+        "ham_instance": "/fh-graph-2D-grid-pbc-qubitnodes_Lx-5_Ly-72_U-0_enc-parity,",
+        "ham_qubits": 720,
+        "ham_terms": 2880,
+        "output_num_qubits": 883,
+        "output_circuit_operations": {
+          "cx": 32998,
+          "h": 28682,
+          "swap": 17564,
+          "rz": 2161,
+          "sx": 1444,
+          "sxdg": 1444,
+          "rx": 718,
+          "rzx": 1
+        },
+        "output_gate_count_2q": 32998,
+        "output_depth_2q": 32997
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 2188.9086694940925,
+        "max": 2188.9086694940925,
+        "mean": 2188.9086694940925,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 2188.9086694940925,
+        "iqr": 0.0,
+        "q1": 2188.9086694940925,
+        "q3": 2188.9086694940925,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 2188.9086694940925,
+        "hd15iqr": 2188.9086694940925,
+        "ops": 0.00045684866341688126,
+        "total": 2188.9086694940925,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_graph-2D-grid-nonpbc-qubitnodes_Lx-5_Ly-15_h-3-square]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_graph-2D-grid-nonpbc-qubitnodes_Lx-5_Ly-15_h-3-square]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "tfim",
+            "ham_problem": "tfim",
+            "ham_instance": "/graph-2D-grid-nonpbc-qubitnodes_Lx-5_Ly-15_h-3,",
+            "ham_qubits": 75,
+            "ham_terms": 205
+          },
+          "square"
+        ]
+      },
+      "param": "ham_graph-2D-grid-nonpbc-qubitnodes_Lx-5_Ly-15_h-3-square",
+      "extra_info": {
+        "input_num_qubits": 75,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "tfim",
+        "ham_problem": "tfim",
+        "ham_instance": "/graph-2D-grid-nonpbc-qubitnodes_Lx-5_Ly-15_h-3,",
+        "ham_qubits": 75,
+        "ham_terms": 205,
+        "output_num_qubits": 81,
+        "output_circuit_operations": {
+          "swap": 137,
+          "rzz": 130,
+          "rx": 75
+        },
+        "output_gate_count_2q": 0,
+        "output_depth_2q": 0
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 322.0006860450376,
+        "max": 322.0006860450376,
+        "mean": 322.0006860450376,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 322.0006860450376,
+        "iqr": 0.0,
+        "q1": 322.0006860450376,
+        "q3": 322.0006860450376,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 322.0006860450376,
+        "hd15iqr": 322.0006860450376,
+        "ops": 0.003105583445434436,
+        "total": 322.0006860450376,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_graph-2D-grid-nonpbc-qubitnodes_Lx-5_Ly-15_h-3-heavy-hex]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_graph-2D-grid-nonpbc-qubitnodes_Lx-5_Ly-15_h-3-heavy-hex]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "tfim",
+            "ham_problem": "tfim",
+            "ham_instance": "/graph-2D-grid-nonpbc-qubitnodes_Lx-5_Ly-15_h-3,",
+            "ham_qubits": 75,
+            "ham_terms": 205
+          },
+          "heavy-hex"
+        ]
+      },
+      "param": "ham_graph-2D-grid-nonpbc-qubitnodes_Lx-5_Ly-15_h-3-heavy-hex",
+      "extra_info": {
+        "input_num_qubits": 75,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "tfim",
+        "ham_problem": "tfim",
+        "ham_instance": "/graph-2D-grid-nonpbc-qubitnodes_Lx-5_Ly-15_h-3,",
+        "ham_qubits": 75,
+        "ham_terms": 205,
+        "output_num_qubits": 115,
+        "output_circuit_operations": {
+          "swap": 248,
+          "rzz": 130,
+          "rx": 75
+        },
+        "output_gate_count_2q": 0,
+        "output_depth_2q": 0
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 121.00382289802656,
+        "max": 121.00382289802656,
+        "mean": 121.00382289802656,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 121.00382289802656,
+        "iqr": 0.0,
+        "q1": 121.00382289802656,
+        "q3": 121.00382289802656,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 121.00382289802656,
+        "hd15iqr": 121.00382289802656,
+        "ops": 0.008264201709087564,
+        "total": 121.00382289802656,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-46_U-2_enc-gray_d-4-linear]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-46_U-2_enc-gray_d-4-linear]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "bosehubbard",
+            "ham_problem": "BH_D-1_d-4",
+            "ham_instance": "/bh_graph-1D-grid-pbc-qubitnodes_Lx-46_U-2_enc-gray_d-4,",
+            "ham_qubits": 92,
+            "ham_terms": 1611
+          },
+          "linear"
+        ]
+      },
+      "param": "ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-46_U-2_enc-gray_d-4-linear",
+      "extra_info": {
+        "input_num_qubits": 92,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "bosehubbard",
+        "ham_problem": "BH_D-1_d-4",
+        "ham_instance": "/bh_graph-1D-grid-pbc-qubitnodes_Lx-46_U-2_enc-gray_d-4,",
+        "ham_qubits": 92,
+        "ham_terms": 1611,
+        "output_num_qubits": 92,
+        "output_circuit_operations": {
+          "cx": 5152,
+          "swap": 3778,
+          "h": 2208,
+          "rz": 1196,
+          "sx": 1104,
+          "sxdg": 1104,
+          "rxx": 184,
+          "ryy": 184,
+          "rzz": 46
+        },
+        "output_gate_count_2q": 5152,
+        "output_depth_2q": 5144
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 51.963850400876254,
+        "max": 51.963850400876254,
+        "mean": 51.963850400876254,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 51.963850400876254,
+        "iqr": 0.0,
+        "q1": 51.963850400876254,
+        "q3": 51.963850400876254,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 51.963850400876254,
+        "hd15iqr": 51.963850400876254,
+        "ops": 0.019244147465699295,
+        "total": 51.963850400876254,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_bh_graph-2D-grid-nonpbc-qubitnodes_Lx-7_Ly-7_U-70_enc-gray_d-4-linear]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_bh_graph-2D-grid-nonpbc-qubitnodes_Lx-7_Ly-7_U-70_enc-gray_d-4-linear]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "bosehubbard",
+            "ham_problem": "BH_D-2_d-4",
+            "ham_instance": "/bh_graph-2D-grid-nonpbc-qubitnodes_Lx-7_Ly-7_U-70_enc-gray_d-4,",
+            "ham_qubits": 98,
+            "ham_terms": 2836
+          },
+          "linear"
+        ]
+      },
+      "param": "ham_bh_graph-2D-grid-nonpbc-qubitnodes_Lx-7_Ly-7_U-70_enc-gray_d-4-linear",
+      "extra_info": {
+        "input_num_qubits": 98,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "bosehubbard",
+        "ham_problem": "BH_D-2_d-4",
+        "ham_instance": "/bh_graph-2D-grid-nonpbc-qubitnodes_Lx-7_Ly-7_U-70_enc-gray_d-4,",
+        "ham_qubits": 98,
+        "ham_terms": 2836,
+        "output_num_qubits": 98,
+        "output_circuit_operations": {
+          "swap": 25949,
+          "cx": 9408,
+          "h": 4032,
+          "rz": 2114,
+          "sx": 2016,
+          "sxdg": 2016,
+          "rxx": 336,
+          "ryy": 336,
+          "rzz": 49
+        },
+        "output_gate_count_2q": 9408,
+        "output_depth_2q": 9170
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 731.5620761010796,
+        "max": 731.5620761010796,
+        "mean": 731.5620761010796,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 731.5620761010796,
+        "iqr": 0.0,
+        "q1": 731.5620761010796,
+        "q3": 731.5620761010796,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 731.5620761010796,
+        "hd15iqr": 731.5620761010796,
+        "ops": 0.0013669379983850208,
+        "total": 731.5620761010796,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_will199gpia,n-60,rinst-8-heavy-hex]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_will199gpia,n-60,rinst-8-heavy-hex]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "discreteoptimization",
+            "ham_primary_type": "maxkcut",
+            "ham_problem": "ham-gray-color02-will199gpia_k-3",
+            "ham_instance": "/will199gpia,n-60,rinst-8,",
+            "ham_qubits": 120,
+            "ham_terms": 1513
+          },
+          "heavy-hex"
+        ]
+      },
+      "param": "ham_will199gpia,n-60,rinst-8-heavy-hex",
+      "extra_info": {
+        "input_num_qubits": 120,
+        "ham_category": "discreteoptimization",
+        "ham_primary_type": "maxkcut",
+        "ham_problem": "ham-gray-color02-will199gpia_k-3",
+        "ham_instance": "/will199gpia,n-60,rinst-8,",
+        "ham_qubits": 120,
+        "ham_terms": 1513,
+        "output_num_qubits": 193,
+        "output_circuit_operations": {
+          "swap": 4774,
+          "cx": 3256,
+          "rz": 860,
+          "rzz": 652
+        },
+        "output_gate_count_2q": 3256,
+        "output_depth_2q": 2142
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 3166.5782574100886,
+        "max": 3166.5782574100886,
+        "mean": 3166.5782574100886,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 3166.5782574100886,
+        "iqr": 0.0,
+        "q1": 3166.5782574100886,
+        "q3": 3166.5782574100886,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 3166.5782574100886,
+        "hd15iqr": 3166.5782574100886,
+        "ops": 0.00031579829036591995,
+        "total": 3166.5782574100886,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_will199gpia,n-60,rinst-8-linear]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_will199gpia,n-60,rinst-8-linear]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "discreteoptimization",
+            "ham_primary_type": "maxkcut",
+            "ham_problem": "ham-gray-color02-will199gpia_k-3",
+            "ham_instance": "/will199gpia,n-60,rinst-8,",
+            "ham_qubits": 120,
+            "ham_terms": 1513
+          },
+          "linear"
+        ]
+      },
+      "param": "ham_will199gpia,n-60,rinst-8-linear",
+      "extra_info": {
+        "input_num_qubits": 120,
+        "ham_category": "discreteoptimization",
+        "ham_primary_type": "maxkcut",
+        "ham_problem": "ham-gray-color02-will199gpia_k-3",
+        "ham_instance": "/will199gpia,n-60,rinst-8,",
+        "ham_qubits": 120,
+        "ham_terms": 1513,
+        "output_num_qubits": 120,
+        "output_circuit_operations": {
+          "swap": 7769,
+          "cx": 3256,
+          "rz": 860,
+          "rzz": 652
+        },
+        "output_gate_count_2q": 3256,
+        "output_depth_2q": 1948
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 955.8571450309828,
+        "max": 955.8571450309828,
+        "mean": 955.8571450309828,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 955.8571450309828,
+        "iqr": 0.0,
+        "q1": 955.8571450309828,
+        "q3": 955.8571450309828,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 955.8571450309828,
+        "hd15iqr": 955.8571450309828,
+        "ops": 0.0010461814353729462,
+        "total": 955.8571450309828,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_mu_x_prime_enc_unary_dvalues_16-16-16-16-16-16-16-16-16-16-16-16-16-16-16-square]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_mu_x_prime_enc_unary_dvalues_16-16-16-16-16-16-16-16-16-16-16-16-16-16-16-square]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "chemistry",
+            "ham_primary_type": "vibrational",
+            "ham_problem": "all-vib-cyclo_propene",
+            "ham_instance": "/mu_x_prime_enc_unary_dvalues_16-16-16-16-16-16-16-16-16-16-16-16-16-16-16,",
+            "ham_qubits": 64,
+            "ham_terms": 120
+          },
+          "square"
+        ]
+      },
+      "param": "ham_mu_x_prime_enc_unary_dvalues_16-16-16-16-16-16-16-16-16-16-16-16-16-16-16-square",
+      "extra_info": {
+        "input_num_qubits": 64,
+        "ham_category": "chemistry",
+        "ham_primary_type": "vibrational",
+        "ham_problem": "all-vib-cyclo_propene",
+        "ham_instance": "/mu_x_prime_enc_unary_dvalues_16-16-16-16-16-16-16-16-16-16-16-16-16-16-16,",
+        "ham_qubits": 64,
+        "ham_terms": 120,
+        "output_num_qubits": 64,
+        "output_circuit_operations": {
+          "rxx": 60,
+          "ryy": 60,
+          "swap": 26
+        },
+        "output_gate_count_2q": 0,
+        "output_depth_2q": 0
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 73.4177864100784,
+        "max": 73.4177864100784,
+        "mean": 73.4177864100784,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 73.4177864100784,
+        "iqr": 0.0,
+        "q1": 73.4177864100784,
+        "q3": 73.4177864100784,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 73.4177864100784,
+        "hd15iqr": 73.4177864100784,
+        "ops": 0.013620677616381053,
+        "total": 73.4177864100784,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_mu_x_prime_enc_unary_dvalues_16-16-16-16-16-16-16-16-16-16-16-16-16-16-16-heavy-hex]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_mu_x_prime_enc_unary_dvalues_16-16-16-16-16-16-16-16-16-16-16-16-16-16-16-heavy-hex]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "chemistry",
+            "ham_primary_type": "vibrational",
+            "ham_problem": "all-vib-cyclo_propene",
+            "ham_instance": "/mu_x_prime_enc_unary_dvalues_16-16-16-16-16-16-16-16-16-16-16-16-16-16-16,",
+            "ham_qubits": 64,
+            "ham_terms": 120
+          },
+          "heavy-hex"
+        ]
+      },
+      "param": "ham_mu_x_prime_enc_unary_dvalues_16-16-16-16-16-16-16-16-16-16-16-16-16-16-16-heavy-hex",
+      "extra_info": {
+        "input_num_qubits": 64,
+        "ham_category": "chemistry",
+        "ham_primary_type": "vibrational",
+        "ham_problem": "all-vib-cyclo_propene",
+        "ham_instance": "/mu_x_prime_enc_unary_dvalues_16-16-16-16-16-16-16-16-16-16-16-16-16-16-16,",
+        "ham_qubits": 64,
+        "ham_terms": 120,
+        "output_num_qubits": 115,
+        "output_circuit_operations": {
+          "swap": 69,
+          "rxx": 60,
+          "ryy": 60
+        },
+        "output_gate_count_2q": 0,
+        "output_depth_2q": 0
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 59.534122456097975,
+        "max": 59.534122456097975,
+        "mean": 59.534122456097975,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 59.534122456097975,
+        "iqr": 0.0,
+        "q1": 59.534122456097975,
+        "q3": 59.534122456097975,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 59.534122456097975,
+        "hd15iqr": 59.534122456097975,
+        "ops": 0.016797089782207276,
+        "total": 59.534122456097975,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_gnp-k_5_n-90_rinst-02-heavy-hex]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_gnp-k_5_n-90_rinst-02-heavy-hex]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "binaryoptimization",
+            "ham_primary_type": "qmaxcut",
+            "ham_problem": "graph-gnp_k-5",
+            "ham_instance": "/gnp-k_5_n-90_rinst-02,",
+            "ham_qubits": 90,
+            "ham_terms": 2959
+          },
+          "heavy-hex"
+        ]
+      },
+      "param": "ham_gnp-k_5_n-90_rinst-02-heavy-hex",
+      "extra_info": {
+        "input_num_qubits": 90,
+        "ham_category": "binaryoptimization",
+        "ham_primary_type": "qmaxcut",
+        "ham_problem": "graph-gnp_k-5",
+        "ham_instance": "/gnp-k_5_n-90_rinst-02,",
+        "ham_qubits": 90,
+        "ham_terms": 2959,
+        "output_num_qubits": 115,
+        "output_circuit_operations": {
+          "swap": 9566,
+          "rxx": 986,
+          "ryy": 986,
+          "rzz": 986
+        },
+        "output_gate_count_2q": 0,
+        "output_depth_2q": 0
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 2755.215753144119,
+        "max": 2755.215753144119,
+        "mean": 2755.215753144119,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 2755.215753144119,
+        "iqr": 0.0,
+        "q1": 2755.215753144119,
+        "q3": 2755.215753144119,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 2755.215753144119,
+        "hd15iqr": 2755.215753144119,
+        "ops": 0.0003629479828789627,
+        "total": 2755.215753144119,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_gnp-k_5_n-90_rinst-02-linear]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_gnp-k_5_n-90_rinst-02-linear]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "binaryoptimization",
+            "ham_primary_type": "qmaxcut",
+            "ham_problem": "graph-gnp_k-5",
+            "ham_instance": "/gnp-k_5_n-90_rinst-02,",
+            "ham_qubits": 90,
+            "ham_terms": 2959
+          },
+          "linear"
+        ]
+      },
+      "param": "ham_gnp-k_5_n-90_rinst-02-linear",
+      "extra_info": {
+        "input_num_qubits": 90,
+        "ham_category": "binaryoptimization",
+        "ham_primary_type": "qmaxcut",
+        "ham_problem": "graph-gnp_k-5",
+        "ham_instance": "/gnp-k_5_n-90_rinst-02,",
+        "ham_qubits": 90,
+        "ham_terms": 2959,
+        "output_num_qubits": 90,
+        "output_circuit_operations": {
+          "swap": 27696,
+          "rxx": 986,
+          "ryy": 986,
+          "rzz": 986
+        },
+        "output_gate_count_2q": 0,
+        "output_depth_2q": 0
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 1423.5875700679608,
+        "max": 1423.5875700679608,
+        "mean": 1423.5875700679608,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 1423.5875700679608,
+        "iqr": 0.0,
+        "q1": 1423.5875700679608,
+        "q3": 1423.5875700679608,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 1423.5875700679608,
+        "hd15iqr": 1423.5875700679608,
+        "ops": 0.0007024506402175603,
+        "total": 1423.5875700679608,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "Transpile - Abstract",
+      "name": "test_hamiltonians[ham_graph-2D-grid-pbc-qubitnodes_Lx-4_Ly-190_h-0-linear]",
+      "fullname": "ocular_gym/abstract_transpile.py/test_hamiltonians.py::TestWorkoutAbstractHamiltonians::test_hamiltonians[ham_graph-2D-grid-pbc-qubitnodes_Lx-4_Ly-190_h-0-linear]",
+      "params": {
+        "circ_and_topo": [
+          {
+            "ham_category": "condensedmatter",
+            "ham_primary_type": "heisenberg",
+            "ham_problem": "heis",
+            "ham_instance": "/graph-2D-grid-pbc-qubitnodes_Lx-4_Ly-190_h-0,",
+            "ham_qubits": 760,
+            "ham_terms": 4560
+          },
+          "linear"
+        ]
+      },
+      "param": "ham_graph-2D-grid-pbc-qubitnodes_Lx-4_Ly-190_h-0-linear",
+      "extra_info": {
+        "input_num_qubits": 760,
+        "ham_category": "condensedmatter",
+        "ham_primary_type": "heisenberg",
+        "ham_problem": "heis",
+        "ham_instance": "/graph-2D-grid-pbc-qubitnodes_Lx-4_Ly-190_h-0,",
+        "ham_qubits": 760,
+        "ham_terms": 4560,
+        "output_num_qubits": 760,
+        "output_circuit_operations": {
+          "swap": 6384,
+          "rxx": 1520,
+          "ryy": 1520,
+          "rzz": 1520
+        },
+        "output_gate_count_2q": 0,
+        "output_depth_2q": 0
+      },
+      "options": {
+        "disable_gc": false,
+        "timer": "perf_counter",
+        "min_rounds": 1,
+        "max_time": 1.0,
+        "min_time": 5e-6,
+        "warmup": false
+      },
+      "stats": {
+        "min": 2209.942331767874,
+        "max": 2209.942331767874,
+        "mean": 2209.942331767874,
+        "stddev": 0,
+        "rounds": 1,
+        "median": 2209.942331767874,
+        "iqr": 0.0,
+        "q1": 2209.942331767874,
+        "q3": 2209.942331767874,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 2209.942331767874,
+        "hd15iqr": 2209.942331767874,
+        "ops": 0.0004525004954314967,
+        "total": 2209.942331767874,
+        "iterations": 1
+      }
+    }
+  ]
+}

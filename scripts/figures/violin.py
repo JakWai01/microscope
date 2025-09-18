@@ -121,6 +121,7 @@ def plot_violin(df, out_path, title=None):
 
     plt.tight_layout()
     ax.get_figure().savefig(out_path, dpi=300, bbox_inches='tight')
+    plt.show()
     plt.close(ax.get_figure())
 
 
