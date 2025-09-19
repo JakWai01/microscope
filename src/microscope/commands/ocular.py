@@ -94,6 +94,7 @@ def ocular(config):
             *["Critical Path Length", str(longest_path_len)], style="bright_green"
         )
         table.add_row(*["DAG Nodes", str(num_dag_nodes)], style="bright_green")
+        table.add_row(*["Num Qubits", str(num_qubits)], style="bright_green")
         console = Console()
         console.print(table)
 
@@ -212,60 +213,60 @@ def process_results(test_results):
 def benchpress_adapter(circuit, backend, k):
     coupling_map = backend._coupling_map
 
-    # pm = PassManager(
-    #     [
-    #         Unroll3qOrMore(),
-    #         SabreLayout(coupling_map, skip_routing=True, seed=42),
-    #         FullAncillaAllocation(coupling_map=coupling_map),
-    #         ApplyLayout(),
-    #         RemoveBarriers(),
-    #     ]
-    # )
-
-    # preprocessed_circuit = pm.run(circuit)
-
-    # preprocessed_dag = circuit_to_dag(preprocessed_circuit)
-
-    qiskit_pm = PassManager(
+    pm = PassManager(
         [
             Unroll3qOrMore(),
             SabreLayout(coupling_map, skip_routing=True, seed=42),
             FullAncillaAllocation(coupling_map=coupling_map),
             ApplyLayout(),
             RemoveBarriers(),
-            SabreSwap(coupling_map, heuristic="lookahead", trials=1),
         ]
-    ,
     )
-    transpiled_qc = qiskit_pm.run(circuit)
 
-    # num_qubits = len(preprocessed_circuit.qubits)
+    preprocessed_circuit = pm.run(circuit)
 
-    # canonical_register = preprocessed_dag.qregs["q"]
-    # current_layout = Layout.generate_trivial_layout(canonical_register)
-    # qubit_indices = {bit: idx for idx, bit in enumerate(canonical_register)}
-    # layout_mapping = {
-    #     qubit_indices[k]: v for k, v in current_layout.get_virtual_bits().items()
-    # }
-    # initial_layout = microboost.MicroLayout(
-    #     layout_mapping, num_qubits, coupling_map.size()
+    preprocessed_dag = circuit_to_dag(preprocessed_circuit)
+
+    # qiskit_pm = PassManager(
+    #     [
+    #         Unroll3qOrMore(),
+    #         SabreLayout(coupling_map, skip_routing=True, seed=42),
+    #         FullAncillaAllocation(coupling_map=coupling_map),
+    #         ApplyLayout(),
+    #         RemoveBarriers(),
+    #         SabreSwap(coupling_map, heuristic="lookahead", trials=1),
+    #     ]
+    # ,
     # )
+    # transpiled_qc = qiskit_pm.run(circuit)
 
-    # dag = DAG().from_qiskit_dag(preprocessed_dag).to_micro_dag()
+    num_qubits = len(preprocessed_circuit.qubits)
 
-    # ms = microboost.MicroSABRE(
-    #     dag, initial_layout, coupling_map.get_edges(), num_qubits
-    # )
+    canonical_register = preprocessed_dag.qregs["q"]
+    current_layout = Layout.generate_trivial_layout(canonical_register)
+    qubit_indices = {bit: idx for idx, bit in enumerate(canonical_register)}
+    layout_mapping = {
+        qubit_indices[k]: v for k, v in current_layout.get_virtual_bits().items()
+    }
+    initial_layout = microboost.MicroLayout(
+        layout_mapping, num_qubits, coupling_map.size()
+    )
 
-    # sabre_result = ms.run(k)
+    dag = DAG().from_qiskit_dag(preprocessed_dag).to_micro_dag()
 
-    # transpiled_sabre_dag_boosted, _ = apply_sabre_result(
-    #     preprocessed_dag.copy_empty_like(),
-    #     preprocessed_dag,
-    #     sabre_result,
-    #     preprocessed_dag.qubits,
-    #     coupling_map,
-    # )
+    ms = microboost.MicroSABRE(
+        dag, initial_layout, coupling_map.get_edges(), num_qubits
+    )
 
-    # return dag_to_circuit(transpiled_sabre_dag_boosted)
-    return transpiled_qc
+    sabre_result = ms.run(k)
+
+    transpiled_sabre_dag_boosted, _ = apply_sabre_result(
+        preprocessed_dag.copy_empty_like(),
+        preprocessed_dag,
+        sabre_result,
+        preprocessed_dag.qubits,
+        coupling_map,
+    )
+
+    return dag_to_circuit(transpiled_sabre_dag_boosted)
+    # return transpiled_qc

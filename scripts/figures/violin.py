@@ -197,7 +197,7 @@ def main():
             ocular_map, qiskit_map,
             min_qubits=args.min_qubits,
             max_qubits=args.max_qubits,
-            topology_filter="square"
+            topology_filter="linear"
         )
         df_i['benchmark'] = label
         dfs.append(df_i)
