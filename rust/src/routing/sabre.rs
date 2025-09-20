@@ -2,7 +2,7 @@ use crate::routing::front_layer::MicroFront;
 use crate::routing::layout::MicroLayout;
 use crate::routing::utils::{
     build_coupling_neighbour_map, compute_all_pairs_shortest_paths,
-    Best, StackItem, State,
+    Best, StackItem, State
 };
 use crate::{graph::dag::MicroDAG, routing::utils::build_adjacency_list};
 use core::f64;
@@ -153,7 +153,8 @@ impl MicroSABRE {
         let front_sum = self.sum_min_swaps_needed_for_nodes(layout, u_front);
         let ext_sum = self.sum_min_swaps_needed_for_nodes(layout, u_ext);
         let m = (u_ext.len().max(1)) as f64;
-        front_sum + (lambda / m) * ext_sum
+        let n =  (u_front.len().max(1)) as f64;
+        (1 as f64 / n) * front_sum + (lambda as f64 / m) * ext_sum
     }
 
     #[inline]
@@ -217,11 +218,6 @@ impl MicroSABRE {
         u_ext: &IndexSet<i32>,
         extended_set_weight: f64,
     ) -> f64 {
-        let mut u_union = u_front.clone();
-        u_union.extend(u_ext.iter().cloned());
-
-        let union_size = u_union.len().max(1) as f64;
-
         let h_before = self.union_heuristic_min_swaps_with_layout(
             initial_layout,
             u_front,
@@ -235,7 +231,7 @@ impl MicroSABRE {
             extended_set_weight,
         );
 
-        (h_before - h_after) / union_size
+        h_before - h_after
     }
     
     fn compute_swap_candidates(&self) -> Vec<[i32; 2]> {
