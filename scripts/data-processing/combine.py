@@ -3,7 +3,7 @@ import glob
 
 # List of input JSON files (adjust the pattern or provide manually)
 input_files = glob.glob(
-    "/home/jakob/Documents/Projects/microscope/assets/benchmark/test-k3-1h-2/all/*_test_k3_1h_10.json*"
+    "/home/jakob/Documents/Projects/microscope/assets/benchmark/test-k3-1h-norm/all/*_test_k3_1h_norm_10.*"
 )
 
 # The combined structure will mimic pytest-benchmark schema
@@ -20,7 +20,7 @@ for i, path in enumerate(sorted(input_files)):
     combined["benchmarks"].extend(data.get("benchmarks", []))
 
 # Write the merged JSON file
-output_path = "/home/jakob/Documents/Projects/microscope/assets/benchmark/test-k3-1h-2/combined/test_k3_1h_2_10.json"
+output_path = "/home/jakob/Documents/Projects/microscope/assets/benchmark/test-k3-1h-norm/combined/test_k3_1h_norm_combined_10.json"
 with open(output_path, "wb") as f:
     f.write(orjson.dumps(combined, option=orjson.OPT_INDENT_2))
 

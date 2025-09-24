@@ -1,0 +1,3514 @@
+{
+  "benchmarks": [
+    {
+      "name": "test_hamiltonians[ham_7-uf20-0384.cnf-8-res-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 8,
+      "swap_stats": {
+        "count": 10,
+        "average": 19,
+        "median": 19.0,
+        "min": 19,
+        "max": 19
+      },
+      "depth": 16
+    },
+    {
+      "name": "test_hamiltonians[ham_7-uf20-0384.cnf-8-res-linear]",
+      "topology": "linear",
+      "qubits": 8,
+      "swap_stats": {
+        "count": 10,
+        "average": 18,
+        "median": 18.0,
+        "min": 18,
+        "max": 18
+      },
+      "depth": 12
+    },
+    {
+      "name": "test_hamiltonians[ham_tsp_rand-002_Ncity-4_enc-stdbinary-square]",
+      "topology": "square",
+      "qubits": 8,
+      "swap_stats": {
+        "count": 10,
+        "average": 19,
+        "median": 19.0,
+        "min": 19,
+        "max": 19
+      },
+      "depth": 80
+    },
+    {
+      "name": "test_hamiltonians[ham_tsp_rand-002_Ncity-4_enc-stdbinary-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 8,
+      "swap_stats": {
+        "count": 10,
+        "average": 32,
+        "median": 32.0,
+        "min": 32,
+        "max": 32
+      },
+      "depth": 88
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_BK22-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 22,
+      "swap_stats": {
+        "count": 10,
+        "average": 43894.3,
+        "median": 44052.5,
+        "min": 40751,
+        "max": 46493
+      },
+      "depth": 77897
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_BK22-linear]",
+      "topology": "linear",
+      "qubits": 22,
+      "swap_stats": {
+        "count": 10,
+        "average": 65978.6,
+        "median": 64984.0,
+        "min": 64195,
+        "max": 73586
+      },
+      "depth": 77894
+    },
+    {
+      "name": "test_hamiltonians[ham_enc_gray_dvalues_8-8-8-square]",
+      "topology": "square",
+      "qubits": 9,
+      "swap_stats": {
+        "count": 10,
+        "average": 1530.2,
+        "median": 1520.5,
+        "min": 1437,
+        "max": 1667
+      },
+      "depth": 24968
+    },
+    {
+      "name": "test_hamiltonians[ham_enc_gray_dvalues_8-8-8-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 9,
+      "swap_stats": {
+        "count": 10,
+        "average": 3827.6,
+        "median": 3786.5,
+        "min": 3602,
+        "max": 4091
+      },
+      "depth": 24962
+    },
+    {
+      "name": "test_hamiltonians[ham_enc_gray_dvalues_8-8-8-linear]",
+      "topology": "linear",
+      "qubits": 9,
+      "swap_stats": {
+        "count": 10,
+        "average": 3851,
+        "median": 3849.5,
+        "min": 3623,
+        "max": 4193
+      },
+      "depth": 24966
+    },
+    {
+      "name": "test_hamiltonians[ham_complbipart-n-10_a-5_b-5-square]",
+      "topology": "square",
+      "qubits": 10,
+      "swap_stats": {
+        "count": 10,
+        "average": 28,
+        "median": 28.0,
+        "min": 28,
+        "max": 28
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_tsp_prob-fl417_Ncity-16_enc-stdbinary-square]",
+      "topology": "square",
+      "qubits": 64,
+      "swap_stats": {
+        "count": 10,
+        "average": 3664.2,
+        "median": 3613.5,
+        "min": 3433,
+        "max": 4020
+      },
+      "depth": 22987
+    },
+    {
+      "name": "test_hamiltonians[ham_tsp_prob-fl417_Ncity-16_enc-stdbinary-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 64,
+      "swap_stats": {
+        "count": 10,
+        "average": 11058.8,
+        "median": 10748.5,
+        "min": 10190,
+        "max": 13622
+      },
+      "depth": 22845
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-triag-pbc-qubitnodes_Lx-13_Ly-13_h-0.1-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 91,
+      "swap_stats": {
+        "count": 10,
+        "average": 662.2,
+        "median": 666.0,
+        "min": 611,
+        "max": 704
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_tsp_prob-st70_Ncity-10_enc-unary-square]",
+      "topology": "square",
+      "qubits": 100,
+      "swap_stats": {
+        "count": 10,
+        "average": 943.8,
+        "median": 938.0,
+        "min": 918,
+        "max": 989
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_tsp_prob-st70_Ncity-10_enc-unary-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 100,
+      "swap_stats": {
+        "count": 10,
+        "average": 1685.2,
+        "median": 1697.0,
+        "min": 1551,
+        "max": 1775
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_1-fullins_5,n-48,rinst-7-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 144,
+      "swap_stats": {
+        "count": 10,
+        "average": 21672.5,
+        "median": 21709.0,
+        "min": 19211,
+        "max": 24509
+      },
+      "depth": 16073
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-grid-nonpbc-qubitnodes_Lx-5_Ly-58_h-2-linear]",
+      "topology": "linear",
+      "qubits": 290,
+      "swap_stats": {
+        "count": 10,
+        "average": 1418.1,
+        "median": 1417.5,
+        "min": 1379,
+        "max": 1450
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_mu_y_prime_enc_unary_dvalues_8-8-8-8-8-8-8-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 8,
+      "swap_stats": {
+        "count": 10,
+        "average": 1,
+        "median": 1.0,
+        "min": 1,
+        "max": 1
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_7-uf20-0384.cnf-8-res-square]",
+      "topology": "square",
+      "qubits": 8,
+      "swap_stats": {
+        "count": 10,
+        "average": 7,
+        "median": 7.0,
+        "min": 7,
+        "max": 7
+      },
+      "depth": 12
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_JW14-square]",
+      "topology": "square",
+      "qubits": 14,
+      "swap_stats": {
+        "count": 10,
+        "average": 992.3,
+        "median": 990.5,
+        "min": 899,
+        "max": 1100
+      },
+      "depth": 7428
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_JW14-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 14,
+      "swap_stats": {
+        "count": 10,
+        "average": 2533.1,
+        "median": 2542.5,
+        "min": 2181,
+        "max": 3083
+      },
+      "depth": 7432
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_JW14-linear]",
+      "topology": "linear",
+      "qubits": 14,
+      "swap_stats": {
+        "count": 10,
+        "average": 1993.6,
+        "median": 1932.0,
+        "min": 1758,
+        "max": 2304
+      },
+      "depth": 7435
+    },
+    {
+      "name": "test_hamiltonians[ham_enc_gray_dvalues_4-4-4-4-4-4-4-square]",
+      "topology": "square",
+      "qubits": 14,
+      "swap_stats": {
+        "count": 10,
+        "average": 550.7,
+        "median": 546.0,
+        "min": 499,
+        "max": 604
+      },
+      "depth": 5712
+    },
+    {
+      "name": "test_hamiltonians[ham_enc_gray_dvalues_4-4-4-4-4-4-4-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 14,
+      "swap_stats": {
+        "count": 10,
+        "average": 1263.7,
+        "median": 1277.5,
+        "min": 1093,
+        "max": 1357
+      },
+      "depth": 5786
+    },
+    {
+      "name": "test_hamiltonians[ham_2-uf100-0396.cnf-46-res-square]",
+      "topology": "square",
+      "qubits": 46,
+      "swap_stats": {
+        "count": 10,
+        "average": 359.6,
+        "median": 363.0,
+        "min": 331,
+        "max": 379
+      },
+      "depth": 135
+    },
+    {
+      "name": "test_hamiltonians[ham_2-uf100-0396.cnf-46-res-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 46,
+      "swap_stats": {
+        "count": 10,
+        "average": 738.8,
+        "median": 731.0,
+        "min": 702,
+        "max": 800
+      },
+      "depth": 125
+    },
+    {
+      "name": "test_hamiltonians[ham_2-uf100-0396.cnf-46-res-linear]",
+      "topology": "linear",
+      "qubits": 46,
+      "swap_stats": {
+        "count": 10,
+        "average": 1603.4,
+        "median": 1611.5,
+        "min": 1478,
+        "max": 1664
+      },
+      "depth": 121
+    },
+    {
+      "name": "test_hamiltonians[ham_tsp_prob-fl417_Ncity-16_enc-stdbinary-linear]",
+      "topology": "linear",
+      "qubits": 64,
+      "swap_stats": {
+        "count": 10,
+        "average": 17458.8,
+        "median": 17394.5,
+        "min": 15473,
+        "max": 18944
+      },
+      "depth": 22924
+    },
+    {
+      "name": "test_hamiltonians[ham_4-uf100-0246.cnf-70-res-square]",
+      "topology": "square",
+      "qubits": 70,
+      "swap_stats": {
+        "count": 10,
+        "average": 1600.9,
+        "median": 1613.0,
+        "min": 1541,
+        "max": 1661
+      },
+      "depth": 432
+    },
+    {
+      "name": "test_hamiltonians[ham_reg-4_n-90_rinst-07-square]",
+      "topology": "square",
+      "qubits": 90,
+      "swap_stats": {
+        "count": 10,
+        "average": 545.2,
+        "median": 537.0,
+        "min": 524,
+        "max": 570
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_reg-4_n-90_rinst-07-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 90,
+      "swap_stats": {
+        "count": 10,
+        "average": 911.8,
+        "median": 916.5,
+        "min": 882,
+        "max": 941
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-2D-triag-nonpbc-qubitnodes_Lx-11_Ly-11_U-100_enc-gray_d-4-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 156,
+      "swap_stats": {
+        "count": 10,
+        "average": 19863.7,
+        "median": 19997.0,
+        "min": 18712,
+        "max": 20974
+      },
+      "depth": 21562
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-grid-nonpbc-qubitnodes_Lx-5_Ly-58_h-2-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 290,
+      "swap_stats": {
+        "count": 10,
+        "average": 1631.9,
+        "median": 1628.5,
+        "min": 1606,
+        "max": 1669
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-triag-nonpbc-qubitnodes_Lx-3_Ly-160_h-0.1-linear]",
+      "topology": "linear",
+      "qubits": 324,
+      "swap_stats": {
+        "count": 10,
+        "average": 7554.7,
+        "median": 7576.0,
+        "min": 7380,
+        "max": 7693
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-grid-nonpbc-qubitnodes_Lx-19_Ly-19_h-5-linear]",
+      "topology": "linear",
+      "qubits": 361,
+      "swap_stats": {
+        "count": 10,
+        "average": 7768.1,
+        "median": 7634.5,
+        "min": 7321,
+        "max": 8576
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-grid-pbc-qubitnodes_Lx-4_Ly-148_h-6-square]",
+      "topology": "square",
+      "qubits": 592,
+      "swap_stats": {
+        "count": 10,
+        "average": 2913.6,
+        "median": 2917.5,
+        "min": 2849,
+        "max": 2981
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-grid-pbc-qubitnodes_Lx-4_Ly-190_h-0-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 760,
+      "swap_stats": {
+        "count": 10,
+        "average": 6988.4,
+        "median": 6995.0,
+        "min": 6866,
+        "max": 7081
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_tsp_rand-002_Ncity-4_enc-stdbinary-linear]",
+      "topology": "linear",
+      "qubits": 8,
+      "swap_stats": {
+        "count": 10,
+        "average": 31,
+        "median": 31.0,
+        "min": 31,
+        "max": 31
+      },
+      "depth": 80
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_JW-8-square]",
+      "topology": "square",
+      "qubits": 8,
+      "swap_stats": {
+        "count": 10,
+        "average": 158.9,
+        "median": 158.0,
+        "min": 155,
+        "max": 167
+      },
+      "depth": 1271
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_JW-8-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 8,
+      "swap_stats": {
+        "count": 10,
+        "average": 310.6,
+        "median": 302.0,
+        "min": 274,
+        "max": 348
+      },
+      "depth": 1271
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_JW-8-linear]",
+      "topology": "linear",
+      "qubits": 8,
+      "swap_stats": {
+        "count": 10,
+        "average": 316.2,
+        "median": 316.0,
+        "min": 274,
+        "max": 364
+      },
+      "depth": 1271
+    },
+    {
+      "name": "test_hamiltonians[ham_tsp_prob-ulysses22_Ncity-8_enc-stdbinary-square]",
+      "topology": "square",
+      "qubits": 24,
+      "swap_stats": {
+        "count": 10,
+        "average": 311.5,
+        "median": 313.0,
+        "min": 288,
+        "max": 351
+      },
+      "depth": 1734
+    },
+    {
+      "name": "test_hamiltonians[ham_tsp_prob-ulysses22_Ncity-8_enc-stdbinary-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 24,
+      "swap_stats": {
+        "count": 10,
+        "average": 608.6,
+        "median": 604.0,
+        "min": 566,
+        "max": 681
+      },
+      "depth": 1751
+    },
+    {
+      "name": "test_hamiltonians[ham_tsp_prob-ulysses22_Ncity-8_enc-stdbinary-linear]",
+      "topology": "linear",
+      "qubits": 24,
+      "swap_stats": {
+        "count": 10,
+        "average": 916.2,
+        "median": 917.0,
+        "min": 863,
+        "max": 998
+      },
+      "depth": 1719
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_JW24-square]",
+      "topology": "square",
+      "qubits": 24,
+      "swap_stats": {
+        "count": 10,
+        "average": 21580.8,
+        "median": 21510.5,
+        "min": 20923,
+        "max": 22326
+      },
+      "depth": 136303
+    },
+    {
+      "name": "test_hamiltonians[ham_reg-5_n-10_rinst-07-linear]",
+      "topology": "linear",
+      "qubits": 30,
+      "swap_stats": {
+        "count": 10,
+        "average": 5330.4,
+        "median": 4904.0,
+        "min": 4523,
+        "max": 6762
+      },
+      "depth": 4919
+    },
+    {
+      "name": "test_hamiltonians[ham_mu_y_prime_enc_unary_dvalues_16-16-16-16-16-16-square]",
+      "topology": "square",
+      "qubits": 32,
+      "swap_stats": {
+        "count": 10,
+        "average": 11,
+        "median": 11.0,
+        "min": 11,
+        "max": 11
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_mu_y_prime_enc_unary_dvalues_16-16-16-16-16-16-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 32,
+      "swap_stats": {
+        "count": 10,
+        "average": 31,
+        "median": 31.0,
+        "min": 31,
+        "max": 31
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_JW-10-square]",
+      "topology": "square",
+      "qubits": 10,
+      "swap_stats": {
+        "count": 10,
+        "average": 348,
+        "median": 354.5,
+        "min": 250,
+        "max": 464
+      },
+      "depth": 2263
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_JW-10-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 10,
+      "swap_stats": {
+        "count": 10,
+        "average": 654.3,
+        "median": 654.5,
+        "min": 567,
+        "max": 753
+      },
+      "depth": 2263
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_JW-10-linear]",
+      "topology": "linear",
+      "qubits": 10,
+      "swap_stats": {
+        "count": 10,
+        "average": 1041.9,
+        "median": 1011.0,
+        "min": 819,
+        "max": 1288
+      },
+      "depth": 2263
+    },
+    {
+      "name": "test_hamiltonians[ham_mu_x_prime_enc_stdbinary_dvalues_8-8-8-8-8-8-8-8-8-4-4-4-4-4-4-square]",
+      "topology": "square",
+      "qubits": 11,
+      "swap_stats": {
+        "count": 10,
+        "average": 4,
+        "median": 4.0,
+        "min": 4,
+        "max": 4
+      },
+      "depth": 43
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-14_U-10_enc-stdbinary_d-4-square]",
+      "topology": "square",
+      "qubits": 28,
+      "swap_stats": {
+        "count": 10,
+        "average": 50.6,
+        "median": 51.0,
+        "min": 49,
+        "max": 51
+      },
+      "depth": 2172
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-14_U-10_enc-stdbinary_d-4-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 28,
+      "swap_stats": {
+        "count": 10,
+        "average": 139.3,
+        "median": 125.0,
+        "min": 114,
+        "max": 215
+      },
+      "depth": 2172
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-14_U-10_enc-stdbinary_d-4-linear]",
+      "topology": "linear",
+      "qubits": 28,
+      "swap_stats": {
+        "count": 10,
+        "average": 101.4,
+        "median": 101.0,
+        "min": 97,
+        "max": 109
+      },
+      "depth": 2172
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-2D-triag-nonpbc-qubitnodes_Lx-3_Ly-5_U-30_enc-gray_d-4-square]",
+      "topology": "square",
+      "qubits": 28,
+      "swap_stats": {
+        "count": 10,
+        "average": 497.7,
+        "median": 497.0,
+        "min": 471,
+        "max": 538
+      },
+      "depth": 3071
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-3D-grid-nonpbc-qubitnodes_Lx-2_Ly-2_Lz-2_U-20_enc-unary_d-4-square]",
+      "topology": "square",
+      "qubits": 32,
+      "swap_stats": {
+        "count": 10,
+        "average": 837,
+        "median": 836.0,
+        "min": 779,
+        "max": 930
+      },
+      "depth": 5101
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-3D-grid-nonpbc-qubitnodes_Lx-2_Ly-2_Lz-2_U-20_enc-unary_d-4-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 32,
+      "swap_stats": {
+        "count": 10,
+        "average": 2019.5,
+        "median": 1990.5,
+        "min": 1811,
+        "max": 2384
+      },
+      "depth": 5059
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-3D-grid-nonpbc-qubitnodes_Lx-2_Ly-2_Lz-2_U-20_enc-unary_d-4-linear]",
+      "topology": "linear",
+      "qubits": 32,
+      "swap_stats": {
+        "count": 10,
+        "average": 2764.6,
+        "median": 2755.0,
+        "min": 2644,
+        "max": 2938
+      },
+      "depth": 5000
+    },
+    {
+      "name": "test_hamiltonians[ham_tsp_prob-lin105_Ncity-7_enc-unary-square]",
+      "topology": "square",
+      "qubits": 49,
+      "swap_stats": {
+        "count": 10,
+        "average": 295.4,
+        "median": 295.5,
+        "min": 285,
+        "max": 310
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_tsp_prob-lin105_Ncity-7_enc-unary-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 49,
+      "swap_stats": {
+        "count": 10,
+        "average": 464.9,
+        "median": 465.0,
+        "min": 450,
+        "max": 486
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_tsp_prob-lin105_Ncity-7_enc-unary-linear]",
+      "topology": "linear",
+      "qubits": 49,
+      "swap_stats": {
+        "count": 10,
+        "average": 662.2,
+        "median": 667.5,
+        "min": 633,
+        "max": 690
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-grid-nonpbc-qubitnodes_Lx-5_Ly-15_h-3-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 75,
+      "swap_stats": {
+        "count": 10,
+        "average": 252,
+        "median": 250.5,
+        "min": 243,
+        "max": 267
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-grid-nonpbc-qubitnodes_Lx-5_Ly-15_h-3-linear]",
+      "topology": "linear",
+      "qubits": 75,
+      "swap_stats": {
+        "count": 10,
+        "average": 324.9,
+        "median": 320.5,
+        "min": 313,
+        "max": 349
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-10_U-30_enc-unary_d-8-linear]",
+      "topology": "linear",
+      "qubits": 80,
+      "swap_stats": {
+        "count": 10,
+        "average": 11908.2,
+        "median": 12122.5,
+        "min": 9969,
+        "max": 13369
+      },
+      "depth": 23079
+    },
+    {
+      "name": "test_hamiltonians[ham_4-flat100-7.cnf-90-cc-square]",
+      "topology": "square",
+      "qubits": 90,
+      "swap_stats": {
+        "count": 10,
+        "average": 142.8,
+        "median": 143.0,
+        "min": 141,
+        "max": 145
+      },
+      "depth": 11
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-2D-grid-nonpbc-qubitnodes_Lx-7_Ly-7_U-70_enc-gray_d-4-square]",
+      "topology": "square",
+      "qubits": 98,
+      "swap_stats": {
+        "count": 10,
+        "average": 2790.3,
+        "median": 2717.5,
+        "min": 2457,
+        "max": 3157
+      },
+      "depth": 9181
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-grid-nonpbc-qubitnodes_Lx-5_Ly-58_h-2-square]",
+      "topology": "square",
+      "qubits": 290,
+      "swap_stats": {
+        "count": 10,
+        "average": 1064,
+        "median": 1066.0,
+        "min": 1030,
+        "max": 1107
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-grid-pbc-qubitnodes_Lx-2_Ly-185_h-0.5-square]",
+      "topology": "square",
+      "qubits": 370,
+      "swap_stats": {
+        "count": 10,
+        "average": 1278.5,
+        "median": 1280.0,
+        "min": 1236,
+        "max": 1305
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-grid-pbc-qubitnodes_Lx-2_Ly-185_h-0.5-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 370,
+      "swap_stats": {
+        "count": 10,
+        "average": 2252.4,
+        "median": 2249.5,
+        "min": 2206,
+        "max": 2287
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-grid-nonpbc-qubitnodes_Lx-4_Ly-133_h-0.1-square]",
+      "topology": "square",
+      "qubits": 532,
+      "swap_stats": {
+        "count": 10,
+        "average": 2105.2,
+        "median": 2100.0,
+        "min": 2044,
+        "max": 2157
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-grid-nonpbc-qubitnodes_Lx-4_Ly-133_h-0.1-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 532,
+      "swap_stats": {
+        "count": 10,
+        "average": 3075.9,
+        "median": 3076.5,
+        "min": 2956,
+        "max": 3247
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-grid-nonpbc-qubitnodes_Lx-4_Ly-133_h-0.1-linear]",
+      "topology": "linear",
+      "qubits": 532,
+      "swap_stats": {
+        "count": 10,
+        "average": 1975.9,
+        "median": 1924.5,
+        "min": 1902,
+        "max": 2125
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-grid-pbc-qubitnodes_Lx-4_Ly-148_h-6-linear]",
+      "topology": "linear",
+      "qubits": 592,
+      "swap_stats": {
+        "count": 10,
+        "average": 5676.8,
+        "median": 5661.0,
+        "min": 5335,
+        "max": 6002
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_fh-graph-2D-grid-pbc-qubitnodes_Lx-5_Ly-72_U-0_enc-parity-square]",
+      "topology": "square",
+      "qubits": 720,
+      "swap_stats": {
+        "count": 10,
+        "average": 7059.4,
+        "median": 7058.0,
+        "min": 6624,
+        "max": 7354
+      },
+      "depth": 32997
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-grid-pbc-qubitnodes_Lx-4_Ly-190_h-0-square]",
+      "topology": "square",
+      "qubits": 760,
+      "swap_stats": {
+        "count": 10,
+        "average": 4008.8,
+        "median": 4002.5,
+        "min": 3961,
+        "max": 4067
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_JW10-linear]",
+      "topology": "linear",
+      "qubits": 10,
+      "swap_stats": {
+        "count": 10,
+        "average": 964.2,
+        "median": 914.0,
+        "min": 819,
+        "max": 1359
+      },
+      "depth": 2263
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_parity10-square]",
+      "topology": "square",
+      "qubits": 10,
+      "swap_stats": {
+        "count": 10,
+        "average": 279.7,
+        "median": 283.0,
+        "min": 199,
+        "max": 359
+      },
+      "depth": 2440
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_parity10-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 10,
+      "swap_stats": {
+        "count": 10,
+        "average": 470.1,
+        "median": 469.0,
+        "min": 457,
+        "max": 490
+      },
+      "depth": 2440
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_parity10-linear]",
+      "topology": "linear",
+      "qubits": 10,
+      "swap_stats": {
+        "count": 10,
+        "average": 775.9,
+        "median": 728.5,
+        "min": 574,
+        "max": 1081
+      },
+      "depth": 2446
+    },
+    {
+      "name": "test_hamiltonians[ham_tsp_prob-ts225_Ncity-5_enc-unary-linear]",
+      "topology": "linear",
+      "qubits": 25,
+      "swap_stats": {
+        "count": 10,
+        "average": 186.3,
+        "median": 189.0,
+        "min": 168,
+        "max": 189
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-1D-grid-pbc-qubitnodes_Lx-26_h-6-square]",
+      "topology": "square",
+      "qubits": 26,
+      "swap_stats": {
+        "count": 10,
+        "average": 6,
+        "median": 6.0,
+        "min": 6,
+        "max": 6
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-1D-grid-pbc-qubitnodes_Lx-26_h-6-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 26,
+      "swap_stats": {
+        "count": 10,
+        "average": 22,
+        "median": 22.0,
+        "min": 22,
+        "max": 22
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-1D-grid-pbc-qubitnodes_Lx-26_h-6-linear]",
+      "topology": "linear",
+      "qubits": 26,
+      "swap_stats": {
+        "count": 10,
+        "average": 25.1,
+        "median": 25.0,
+        "min": 25,
+        "max": 26
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_0-uuf100-0810.cnf-40-res-square]",
+      "topology": "square",
+      "qubits": 40,
+      "swap_stats": {
+        "count": 10,
+        "average": 216.2,
+        "median": 218.5,
+        "min": 193,
+        "max": 231
+      },
+      "depth": 74
+    },
+    {
+      "name": "test_hamiltonians[ham_0-uuf100-0810.cnf-40-res-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 40,
+      "swap_stats": {
+        "count": 10,
+        "average": 417.3,
+        "median": 417.0,
+        "min": 389,
+        "max": 438
+      },
+      "depth": 68
+    },
+    {
+      "name": "test_hamiltonians[ham_0-uuf100-0810.cnf-40-res-linear]",
+      "topology": "linear",
+      "qubits": 40,
+      "swap_stats": {
+        "count": 10,
+        "average": 854.4,
+        "median": 857.0,
+        "min": 832,
+        "max": 873
+      },
+      "depth": 70
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-24_U-20_enc-stdbinary_d-4-square]",
+      "topology": "square",
+      "qubits": 48,
+      "swap_stats": {
+        "count": 10,
+        "average": 83,
+        "median": 83.0,
+        "min": 83,
+        "max": 83
+      },
+      "depth": 3732
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-24_U-20_enc-stdbinary_d-4-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 48,
+      "swap_stats": {
+        "count": 10,
+        "average": 279.2,
+        "median": 258.5,
+        "min": 227,
+        "max": 383
+      },
+      "depth": 3743
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-24_U-20_enc-stdbinary_d-4-linear]",
+      "topology": "linear",
+      "qubits": 48,
+      "swap_stats": {
+        "count": 10,
+        "average": 193.6,
+        "median": 187.0,
+        "min": 175,
+        "max": 253
+      },
+      "depth": 3732
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-2D-triag-pbc-qubitnodes_Lx-5_Ly-5_U-30_enc-unary_d-4-square]",
+      "topology": "square",
+      "qubits": 60,
+      "swap_stats": {
+        "count": 10,
+        "average": 4433,
+        "median": 4402.5,
+        "min": 4260,
+        "max": 4707
+      },
+      "depth": 19071
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-2D-triag-pbc-qubitnodes_Lx-5_Ly-5_U-30_enc-unary_d-4-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 60,
+      "swap_stats": {
+        "count": 10,
+        "average": 10747.6,
+        "median": 10740.5,
+        "min": 9526,
+        "max": 13079
+      },
+      "depth": 18953
+    },
+    {
+      "name": "test_hamiltonians[ham_tsp_prob-pr76_Ncity-10_enc-unary-square]",
+      "topology": "square",
+      "qubits": 100,
+      "swap_stats": {
+        "count": 10,
+        "average": 945.7,
+        "median": 942.0,
+        "min": 904,
+        "max": 996
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_will199gpia,n-60,rinst-8-square]",
+      "topology": "square",
+      "qubits": 120,
+      "swap_stats": {
+        "count": 10,
+        "average": 2416.8,
+        "median": 2413.5,
+        "min": 2282,
+        "max": 2651
+      },
+      "depth": 2064
+    },
+    {
+      "name": "test_hamiltonians[ham_fh-graph-1D-grid-nonpbc-qubitnodes_Lx-90_U-2_enc-jw-square]",
+      "topology": "square",
+      "qubits": 180,
+      "swap_stats": {
+        "count": 10,
+        "average": 358.2,
+        "median": 356.5,
+        "min": 338,
+        "max": 381
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-grid-nonpbc-qubitnodes_Lx-19_Ly-19_h-5-square]",
+      "topology": "square",
+      "qubits": 361,
+      "swap_stats": {
+        "count": 10,
+        "average": 765.8,
+        "median": 761.0,
+        "min": 744,
+        "max": 805
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-grid-nonpbc-qubitnodes_Lx-19_Ly-19_h-5-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 361,
+      "swap_stats": {
+        "count": 10,
+        "average": 2669,
+        "median": 2684.0,
+        "min": 2599,
+        "max": 2713
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-grid-pbc-qubitnodes_Lx-4_Ly-148_h-6-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 592,
+      "swap_stats": {
+        "count": 10,
+        "average": 4462.4,
+        "median": 4463.5,
+        "min": 4367,
+        "max": 4576
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-grid-nonpbc-qubitnodes_Lx-5_Ly-186_h-0.5-linear]",
+      "topology": "linear",
+      "qubits": 930,
+      "swap_stats": {
+        "count": 10,
+        "average": 4363.8,
+        "median": 4364.5,
+        "min": 4333,
+        "max": 4409
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-grid-pbc-qubitnodes_Lx-5_Ly-186_h-3-linear]",
+      "topology": "linear",
+      "qubits": 930,
+      "swap_stats": {
+        "count": 10,
+        "average": 11269.3,
+        "median": 11406.5,
+        "min": 10319,
+        "max": 11817
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_mu_y_prime_enc_stdbinary_dvalues_16-16-16-16-8-8-8-linear]",
+      "topology": "linear",
+      "qubits": 4,
+      "swap_stats": {
+        "count": 10,
+        "average": 9,
+        "median": 9.0,
+        "min": 9,
+        "max": 9
+      },
+      "depth": 134
+    },
+    {
+      "name": "test_hamiltonians[ham_mu_y_prime_enc_gray_dvalues_16-16-16-square]",
+      "topology": "square",
+      "qubits": 4,
+      "swap_stats": {
+        "count": 10,
+        "average": 9,
+        "median": 9.0,
+        "min": 9,
+        "max": 9
+      },
+      "depth": 72
+    },
+    {
+      "name": "test_hamiltonians[ham_mu_y_prime_enc_gray_dvalues_16-16-16-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 4,
+      "swap_stats": {
+        "count": 10,
+        "average": 16,
+        "median": 16.0,
+        "min": 16,
+        "max": 16
+      },
+      "depth": 72
+    },
+    {
+      "name": "test_hamiltonians[ham_mu_y_prime_enc_gray_dvalues_16-16-16-linear]",
+      "topology": "linear",
+      "qubits": 4,
+      "swap_stats": {
+        "count": 10,
+        "average": 16,
+        "median": 16.0,
+        "min": 16,
+        "max": 16
+      },
+      "depth": 72
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_parity12-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 12,
+      "swap_stats": {
+        "count": 10,
+        "average": 1762,
+        "median": 1737.0,
+        "min": 1548,
+        "max": 2085
+      },
+      "depth": 6892
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_parity12-linear]",
+      "topology": "linear",
+      "qubits": 12,
+      "swap_stats": {
+        "count": 10,
+        "average": 2331.7,
+        "median": 2022.0,
+        "min": 1694,
+        "max": 3366
+      },
+      "depth": 6900
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_BK12-square]",
+      "topology": "square",
+      "qubits": 12,
+      "swap_stats": {
+        "count": 10,
+        "average": 1074.6,
+        "median": 1102.0,
+        "min": 968,
+        "max": 1140
+      },
+      "depth": 5695
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_BK12-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 12,
+      "swap_stats": {
+        "count": 10,
+        "average": 2316,
+        "median": 2337.0,
+        "min": 2160,
+        "max": 2417
+      },
+      "depth": 5695
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_BK12-linear]",
+      "topology": "linear",
+      "qubits": 12,
+      "swap_stats": {
+        "count": 10,
+        "average": 3164.9,
+        "median": 3176.0,
+        "min": 3062,
+        "max": 3227
+      },
+      "depth": 5698
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_JW12-square]",
+      "topology": "square",
+      "qubits": 12,
+      "swap_stats": {
+        "count": 10,
+        "average": 754,
+        "median": 733.5,
+        "min": 646,
+        "max": 903
+      },
+      "depth": 6503
+    },
+    {
+      "name": "test_hamiltonians[ham_2-uf100-0601.cnf-46-res-square]",
+      "topology": "square",
+      "qubits": 46,
+      "swap_stats": {
+        "count": 10,
+        "average": 437.6,
+        "median": 436.5,
+        "min": 402,
+        "max": 464
+      },
+      "depth": 139
+    },
+    {
+      "name": "test_hamiltonians[ham_2-uf100-0601.cnf-46-res-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 46,
+      "swap_stats": {
+        "count": 10,
+        "average": 779.2,
+        "median": 768.5,
+        "min": 719,
+        "max": 858
+      },
+      "depth": 123
+    },
+    {
+      "name": "test_hamiltonians[ham_2-uf100-0601.cnf-46-res-linear]",
+      "topology": "linear",
+      "qubits": 46,
+      "swap_stats": {
+        "count": 10,
+        "average": 1827.9,
+        "median": 1818.5,
+        "min": 1702,
+        "max": 1994
+      },
+      "depth": 125
+    },
+    {
+      "name": "test_hamiltonians[ham_dsjc1000.1,n-36,rinst-4-square]",
+      "topology": "square",
+      "qubits": 72,
+      "swap_stats": {
+        "count": 10,
+        "average": 937.6,
+        "median": 920.0,
+        "min": 866,
+        "max": 1027
+      },
+      "depth": 989
+    },
+    {
+      "name": "test_hamiltonians[ham_dsjc1000.1,n-36,rinst-4-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 72,
+      "swap_stats": {
+        "count": 10,
+        "average": 1685.5,
+        "median": 1699.5,
+        "min": 1562,
+        "max": 1752
+      },
+      "depth": 927
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-triag-pbc-qubitnodes_Lx-13_Ly-13_h-0.1-linear]",
+      "topology": "linear",
+      "qubits": 91,
+      "swap_stats": {
+        "count": 10,
+        "average": 1698.1,
+        "median": 1675.0,
+        "min": 1625,
+        "max": 1847
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-46_U-2_enc-gray_d-4-square]",
+      "topology": "square",
+      "qubits": 92,
+      "swap_stats": {
+        "count": 10,
+        "average": 913.9,
+        "median": 924.0,
+        "min": 781,
+        "max": 1039
+      },
+      "depth": 5144
+    },
+    {
+      "name": "test_hamiltonians[ham_fh-graph-1D-grid-pbc-qubitnodes_Lx-50_U-2_enc-jw-square]",
+      "topology": "square",
+      "qubits": 100,
+      "swap_stats": {
+        "count": 10,
+        "average": 320.3,
+        "median": 317.0,
+        "min": 290,
+        "max": 366
+      },
+      "depth": 392
+    },
+    {
+      "name": "test_hamiltonians[ham_fh-graph-1D-grid-pbc-qubitnodes_Lx-50_U-2_enc-jw-linear]",
+      "topology": "linear",
+      "qubits": 100,
+      "swap_stats": {
+        "count": 10,
+        "average": 470,
+        "median": 470.0,
+        "min": 470,
+        "max": 470
+      },
+      "depth": 392
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-triag-pbc-qubitnodes_Lx-19_Ly-19_h-0.5-square]",
+      "topology": "square",
+      "qubits": 190,
+      "swap_stats": {
+        "count": 10,
+        "average": 1076.5,
+        "median": 1089.0,
+        "min": 980,
+        "max": 1129
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-triag-pbc-qubitnodes_Lx-19_Ly-19_h-0.5-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 190,
+      "swap_stats": {
+        "count": 10,
+        "average": 1925.5,
+        "median": 1924.0,
+        "min": 1869,
+        "max": 1977
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_fh-graph-1D-grid-pbc-qubitnodes_Lx-160_U-12_enc-parity-square]",
+      "topology": "square",
+      "qubits": 320,
+      "swap_stats": {
+        "count": 10,
+        "average": 1841.2,
+        "median": 1814.0,
+        "min": 1780,
+        "max": 1968
+      },
+      "depth": 3492
+    },
+    {
+      "name": "test_hamiltonians[ham_fh-graph-1D-grid-pbc-qubitnodes_Lx-160_U-12_enc-parity-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 320,
+      "swap_stats": {
+        "count": 10,
+        "average": 3515.8,
+        "median": 3494.5,
+        "min": 3381,
+        "max": 3696
+      },
+      "depth": 3492
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-triag-nonpbc-qubitnodes_Lx-3_Ly-160_h-0.1-square]",
+      "topology": "square",
+      "qubits": 324,
+      "swap_stats": {
+        "count": 10,
+        "average": 1210.1,
+        "median": 1207.0,
+        "min": 1184,
+        "max": 1234
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-triag-nonpbc-qubitnodes_Lx-3_Ly-160_h-0.1-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 324,
+      "swap_stats": {
+        "count": 10,
+        "average": 1876.1,
+        "median": 1874.0,
+        "min": 1842,
+        "max": 1921
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_enc_gray_dvalues_d-level-16-square]",
+      "topology": "square",
+      "qubits": 4,
+      "swap_stats": {
+        "count": 10,
+        "average": 23,
+        "median": 23.0,
+        "min": 23,
+        "max": 23
+      },
+      "depth": 306
+    },
+    {
+      "name": "test_hamiltonians[ham_enc_gray_dvalues_d-level-16-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 4,
+      "swap_stats": {
+        "count": 10,
+        "average": 38,
+        "median": 38.0,
+        "min": 38,
+        "max": 38
+      },
+      "depth": 306
+    },
+    {
+      "name": "test_hamiltonians[ham_enc_gray_dvalues_d-level-16-linear]",
+      "topology": "linear",
+      "qubits": 4,
+      "swap_stats": {
+        "count": 10,
+        "average": 38,
+        "median": 38.0,
+        "min": 38,
+        "max": 38
+      },
+      "depth": 306
+    },
+    {
+      "name": "test_hamiltonians[ham_mu_y_prime_enc_stdbinary_dvalues_8-8-8-8-8-8-square]",
+      "topology": "square",
+      "qubits": 6,
+      "swap_stats": {
+        "count": 10,
+        "average": 2,
+        "median": 2.0,
+        "min": 2,
+        "max": 2
+      },
+      "depth": 28
+    },
+    {
+      "name": "test_hamiltonians[ham_gnp-k_5_n-24_rinst-04-square]",
+      "topology": "square",
+      "qubits": 24,
+      "swap_stats": {
+        "count": 10,
+        "average": 176.1,
+        "median": 173.0,
+        "min": 166,
+        "max": 188
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_gnp-k_5_n-24_rinst-04-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 24,
+      "swap_stats": {
+        "count": 10,
+        "average": 251.7,
+        "median": 247.0,
+        "min": 246,
+        "max": 285
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_gnp-k_5_n-24_rinst-04-linear]",
+      "topology": "linear",
+      "qubits": 24,
+      "swap_stats": {
+        "count": 10,
+        "average": 297.3,
+        "median": 297.0,
+        "min": 297,
+        "max": 299
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_8-uuf100-0509.cnf-40-cc-square]",
+      "topology": "square",
+      "qubits": 40,
+      "swap_stats": {
+        "count": 10,
+        "average": 254.2,
+        "median": 256.0,
+        "min": 233,
+        "max": 274
+      },
+      "depth": 84
+    },
+    {
+      "name": "test_hamiltonians[ham_8-uuf100-0509.cnf-40-cc-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 40,
+      "swap_stats": {
+        "count": 10,
+        "average": 493.2,
+        "median": 484.5,
+        "min": 459,
+        "max": 546
+      },
+      "depth": 69
+    },
+    {
+      "name": "test_hamiltonians[ham_8-uuf100-0509.cnf-40-cc-linear]",
+      "topology": "linear",
+      "qubits": 40,
+      "swap_stats": {
+        "count": 10,
+        "average": 1004.4,
+        "median": 996.0,
+        "min": 932,
+        "max": 1089
+      },
+      "depth": 76
+    },
+    {
+      "name": "test_hamiltonians[ham_mu_x_prime_enc_unary_dvalues_16-16-16-16-16-16-16-16-16-16-16-16-16-16-16-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 64,
+      "swap_stats": {
+        "count": 10,
+        "average": 70.9,
+        "median": 71.0,
+        "min": 70,
+        "max": 72
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_tsp_prob-kroD100_Ncity-16_enc-stdbinary-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 64,
+      "swap_stats": {
+        "count": 10,
+        "average": 10727.3,
+        "median": 10868.0,
+        "min": 8955,
+        "max": 11588
+      },
+      "depth": 22957
+    },
+    {
+      "name": "test_hamiltonians[ham_tsp_prob-kroD100_Ncity-16_enc-stdbinary-linear]",
+      "topology": "linear",
+      "qubits": 64,
+      "swap_stats": {
+        "count": 10,
+        "average": 17533.5,
+        "median": 17798.0,
+        "min": 15893,
+        "max": 19227
+      },
+      "depth": 22953
+    },
+    {
+      "name": "test_hamiltonians[ham_4-flat100-7.cnf-90-cc-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 90,
+      "swap_stats": {
+        "count": 10,
+        "average": 227,
+        "median": 226.0,
+        "min": 222,
+        "max": 237
+      },
+      "depth": 11
+    },
+    {
+      "name": "test_hamiltonians[ham_4-flat100-7.cnf-90-cc-linear]",
+      "topology": "linear",
+      "qubits": 90,
+      "swap_stats": {
+        "count": 10,
+        "average": 709.6,
+        "median": 708.5,
+        "min": 696,
+        "max": 721
+      },
+      "depth": 15
+    },
+    {
+      "name": "test_hamiltonians[ham_will199gpia,n-60,rinst-8-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 120,
+      "swap_stats": {
+        "count": 10,
+        "average": 4829,
+        "median": 4818.0,
+        "min": 4475,
+        "max": 5374
+      },
+      "depth": 1976
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-2D-triag-nonpbc-qubitnodes_Lx-11_Ly-11_U-100_enc-gray_d-4-square]",
+      "topology": "square",
+      "qubits": 156,
+      "swap_stats": {
+        "count": 10,
+        "average": 9293.9,
+        "median": 9281.0,
+        "min": 8371,
+        "max": 10192
+      },
+      "depth": 21699
+    },
+    {
+      "name": "test_hamiltonians[ham_fh-graph-1D-grid-nonpbc-qubitnodes_Lx-90_U-2_enc-jw-linear]",
+      "topology": "linear",
+      "qubits": 180,
+      "swap_stats": {
+        "count": 10,
+        "average": 178,
+        "median": 178.0,
+        "min": 178,
+        "max": 178
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_fh-graph-2D-grid-pbc-qubitnodes_Lx-2_Ly-105_U-8_enc-bk-linear]",
+      "topology": "linear",
+      "qubits": 420,
+      "swap_stats": {
+        "count": 10,
+        "average": 41691.8,
+        "median": 41690.0,
+        "min": 40937,
+        "max": 42453
+      },
+      "depth": 4221
+    },
+    {
+      "name": "test_hamiltonians[ham_mu_x_prime_enc_stdbinary_dvalues_8-8-8-8-8-8-8-8-8-4-4-4-4-4-4-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 11,
+      "swap_stats": {
+        "count": 10,
+        "average": 6,
+        "median": 6.0,
+        "min": 6,
+        "max": 6
+      },
+      "depth": 28
+    },
+    {
+      "name": "test_hamiltonians[ham_mu_x_prime_enc_stdbinary_dvalues_8-8-8-8-8-8-8-8-8-4-4-4-4-4-4-linear]",
+      "topology": "linear",
+      "qubits": 11,
+      "swap_stats": {
+        "count": 10,
+        "average": 6,
+        "median": 6.0,
+        "min": 6,
+        "max": 6
+      },
+      "depth": 28
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_parity12-square]",
+      "topology": "square",
+      "qubits": 12,
+      "swap_stats": {
+        "count": 10,
+        "average": 643.5,
+        "median": 642.0,
+        "min": 532,
+        "max": 771
+      },
+      "depth": 6892
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-2D-triag-nonpbc-qubitnodes_Lx-3_Ly-5_U-30_enc-gray_d-4-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 28,
+      "swap_stats": {
+        "count": 10,
+        "average": 1136.8,
+        "median": 1109.5,
+        "min": 976,
+        "max": 1318
+      },
+      "depth": 3061
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-2D-triag-nonpbc-qubitnodes_Lx-3_Ly-5_U-30_enc-gray_d-4-linear]",
+      "topology": "linear",
+      "qubits": 28,
+      "swap_stats": {
+        "count": 10,
+        "average": 3224.5,
+        "median": 3243.5,
+        "min": 2835,
+        "max": 3577
+      },
+      "depth": 3068
+    },
+    {
+      "name": "test_hamiltonians[ham_reg-5_n-10_rinst-07-square]",
+      "topology": "square",
+      "qubits": 30,
+      "swap_stats": {
+        "count": 10,
+        "average": 1388.2,
+        "median": 1371.5,
+        "min": 1297,
+        "max": 1510
+      },
+      "depth": 5005
+    },
+    {
+      "name": "test_hamiltonians[ham_reg-5_n-10_rinst-07-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 30,
+      "swap_stats": {
+        "count": 10,
+        "average": 3077.4,
+        "median": 3039.0,
+        "min": 2982,
+        "max": 3265
+      },
+      "depth": 4860
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-2D-triag-pbc-qubitnodes_Lx-5_Ly-5_U-30_enc-unary_d-4-linear]",
+      "topology": "linear",
+      "qubits": 60,
+      "swap_stats": {
+        "count": 10,
+        "average": 15583.1,
+        "median": 15546.5,
+        "min": 15419,
+        "max": 15845
+      },
+      "depth": 18737
+    },
+    {
+      "name": "test_hamiltonians[ham_mu_x_prime_enc_unary_dvalues_16-16-16-16-16-16-16-16-16-16-16-16-16-16-16-square]",
+      "topology": "square",
+      "qubits": 64,
+      "swap_stats": {
+        "count": 10,
+        "average": 26.1,
+        "median": 26.5,
+        "min": 25,
+        "max": 27
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_gnp-k_5_n-90_rinst-02-linear]",
+      "topology": "linear",
+      "qubits": 90,
+      "swap_stats": {
+        "count": 10,
+        "average": 28174.3,
+        "median": 28093.5,
+        "min": 27654,
+        "max": 29214
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-triag-pbc-qubitnodes_Lx-13_Ly-13_h-0.1-square]",
+      "topology": "square",
+      "qubits": 91,
+      "swap_stats": {
+        "count": 10,
+        "average": 352.2,
+        "median": 352.0,
+        "min": 333,
+        "max": 363
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_tsp_prob-st70_Ncity-10_enc-unary-linear]",
+      "topology": "linear",
+      "qubits": 100,
+      "swap_stats": {
+        "count": 10,
+        "average": 4086.9,
+        "median": 3985.0,
+        "min": 3727,
+        "max": 4738
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-2D-triag-pbc-qubitnodes_Lx-10_Ly-10_U-30_enc-stdbinary_d-4-square]",
+      "topology": "square",
+      "qubits": 100,
+      "swap_stats": {
+        "count": 10,
+        "average": 4254.1,
+        "median": 4396.5,
+        "min": 3692,
+        "max": 4827
+      },
+      "depth": 22729
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-2D-triag-pbc-qubitnodes_Lx-3_Ly-22_U-70_enc-unary_d-4-linear]",
+      "topology": "linear",
+      "qubits": 132,
+      "swap_stats": {
+        "count": 10,
+        "average": 51962.1,
+        "median": 51837.5,
+        "min": 51170,
+        "max": 53000
+      },
+      "depth": 40983
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-triag-pbc-qubitnodes_Lx-19_Ly-19_h-0.5-linear]",
+      "topology": "linear",
+      "qubits": 190,
+      "swap_stats": {
+        "count": 10,
+        "average": 5732.6,
+        "median": 5713.5,
+        "min": 5492,
+        "max": 6037
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-grid-pbc-qubitnodes_Lx-4_Ly-190_h-0-linear]",
+      "topology": "linear",
+      "qubits": 760,
+      "swap_stats": {
+        "count": 10,
+        "average": 6459.5,
+        "median": 6459.0,
+        "min": 6435,
+        "max": 6491
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-grid-pbc-qubitnodes_Lx-5_Ly-186_h-3-square]",
+      "topology": "square",
+      "qubits": 930,
+      "swap_stats": {
+        "count": 10,
+        "average": 5347.2,
+        "median": 5337.5,
+        "min": 5229,
+        "max": 5473
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-grid-pbc-qubitnodes_Lx-5_Ly-186_h-3-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 930,
+      "swap_stats": {
+        "count": 10,
+        "average": 7959.9,
+        "median": 7961.0,
+        "min": 7883,
+        "max": 8038
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_mu_y_prime_enc_stdbinary_dvalues_8-8-4-4-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 3,
+      "swap_stats": {
+        "count": 10,
+        "average": 2,
+        "median": 2.0,
+        "min": 2,
+        "max": 2
+      },
+      "depth": 28
+    },
+    {
+      "name": "test_hamiltonians[ham_mu_y_prime_enc_stdbinary_dvalues_8-8-4-4-linear]",
+      "topology": "linear",
+      "qubits": 3,
+      "swap_stats": {
+        "count": 10,
+        "average": 2,
+        "median": 2.0,
+        "min": 2,
+        "max": 2
+      },
+      "depth": 28
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_JW12-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 12,
+      "swap_stats": {
+        "count": 10,
+        "average": 2077.8,
+        "median": 2057.0,
+        "min": 1534,
+        "max": 2665
+      },
+      "depth": 6510
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_JW12-linear]",
+      "topology": "linear",
+      "qubits": 12,
+      "swap_stats": {
+        "count": 10,
+        "average": 2879.8,
+        "median": 2783.5,
+        "min": 2137,
+        "max": 4459
+      },
+      "depth": 6522
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-4_U-40_enc-gray_d-8-square]",
+      "topology": "square",
+      "qubits": 12,
+      "swap_stats": {
+        "count": 10,
+        "average": 695.6,
+        "median": 695.5,
+        "min": 641,
+        "max": 748
+      },
+      "depth": 6742
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-4_U-40_enc-gray_d-8-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 12,
+      "swap_stats": {
+        "count": 10,
+        "average": 1411.2,
+        "median": 1415.5,
+        "min": 1279,
+        "max": 1543
+      },
+      "depth": 6742
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-4_U-40_enc-gray_d-8-linear]",
+      "topology": "linear",
+      "qubits": 12,
+      "swap_stats": {
+        "count": 10,
+        "average": 1802,
+        "median": 1847.5,
+        "min": 1425,
+        "max": 2092
+      },
+      "depth": 6742
+    },
+    {
+      "name": "test_hamiltonians[ham_enc_unary_dvalues_4-4-4-square]",
+      "topology": "square",
+      "qubits": 12,
+      "swap_stats": {
+        "count": 10,
+        "average": 1423.4,
+        "median": 1413.0,
+        "min": 1370,
+        "max": 1480
+      },
+      "depth": 13086
+    },
+    {
+      "name": "test_hamiltonians[ham_gnp-k_4_n-40_rinst-07-square]",
+      "topology": "square",
+      "qubits": 40,
+      "swap_stats": {
+        "count": 10,
+        "average": 871.4,
+        "median": 865.5,
+        "min": 846,
+        "max": 910
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_gnp-k_4_n-40_rinst-07-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 40,
+      "swap_stats": {
+        "count": 10,
+        "average": 1721.4,
+        "median": 1722.0,
+        "min": 1653,
+        "max": 1809
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_gnp-k_4_n-40_rinst-07-linear]",
+      "topology": "linear",
+      "qubits": 40,
+      "swap_stats": {
+        "count": 10,
+        "average": 3595.1,
+        "median": 3608.5,
+        "min": 3508,
+        "max": 3658
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_4-uf100-0246.cnf-70-res-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 70,
+      "swap_stats": {
+        "count": 10,
+        "average": 2832.5,
+        "median": 2828.0,
+        "min": 2716,
+        "max": 2972
+      },
+      "depth": 436
+    },
+    {
+      "name": "test_hamiltonians[ham_4-uf100-0246.cnf-70-res-linear]",
+      "topology": "linear",
+      "qubits": 70,
+      "swap_stats": {
+        "count": 10,
+        "average": 8444.3,
+        "median": 8449.5,
+        "min": 8070,
+        "max": 8738
+      },
+      "depth": 426
+    },
+    {
+      "name": "test_hamiltonians[ham_gnp-k_5_n-90_rinst-02-square]",
+      "topology": "square",
+      "qubits": 90,
+      "swap_stats": {
+        "count": 10,
+        "average": 5260.3,
+        "median": 5245.0,
+        "min": 5146,
+        "max": 5399
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-46_U-2_enc-gray_d-4-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 92,
+      "swap_stats": {
+        "count": 10,
+        "average": 1336.3,
+        "median": 1328.5,
+        "min": 1293,
+        "max": 1398
+      },
+      "depth": 5144
+    },
+    {
+      "name": "test_hamiltonians[ham_will199gpia,n-60,rinst-8-linear]",
+      "topology": "linear",
+      "qubits": 120,
+      "swap_stats": {
+        "count": 10,
+        "average": 8234.1,
+        "median": 8357.5,
+        "min": 7749,
+        "max": 8636
+      },
+      "depth": 1929
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-60_U-10_enc-stdbinary_d-4-square]",
+      "topology": "square",
+      "qubits": 120,
+      "swap_stats": {
+        "count": 10,
+        "average": 365.7,
+        "median": 339.5,
+        "min": 326,
+        "max": 470
+      },
+      "depth": 9348
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-2D-triag-pbc-qubitnodes_Lx-3_Ly-22_U-70_enc-unary_d-4-square]",
+      "topology": "square",
+      "qubits": 132,
+      "swap_stats": {
+        "count": 10,
+        "average": 13664,
+        "median": 13597.5,
+        "min": 12557,
+        "max": 14654
+      },
+      "depth": 42014
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-2D-triag-pbc-qubitnodes_Lx-3_Ly-22_U-70_enc-unary_d-4-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 132,
+      "swap_stats": {
+        "count": 10,
+        "average": 31937.6,
+        "median": 32171.0,
+        "min": 29596,
+        "max": 36299
+      },
+      "depth": 41799
+    },
+    {
+      "name": "test_hamiltonians[ham_gnp-k_2_n-4_rinst-05-square]",
+      "topology": "square",
+      "qubits": 4,
+      "swap_stats": {
+        "count": 10,
+        "average": 4,
+        "median": 4.0,
+        "min": 4,
+        "max": 4
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_gnp-k_2_n-4_rinst-05-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 4,
+      "swap_stats": {
+        "count": 10,
+        "average": 1,
+        "median": 1.0,
+        "min": 1,
+        "max": 1
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_gnp-k_2_n-4_rinst-05-linear]",
+      "topology": "linear",
+      "qubits": 4,
+      "swap_stats": {
+        "count": 10,
+        "average": 4,
+        "median": 4.0,
+        "min": 4,
+        "max": 4
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_parity-4-square]",
+      "topology": "square",
+      "qubits": 4,
+      "swap_stats": {
+        "count": 10,
+        "average": 7,
+        "median": 7.0,
+        "min": 7,
+        "max": 7
+      },
+      "depth": 66
+    },
+    {
+      "name": "test_hamiltonians[ham_enc_gray_dvalues_4-4-4-4-4-4-4-linear]",
+      "topology": "linear",
+      "qubits": 14,
+      "swap_stats": {
+        "count": 10,
+        "average": 1632.1,
+        "median": 1603.0,
+        "min": 1237,
+        "max": 2212
+      },
+      "depth": 5728
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_BK-14-square]",
+      "topology": "square",
+      "qubits": 14,
+      "swap_stats": {
+        "count": 10,
+        "average": 2231,
+        "median": 2229.5,
+        "min": 2052,
+        "max": 2426
+      },
+      "depth": 11517
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_BK-14-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 14,
+      "swap_stats": {
+        "count": 10,
+        "average": 4830.4,
+        "median": 4819.5,
+        "min": 4582,
+        "max": 5245
+      },
+      "depth": 11517
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_BK-14-linear]",
+      "topology": "linear",
+      "qubits": 14,
+      "swap_stats": {
+        "count": 10,
+        "average": 7179.4,
+        "median": 7099.0,
+        "min": 6728,
+        "max": 8137
+      },
+      "depth": 11523
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_JW-14-square]",
+      "topology": "square",
+      "qubits": 14,
+      "swap_stats": {
+        "count": 10,
+        "average": 1974.6,
+        "median": 1954.5,
+        "min": 1802,
+        "max": 2185
+      },
+      "depth": 12930
+    },
+    {
+      "name": "test_hamiltonians[ham_tsp_prob-d198_Ncity-8_enc-unary-square]",
+      "topology": "square",
+      "qubits": 64,
+      "swap_stats": {
+        "count": 10,
+        "average": 477.4,
+        "median": 478.0,
+        "min": 448,
+        "max": 496
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_tsp_prob-d198_Ncity-8_enc-unary-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 64,
+      "swap_stats": {
+        "count": 10,
+        "average": 767.9,
+        "median": 774.0,
+        "min": 698,
+        "max": 812
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_gnp-k_5_n-90_rinst-02-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 90,
+      "swap_stats": {
+        "count": 10,
+        "average": 10106.8,
+        "median": 10136.0,
+        "min": 9797,
+        "max": 10377
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-2D-grid-nonpbc-qubitnodes_Lx-7_Ly-7_U-70_enc-gray_d-4-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 98,
+      "swap_stats": {
+        "count": 10,
+        "average": 6682.1,
+        "median": 6595.0,
+        "min": 6276,
+        "max": 8250
+      },
+      "depth": 9180
+    },
+    {
+      "name": "test_hamiltonians[ham_tsp_prob-pr76_Ncity-10_enc-unary-linear]",
+      "topology": "linear",
+      "qubits": 100,
+      "swap_stats": {
+        "count": 10,
+        "average": 4296.9,
+        "median": 4289.5,
+        "min": 3690,
+        "max": 5098
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_queen13_13,n-28,rinst-0-square]",
+      "topology": "square",
+      "qubits": 112,
+      "swap_stats": {
+        "count": 10,
+        "average": 319.4,
+        "median": 319.5,
+        "min": 309,
+        "max": 330
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_fh-graph-2D-grid-pbc-qubitnodes_Lx-5_Ly-72_U-0_enc-parity-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 720,
+      "swap_stats": {
+        "count": 10,
+        "average": 18022.9,
+        "median": 18044.5,
+        "min": 17188,
+        "max": 18597
+      },
+      "depth": 32997
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-grid-nonpbc-qubitnodes_Lx-5_Ly-186_h-0.5-square]",
+      "topology": "square",
+      "qubits": 930,
+      "swap_stats": {
+        "count": 10,
+        "average": 5169.7,
+        "median": 5165.5,
+        "min": 5106,
+        "max": 5252
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-grid-nonpbc-qubitnodes_Lx-5_Ly-186_h-0.5-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 930,
+      "swap_stats": {
+        "count": 10,
+        "average": 8171.9,
+        "median": 8156.0,
+        "min": 8068,
+        "max": 8390
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_complbipart-n-10_a-5_b-5-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 10,
+      "swap_stats": {
+        "count": 10,
+        "average": 67.8,
+        "median": 67.0,
+        "min": 67,
+        "max": 69
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_complbipart-n-10_a-5_b-5-linear]",
+      "topology": "linear",
+      "qubits": 10,
+      "swap_stats": {
+        "count": 10,
+        "average": 87.7,
+        "median": 87.0,
+        "min": 83,
+        "max": 93
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_JW10-square]",
+      "topology": "square",
+      "qubits": 10,
+      "swap_stats": {
+        "count": 10,
+        "average": 360.9,
+        "median": 363.0,
+        "min": 313,
+        "max": 403
+      },
+      "depth": 2263
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_JW10-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 10,
+      "swap_stats": {
+        "count": 10,
+        "average": 658.5,
+        "median": 636.0,
+        "min": 556,
+        "max": 831
+      },
+      "depth": 2263
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_JW24-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 24,
+      "swap_stats": {
+        "count": 10,
+        "average": 58522.2,
+        "median": 58713.0,
+        "min": 52065,
+        "max": 63597
+      },
+      "depth": 136319
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_JW24-linear]",
+      "topology": "linear",
+      "qubits": 24,
+      "swap_stats": {
+        "count": 10,
+        "average": 49936.6,
+        "median": 51313.0,
+        "min": 41690,
+        "max": 59278
+      },
+      "depth": 136279
+    },
+    {
+      "name": "test_hamiltonians[ham_tsp_prob-ts225_Ncity-5_enc-unary-square]",
+      "topology": "square",
+      "qubits": 25,
+      "swap_stats": {
+        "count": 10,
+        "average": 85.7,
+        "median": 84.5,
+        "min": 81,
+        "max": 91
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_tsp_prob-ts225_Ncity-5_enc-unary-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 25,
+      "swap_stats": {
+        "count": 10,
+        "average": 145.3,
+        "median": 145.5,
+        "min": 139,
+        "max": 151
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_parity-4-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 4,
+      "swap_stats": {
+        "count": 10,
+        "average": 7,
+        "median": 7.0,
+        "min": 7,
+        "max": 7
+      },
+      "depth": 66
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_parity-4-linear]",
+      "topology": "linear",
+      "qubits": 4,
+      "swap_stats": {
+        "count": 10,
+        "average": 7,
+        "median": 7.0,
+        "min": 7,
+        "max": 7
+      },
+      "depth": 66
+    },
+    {
+      "name": "test_hamiltonians[ham_mu_y_prime_enc_stdbinary_dvalues_16-16-16-16-8-8-8-square]",
+      "topology": "square",
+      "qubits": 4,
+      "swap_stats": {
+        "count": 10,
+        "average": 5,
+        "median": 5.0,
+        "min": 5,
+        "max": 5
+      },
+      "depth": 134
+    },
+    {
+      "name": "test_hamiltonians[ham_mu_y_prime_enc_stdbinary_dvalues_16-16-16-16-8-8-8-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 4,
+      "swap_stats": {
+        "count": 10,
+        "average": 9,
+        "median": 9.0,
+        "min": 9,
+        "max": 9
+      },
+      "depth": 134
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_JW-18-linear]",
+      "topology": "linear",
+      "qubits": 18,
+      "swap_stats": {
+        "count": 10,
+        "average": 11444.9,
+        "median": 11595.0,
+        "min": 10026,
+        "max": 13117
+      },
+      "depth": 28770
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_JW-22-square]",
+      "topology": "square",
+      "qubits": 22,
+      "swap_stats": {
+        "count": 10,
+        "average": 12739.4,
+        "median": 12890.0,
+        "min": 11723,
+        "max": 13322
+      },
+      "depth": 86554
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_JW-22-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 22,
+      "swap_stats": {
+        "count": 10,
+        "average": 35782.9,
+        "median": 35760.0,
+        "min": 30807,
+        "max": 41117
+      },
+      "depth": 86545
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_JW-22-linear]",
+      "topology": "linear",
+      "qubits": 22,
+      "swap_stats": {
+        "count": 10,
+        "average": 32744.7,
+        "median": 33834.0,
+        "min": 27075,
+        "max": 36023
+      },
+      "depth": 86521
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_BK22-square]",
+      "topology": "square",
+      "qubits": 22,
+      "swap_stats": {
+        "count": 10,
+        "average": 17899.7,
+        "median": 17842.5,
+        "min": 17532,
+        "max": 18342
+      },
+      "depth": 77901
+    },
+    {
+      "name": "test_hamiltonians[ham_mu_y_prime_enc_stdbinary_dvalues_8-8-8-8-8-8-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 6,
+      "swap_stats": {
+        "count": 10,
+        "average": 4,
+        "median": 4.0,
+        "min": 4,
+        "max": 4
+      },
+      "depth": 28
+    },
+    {
+      "name": "test_hamiltonians[ham_mu_y_prime_enc_stdbinary_dvalues_8-8-8-8-8-8-linear]",
+      "topology": "linear",
+      "qubits": 6,
+      "swap_stats": {
+        "count": 10,
+        "average": 4,
+        "median": 4.0,
+        "min": 4,
+        "max": 4
+      },
+      "depth": 28
+    },
+    {
+      "name": "test_hamiltonians[ham_gnp-k_4_n-6_rinst-15-square]",
+      "topology": "square",
+      "qubits": 6,
+      "swap_stats": {
+        "count": 10,
+        "average": 9,
+        "median": 9.0,
+        "min": 9,
+        "max": 9
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_gnp-k_4_n-6_rinst-15-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 6,
+      "swap_stats": {
+        "count": 10,
+        "average": 20,
+        "median": 20.0,
+        "min": 20,
+        "max": 20
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_enc_unary_dvalues_4-4-4-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 12,
+      "swap_stats": {
+        "count": 10,
+        "average": 4783.2,
+        "median": 4837.0,
+        "min": 4339,
+        "max": 4954
+      },
+      "depth": 13063
+    },
+    {
+      "name": "test_hamiltonians[ham_enc_unary_dvalues_4-4-4-linear]",
+      "topology": "linear",
+      "qubits": 12,
+      "swap_stats": {
+        "count": 10,
+        "average": 6233.5,
+        "median": 6199.0,
+        "min": 6004,
+        "max": 6682
+      },
+      "depth": 13075
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_parity-14-square]",
+      "topology": "square",
+      "qubits": 14,
+      "swap_stats": {
+        "count": 10,
+        "average": 1142.8,
+        "median": 1124.5,
+        "min": 1053,
+        "max": 1276
+      },
+      "depth": 6589
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_parity-14-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 14,
+      "swap_stats": {
+        "count": 10,
+        "average": 2669.7,
+        "median": 2632.0,
+        "min": 2428,
+        "max": 3039
+      },
+      "depth": 6580
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_parity-14-linear]",
+      "topology": "linear",
+      "qubits": 14,
+      "swap_stats": {
+        "count": 10,
+        "average": 3135.1,
+        "median": 3095.5,
+        "min": 2605,
+        "max": 3889
+      },
+      "depth": 6603
+    },
+    {
+      "name": "test_hamiltonians[ham_tsp_prob-d198_Ncity-8_enc-unary-linear]",
+      "topology": "linear",
+      "qubits": 64,
+      "swap_stats": {
+        "count": 10,
+        "average": 1341.2,
+        "median": 1344.5,
+        "min": 1243,
+        "max": 1396
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_tsp_prob-kroD100_Ncity-16_enc-stdbinary-square]",
+      "topology": "square",
+      "qubits": 64,
+      "swap_stats": {
+        "count": 10,
+        "average": 3553.9,
+        "median": 3571.5,
+        "min": 3315,
+        "max": 3834
+      },
+      "depth": 22993
+    },
+    {
+      "name": "test_hamiltonians[ham_dsjc1000.1,n-36,rinst-4-linear]",
+      "topology": "linear",
+      "qubits": 72,
+      "swap_stats": {
+        "count": 10,
+        "average": 3141.5,
+        "median": 3155.5,
+        "min": 2769,
+        "max": 3375
+      },
+      "depth": 865
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-grid-nonpbc-qubitnodes_Lx-5_Ly-15_h-3-square]",
+      "topology": "square",
+      "qubits": 75,
+      "swap_stats": {
+        "count": 10,
+        "average": 133.8,
+        "median": 131.5,
+        "min": 129,
+        "max": 144
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-2D-grid-nonpbc-qubitnodes_Lx-7_Ly-7_U-70_enc-gray_d-4-linear]",
+      "topology": "linear",
+      "qubits": 98,
+      "swap_stats": {
+        "count": 10,
+        "average": 23466.8,
+        "median": 23267.5,
+        "min": 21990,
+        "max": 25345
+      },
+      "depth": 9154
+    },
+    {
+      "name": "test_hamiltonians[ham_fh-graph-1D-grid-pbc-qubitnodes_Lx-50_U-2_enc-jw-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 100,
+      "swap_stats": {
+        "count": 10,
+        "average": 613,
+        "median": 609.0,
+        "min": 600,
+        "max": 647
+      },
+      "depth": 392
+    },
+    {
+      "name": "test_hamiltonians[ham_tsp_prob-pr76_Ncity-10_enc-unary-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 100,
+      "swap_stats": {
+        "count": 10,
+        "average": 1665,
+        "median": 1657.5,
+        "min": 1592,
+        "max": 1786
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_queen13_13,n-28,rinst-0-linear]",
+      "topology": "linear",
+      "qubits": 112,
+      "swap_stats": {
+        "count": 10,
+        "average": 938.1,
+        "median": 939.0,
+        "min": 913,
+        "max": 961
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_1-fullins_5,n-48,rinst-7-square]",
+      "topology": "square",
+      "qubits": 144,
+      "swap_stats": {
+        "count": 10,
+        "average": 10899,
+        "median": 10915.0,
+        "min": 10231,
+        "max": 11536
+      },
+      "depth": 17556
+    },
+    {
+      "name": "test_hamiltonians[ham_fh-graph-1D-grid-pbc-qubitnodes_Lx-160_U-12_enc-parity-linear]",
+      "topology": "linear",
+      "qubits": 320,
+      "swap_stats": {
+        "count": 10,
+        "average": 6919.8,
+        "median": 6928.0,
+        "min": 6872,
+        "max": 6954
+      },
+      "depth": 3492
+    },
+    {
+      "name": "test_hamiltonians[ham_gnp-k_4_n-6_rinst-15-linear]",
+      "topology": "linear",
+      "qubits": 6,
+      "swap_stats": {
+        "count": 10,
+        "average": 40.1,
+        "median": 40.0,
+        "min": 40,
+        "max": 41
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_JW-6-square]",
+      "topology": "square",
+      "qubits": 6,
+      "swap_stats": {
+        "count": 10,
+        "average": 23,
+        "median": 23.0,
+        "min": 23,
+        "max": 23
+      },
+      "depth": 280
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_JW-6-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 6,
+      "swap_stats": {
+        "count": 10,
+        "average": 63,
+        "median": 63.0,
+        "min": 63,
+        "max": 63
+      },
+      "depth": 280
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_JW-6-linear]",
+      "topology": "linear",
+      "qubits": 6,
+      "swap_stats": {
+        "count": 10,
+        "average": 69,
+        "median": 70.0,
+        "min": 57,
+        "max": 73
+      },
+      "depth": 280
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-1D-grid-pbc-qubitnodes_Lx-16_h-2-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 16,
+      "swap_stats": {
+        "count": 10,
+        "average": 3,
+        "median": 3.0,
+        "min": 3,
+        "max": 3
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-1D-grid-pbc-qubitnodes_Lx-16_h-2-linear]",
+      "topology": "linear",
+      "qubits": 16,
+      "swap_stats": {
+        "count": 10,
+        "average": 14,
+        "median": 14.0,
+        "min": 14,
+        "max": 14
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_JW-18-square]",
+      "topology": "square",
+      "qubits": 18,
+      "swap_stats": {
+        "count": 10,
+        "average": 5137.8,
+        "median": 5157.5,
+        "min": 4655,
+        "max": 5466
+      },
+      "depth": 28780
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_JW-18-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 18,
+      "swap_stats": {
+        "count": 10,
+        "average": 11768.2,
+        "median": 11814.5,
+        "min": 10862,
+        "max": 12185
+      },
+      "depth": 28770
+    },
+    {
+      "name": "test_hamiltonians[ham_reg-4_n-90_rinst-07-linear]",
+      "topology": "linear",
+      "qubits": 90,
+      "swap_stats": {
+        "count": 10,
+        "average": 2631.6,
+        "median": 2593.5,
+        "min": 2556,
+        "max": 2808
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-46_U-2_enc-gray_d-4-linear]",
+      "topology": "linear",
+      "qubits": 92,
+      "swap_stats": {
+        "count": 10,
+        "average": 3721.2,
+        "median": 3705.5,
+        "min": 3553,
+        "max": 3889
+      },
+      "depth": 5144
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-2D-triag-pbc-qubitnodes_Lx-10_Ly-10_U-30_enc-stdbinary_d-4-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 100,
+      "swap_stats": {
+        "count": 10,
+        "average": 12503.1,
+        "median": 12899.5,
+        "min": 10859,
+        "max": 13329
+      },
+      "depth": 22746
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-2D-triag-pbc-qubitnodes_Lx-10_Ly-10_U-30_enc-stdbinary_d-4-linear]",
+      "topology": "linear",
+      "qubits": 100,
+      "swap_stats": {
+        "count": 10,
+        "average": 27620.5,
+        "median": 27421.5,
+        "min": 26736,
+        "max": 28650
+      },
+      "depth": 22602
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-60_U-10_enc-stdbinary_d-4-linear]",
+      "topology": "linear",
+      "qubits": 120,
+      "swap_stats": {
+        "count": 10,
+        "average": 530,
+        "median": 521.0,
+        "min": 461,
+        "max": 621
+      },
+      "depth": 9359
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-2D-triag-nonpbc-qubitnodes_Lx-11_Ly-11_U-100_enc-gray_d-4-linear]",
+      "topology": "linear",
+      "qubits": 156,
+      "swap_stats": {
+        "count": 10,
+        "average": 131199.6,
+        "median": 131128.0,
+        "min": 129873,
+        "max": 132837
+      },
+      "depth": 21375
+    },
+    {
+      "name": "test_hamiltonians[ham_fh-graph-1D-grid-nonpbc-qubitnodes_Lx-90_U-2_enc-jw-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 180,
+      "swap_stats": {
+        "count": 10,
+        "average": 649.2,
+        "median": 648.0,
+        "min": 644,
+        "max": 657
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-triag-nonpbc-qubitnodes_Lx-40_Ly-40_h-0.1-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 861,
+      "swap_stats": {
+        "count": 10,
+        "average": 13004.4,
+        "median": 12958.0,
+        "min": 12708,
+        "max": 13443
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-triag-nonpbc-qubitnodes_Lx-40_Ly-40_h-0.1-linear]",
+      "topology": "linear",
+      "qubits": 861,
+      "swap_stats": {
+        "count": 10,
+        "average": 24721.4,
+        "median": 24656.5,
+        "min": 23771,
+        "max": 25633
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_mu_y_prime_enc_stdbinary_dvalues_8-8-4-4-square]",
+      "topology": "square",
+      "qubits": 3,
+      "swap_stats": {
+        "count": 10,
+        "average": 2,
+        "median": 2.0,
+        "min": 2,
+        "max": 2
+      },
+      "depth": 28
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_JW-14-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 14,
+      "swap_stats": {
+        "count": 10,
+        "average": 4540.1,
+        "median": 4552.0,
+        "min": 3697,
+        "max": 5150
+      },
+      "depth": 12922
+    },
+    {
+      "name": "test_hamiltonians[ham_ham_JW-14-linear]",
+      "topology": "linear",
+      "qubits": 14,
+      "swap_stats": {
+        "count": 10,
+        "average": 4528.6,
+        "median": 4477.0,
+        "min": 4042,
+        "max": 5077
+      },
+      "depth": 12917
+    },
+    {
+      "name": "test_hamiltonians[ham_mu_z_prime_enc_unary_dvalues_16-16-16-16-16-16-16-square]",
+      "topology": "square",
+      "qubits": 16,
+      "swap_stats": {
+        "count": 10,
+        "average": 2,
+        "median": 2.0,
+        "min": 2,
+        "max": 2
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_mu_z_prime_enc_unary_dvalues_16-16-16-16-16-16-16-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 16,
+      "swap_stats": {
+        "count": 10,
+        "average": 4,
+        "median": 4.0,
+        "min": 4,
+        "max": 4
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-1D-grid-nonpbc-qubitnodes_Lx-12_U-40_enc-unary_d-4-square]",
+      "topology": "square",
+      "qubits": 48,
+      "swap_stats": {
+        "count": 10,
+        "average": 584.9,
+        "median": 578.5,
+        "min": 541,
+        "max": 665
+      },
+      "depth": 4658
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-1D-grid-nonpbc-qubitnodes_Lx-12_U-40_enc-unary_d-4-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 48,
+      "swap_stats": {
+        "count": 10,
+        "average": 1186.7,
+        "median": 1184.0,
+        "min": 1157,
+        "max": 1238
+      },
+      "depth": 4729
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-1D-grid-nonpbc-qubitnodes_Lx-12_U-40_enc-unary_d-4-linear]",
+      "topology": "linear",
+      "qubits": 48,
+      "swap_stats": {
+        "count": 10,
+        "average": 1352,
+        "median": 1349.0,
+        "min": 1349,
+        "max": 1361
+      },
+      "depth": 4742
+    },
+    {
+      "name": "test_hamiltonians[ham_gnp-k_5_n-60_rinst-19-square]",
+      "topology": "square",
+      "qubits": 60,
+      "swap_stats": {
+        "count": 10,
+        "average": 2949.5,
+        "median": 2950.5,
+        "min": 2817,
+        "max": 3086
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_gnp-k_5_n-60_rinst-19-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 60,
+      "swap_stats": {
+        "count": 10,
+        "average": 5832.5,
+        "median": 5864.0,
+        "min": 5651,
+        "max": 6019
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_gnp-k_5_n-60_rinst-19-linear]",
+      "topology": "linear",
+      "qubits": 60,
+      "swap_stats": {
+        "count": 10,
+        "average": 14883.5,
+        "median": 14871.5,
+        "min": 14619,
+        "max": 15166
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-10_U-30_enc-unary_d-8-square]",
+      "topology": "square",
+      "qubits": 80,
+      "swap_stats": {
+        "count": 10,
+        "average": 4713.7,
+        "median": 4738.0,
+        "min": 4399,
+        "max": 4972
+      },
+      "depth": 23441
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-10_U-30_enc-unary_d-8-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 80,
+      "swap_stats": {
+        "count": 10,
+        "average": 9716.5,
+        "median": 9776.5,
+        "min": 8709,
+        "max": 10444
+      },
+      "depth": 23276
+    },
+    {
+      "name": "test_hamiltonians[ham_queen13_13,n-28,rinst-0-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 112,
+      "swap_stats": {
+        "count": 10,
+        "average": 631.8,
+        "median": 629.5,
+        "min": 602,
+        "max": 687
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_bh_graph-1D-grid-pbc-qubitnodes_Lx-60_U-10_enc-stdbinary_d-4-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 120,
+      "swap_stats": {
+        "count": 10,
+        "average": 1082,
+        "median": 1050.5,
+        "min": 926,
+        "max": 1291
+      },
+      "depth": 9348
+    },
+    {
+      "name": "test_hamiltonians[ham_graph-2D-grid-pbc-qubitnodes_Lx-2_Ly-185_h-0.5-linear]",
+      "topology": "linear",
+      "qubits": 370,
+      "swap_stats": {
+        "count": 10,
+        "average": 1286.2,
+        "median": 1294.5,
+        "min": 1209,
+        "max": 1301
+      },
+      "depth": 0
+    },
+    {
+      "name": "test_hamiltonians[ham_fh-graph-2D-grid-pbc-qubitnodes_Lx-2_Ly-105_U-8_enc-bk-square]",
+      "topology": "square",
+      "qubits": 420,
+      "swap_stats": {
+        "count": 1,
+        "average": 6379,
+        "median": 6379,
+        "min": 6379,
+        "max": 6379
+      },
+      "depth": 4204
+    },
+    {
+      "name": "test_hamiltonians[ham_fh-graph-2D-grid-pbc-qubitnodes_Lx-2_Ly-105_U-8_enc-bk-heavy-hex]",
+      "topology": "heavy-hex",
+      "qubits": 420,
+      "swap_stats": {
+        "count": 10,
+        "average": 11955.8,
+        "median": 12026.0,
+        "min": 11627,
+        "max": 12344
+      },
+      "depth": 3838
+    }
+  ]
+}

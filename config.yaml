@@ -1,18 +1,20 @@
 ocular:
   files:
-    - examples/adder_n4.qasm
-    - examples/adder_n10_shortened.qasm
-    - examples/adder_n10_medium.qasm
-    - examples/adder_n10.qasm
-    - examples/adder_n28.qasm
-    - examples/adder_n64.qasm
-    - examples/ham_heis_graph_2D_grid_nonpbc_qubitnodes_Lx_5_Ly_186_h_0_5.qasm
-    - examples/ham_BH_D_1_d_4_bh_graph_1D_grid_nonpbc_qubitnodes_Lx_12_U_40_enc_unary_d_4.qasm
-    - examples/ham_heis_graph_2D_grid_pbc_qubitnodes_Lx_5_Ly_186_h_3.qasm
+    # - examples/adder_n4.qasm
+    # - examples/adder_n10_shortened.qasm
+    # - examples/adder_n10_medium.qasm
+    # - examples/adder_n10.qasm
+    # - examples/adder_n28.qasm
+    # - examples/adder_n64.qasm
+    # - examples/ham_heis_graph_2D_grid_nonpbc_qubitnodes_Lx_5_Ly_186_h_0_5.qasm
+    # - examples/ham_BH_D_1_d_4_bh_graph_1D_grid_nonpbc_qubitnodes_Lx_12_U_40_enc_unary_d_4.qasm
+    # - examples/ham_heis_graph_2D_grid_pbc_qubitnodes_Lx_5_Ly_186_h_3.qasm
+    - examples/ham_TSP_Ncity_8_tsp_prob_ulysses22_Ncity_8_enc_stdbinary.qasm
+    # - examples/ham_BH_D_3_d_4_bh_graph_3D_grid_nonpbc_qubitnodes_Lx_2_Ly_2_Lz_2_U_20_enc_unary_d_4.qasm
     # - examples/ham_tfim_graph_2D_grid_pbc_qubitnodes_Lx_4_Ly_148_h_6.qasm
     # - examples/ham_ham_unary_color02_ash608gpia_k_3_ash608gpia_n_160_rinst_1.qasm
     # - examples/ham_BH_D_2_d_4_bh_graph_2D_triag_pbc_qubitnodes_Lx_10_Ly_10_U_30_enc_stdbinary_d_4.qasm
     # - examples/ham_graph_gnp_k_4_gnp_k_4_n_6_rinst_15.qasm
     # - examples/56_alltoall_1148rzz.qasm
     # - examples/ham_BH_D_1_d_4_bh_graph_1D_grid_nonpbc_qubitnodes_Lx_12_U_40_enc_unary_d_4.qasm
-  depth: 3
+  depth: 6

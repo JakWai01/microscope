@@ -65,6 +65,7 @@ def ocular(config):
             ]
         )
         preprocessed_circuit = pm.run(input_circuit)
+        # preprocessed_circuit.draw(output="mpl", fold=-1)
 
         preprocessed_dag = circuit_to_dag(preprocessed_circuit)
 
