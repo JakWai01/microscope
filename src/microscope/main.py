@@ -1,5 +1,5 @@
 import click
-import matplotlib.pyplot as plt  # type: ignore
+# import matplotlib.pyplot as plt  # type: ignore
 
 from commands.ocular import ocular
 from commands.olsq import olsq
@@ -27,7 +27,7 @@ def main(command: str):
 
     t1 = time.perf_counter()
     print(f"Took {t1 - t0:.2f}s")
-    plt.show()
+    # plt.show()
 
 
 def parse_config():

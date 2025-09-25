@@ -125,6 +125,12 @@ for i, (circuit, (swaps, depths, runtimes, q_swaps, q_swaps_std, q_depth, q_dept
     axs[0].fill_between(k_values, q_swaps - q_swaps_std, q_swaps + q_swaps_std,
                         color=color, alpha=0.1)
 
+    # Annotate relative improvement at each k
+    for j, k in enumerate(k_values):
+        improvement = (q_swaps - swaps_means[j]) / q_swaps * 100
+        axs[0].annotate(f"{improvement:.1f}%", (k, swaps_means[j]),
+                        textcoords="offset points", xytext=(0, 10), ha='center', color=color)
+
     # Subplot 2: Depth
     axs[1].fill_between(k_values,
                         np.array(depth_means) - np.array(depth_stds),
@@ -136,9 +142,20 @@ for i, (circuit, (swaps, depths, runtimes, q_swaps, q_swaps_std, q_depth, q_dept
     axs[1].fill_between(k_values, q_depth - q_depth_std, q_depth + q_depth_std,
                         color=color, alpha=0.1)
 
+    # Annotate relative improvement at each k
+    for j, k in enumerate(k_values):
+        improvement = (q_depth - depth_means[j]) / q_depth * 100
+        axs[1].annotate(f"{improvement:.1f}%", (k, depth_means[j]),
+                        textcoords="offset points", xytext=(0, 10), ha='center', color=color)
+
     # Subplot 3: Runtime
     axs[2].semilogy(k_values, runtimes, marker+'-', linewidth=2, markersize=6,
                     label=f'{circuit}', color=color)
+
+    # Annotate runtime at each k
+    for j, k in enumerate(k_values):
+        axs[2].annotate(f"{runtimes[j]:.1f}s", (k, runtimes[j]),
+                        textcoords="offset points", xytext=(0, 10), ha='center', color=color)
 
 # --- Formatting ---
 axs[0].set_xlabel('Lookahead parameter $k$', fontsize=13, fontweight='bold')
