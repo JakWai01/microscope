@@ -17,4 +17,6 @@ ocular:
     # - examples/ham_graph_gnp_k_4_gnp_k_4_n_6_rinst_15.qasm
     # - examples/56_alltoall_1148rzz.qasm
     # - examples/ham_BH_D_1_d_4_bh_graph_1D_grid_nonpbc_qubitnodes_Lx_12_U_40_enc_unary_d_4.qasm
-  depth: 1
+    # - examples/ham_FH_D_1_fh_graph_1D_grid_pbc_qubitnodes_Lx_50_U_2_enc_jw.qasm
+    # - examples/ham_OH_JW10.qasm
+  depth: 5

@@ -49,7 +49,7 @@ def ocular(config):
         test_results = defaultdict(list)
 
         input_circuit = QuantumCircuit.from_qasm_file(file)
-
+        
         num_qubits = input_circuit.num_qubits
 
         coupling_map = coupling_line(input_circuit.num_qubits)
