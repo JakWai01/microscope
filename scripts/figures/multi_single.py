@@ -31,8 +31,12 @@ ham_depth = {
 
 ham_runtime = [0.5, 1.2, 3.5, 22, 136, 1010]
 
-ham_qiskit_swaps = 1757
-ham_qiskit_depth = np.mean([8665, 8661, 8661, 8663, 8665, 8655, 8663, 8659, 8653, 8655])
+ham_qiskit_swaps_vals = [1757]
+ham_qiskit_depth_vals = [8665, 8661, 8661, 8663, 8665, 8655, 8663, 8659, 8653, 8655]
+ham_qiskit_swaps = np.mean(ham_qiskit_swaps_vals)
+ham_qiskit_swaps_std = np.std(ham_qiskit_swaps_vals)
+ham_qiskit_depth = np.mean(ham_qiskit_depth_vals)
+ham_qiskit_depth_std = np.std(ham_qiskit_depth_vals)
 
 # Circuit 2: ham_TSP_Ncity_8_tsp
 uly_swaps = {
@@ -55,8 +59,12 @@ uly_depth = {
 
 uly_runtime = [0.15, 0.2, 1.27, 15.9, 68.7, 8750]
 
-uly_qiskit_swaps = np.mean([607, 584, 574, 575, 552, 518, 550, 557, 526, 529])
-uly_qiskit_depth = np.mean([2388, 2371, 2386, 2374, 2389, 2374, 2368, 2377, 2358, 2380])
+uly_qiskit_swaps_vals = [607, 584, 574, 575, 552, 518, 550, 557, 526, 529]
+uly_qiskit_depth_vals = [2388, 2371, 2386, 2374, 2389, 2374, 2368, 2377, 2358, 2380]
+uly_qiskit_swaps = np.mean(uly_qiskit_swaps_vals)
+uly_qiskit_swaps_std = np.std(uly_qiskit_swaps_vals)
+uly_qiskit_depth = np.mean(uly_qiskit_depth_vals)
+uly_qiskit_depth_std = np.std(uly_qiskit_depth_vals)
 
 # Circuit 3: ham_OH_JW10
 oh_swaps = {
@@ -79,20 +87,24 @@ oh_depth = {
 
 oh_runtime = [0.21, 0.31, 0.78, 5.79, 33.7, 248]
 
-oh_qiskit_swaps = np.mean([813, 705, 745, 735, 743, 751, 695, 868, 814, 743])
-oh_qiskit_depth = np.mean([3442, 3383, 3393, 3388, 3400, 3419, 3362, 3510, 3489, 3373])
+oh_qiskit_swaps_vals = [813, 705, 745, 735, 743, 751, 695, 868, 814, 743]
+oh_qiskit_depth_vals = [3442, 3383, 3393, 3388, 3400, 3419, 3362, 3510, 3489, 3373]
+oh_qiskit_swaps = np.mean(oh_qiskit_swaps_vals)
+oh_qiskit_swaps_std = np.std(oh_qiskit_swaps_vals)
+oh_qiskit_depth = np.mean(oh_qiskit_depth_vals)
+oh_qiskit_depth_std = np.std(oh_qiskit_depth_vals)
 
 # Organize into a dict
 circuits = {
-    "ham_BH_D_1_d_4": (ham_swaps, ham_depth, ham_runtime, ham_qiskit_swaps, ham_qiskit_depth),
-    "ham_TSP_Ncity_8_tsp": (uly_swaps, uly_depth, uly_runtime, uly_qiskit_swaps, uly_qiskit_depth),
-    "ham_OH_JW10": (oh_swaps, oh_depth, oh_runtime, oh_qiskit_swaps, oh_qiskit_depth),
+    "ham_BH_D_1_d_4": (ham_swaps, ham_depth, ham_runtime, ham_qiskit_swaps, ham_qiskit_swaps_std, ham_qiskit_depth, ham_qiskit_depth_std),
+    "ham_TSP_Ncity_8_tsp": (uly_swaps, uly_depth, uly_runtime, uly_qiskit_swaps, uly_qiskit_swaps_std, uly_qiskit_depth, uly_qiskit_depth_std),
+    "ham_OH_JW10": (oh_swaps, oh_depth, oh_runtime, oh_qiskit_swaps, oh_qiskit_swaps_std, oh_qiskit_depth, oh_qiskit_depth_std),
 }
 
 # --- Plot ---
 fig, axs = plt.subplots(1, 3, figsize=(20, 6), constrained_layout=True)
 
-for i, (circuit, (swaps, depths, runtimes, q_swaps, q_depth)) in enumerate(circuits.items()):
+for i, (circuit, (swaps, depths, runtimes, q_swaps, q_swaps_std, q_depth, q_depth_std)) in enumerate(circuits.items()):
     color = palette[i]
     marker = markers[i]
 
@@ -110,6 +122,8 @@ for i, (circuit, (swaps, depths, runtimes, q_swaps, q_depth)) in enumerate(circu
     axs[0].plot(k_values, swaps_means, marker+'-', linewidth=2, markersize=6,
                 label=f'{circuit}', color=color)
     axs[0].axhline(y=q_swaps, color=color, linestyle='--', linewidth=1.5)
+    axs[0].fill_between(k_values, q_swaps - q_swaps_std, q_swaps + q_swaps_std,
+                        color=color, alpha=0.1)
 
     # Subplot 2: Depth
     axs[1].fill_between(k_values,
@@ -119,6 +133,8 @@ for i, (circuit, (swaps, depths, runtimes, q_swaps, q_depth)) in enumerate(circu
     axs[1].plot(k_values, depth_means, marker+'-', linewidth=2, markersize=6,
                 label=f'{circuit}', color=color)
     axs[1].axhline(y=q_depth, color=color, linestyle='--', linewidth=1.5)
+    axs[1].fill_between(k_values, q_depth - q_depth_std, q_depth + q_depth_std,
+                        color=color, alpha=0.1)
 
     # Subplot 3: Runtime
     axs[2].semilogy(k_values, runtimes, marker+'-', linewidth=2, markersize=6,
