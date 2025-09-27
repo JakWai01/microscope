@@ -110,5 +110,7 @@ cbar.set_label("Number of Qubits")
 
 plt.suptitle("Qiskit SABRE vs K-SWAP SABRE (k=1,2,3) across Topologies\n(topologies sorted according to connectivity)", fontsize=16, fontweight="bold")  # default ~1.0, lower moves it closer to the figure
 plt.tight_layout(rect=[0, 0, 1, 0.97])
-plt.savefig(args.out, dpi=900)
+
+plt.savefig("sabre_swaps_across_topologies.pdf", 
+            format="pdf", bbox_inches="tight")
 plt.show()

@@ -120,7 +120,20 @@ def plot_violin(df, out_path, title=None):
     ax.xaxis.grid(False)
 
     plt.tight_layout()
-    ax.get_figure().savefig(out_path, dpi=300, bbox_inches='tight')
+    # ax.get_figure().savefig(out_path, dpi=300, bbox_inches='tight')
+    # import matplotlib as mpl
+    # mpl.rcParams.update({
+    # "text.usetex": True,
+    # "font.family": "serif",
+    # "font.serif": ["Times"],  # or whatever your thesis uses
+    # "axes.labelsize": 12,
+    # "axes.titlesize": 13,
+    # "legend.fontsize": 12,
+    # "xtick.labelsize": 11,
+    # "ytick.labelsize": 11,
+    # })
+    plt.savefig("violin.pdf", 
+            format="pdf", bbox_inches="tight")
     plt.show()
     plt.close(ax.get_figure())
 
@@ -197,7 +210,7 @@ def main():
             ocular_map, qiskit_map,
             min_qubits=args.min_qubits,
             max_qubits=args.max_qubits,
-            topology_filter="linear"
+            topology_filter="square"
         )
         df_i['benchmark'] = label
         dfs.append(df_i)

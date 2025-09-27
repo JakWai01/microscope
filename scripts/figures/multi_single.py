@@ -175,4 +175,6 @@ axs[2].legend(fontsize=10, loc='upper left', frameon=False)
 
 plt.suptitle('SABRE Algorithm: Lookahead Parameter Analysis Across Circuits',
              fontsize=16, fontweight='bold')
+plt.savefig("sabre_lookahead_analysis.pdf", 
+            format="pdf", bbox_inches="tight")
 plt.show()

@@ -20,18 +20,96 @@ algorithm based on a trivial initial mapping.
 
 ![Output Circuit Transpiled using K-SWAP SABRE](./assets/img/sabre_circuit.png)
 
-## Setup
+## Requirements
 
-Make sure to install the [Rust](https://www.rust-lang.org/tools/install) programming language. Then, install all the required Python dependencies.
+- **Python** 3.10 or later  
+- **Rust** (via [rustup](https://rustup.rs/))  
+- **maturin** for building Python ↔ Rust extensions  
+- **make** (if using a Makefile)  
 
+---
+
+## Quickstart
+
+If you just want to try it out in Docker:
+
+```bash
+docker build -t microscope .
+````
+
+---
+
+##  Local Development Setup
+
+1. **Clone the repo**
+
+   ```bash
+   git clone https://github.com/yourusername/myproject.git
+   cd myproject
+   ```
+
+2. **Create a virtual environment**
+
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate
+   ```
+
+3. **Install dependencies**
+
+   ```bash
+   pip install --upgrade pip
+   pip install maturin
+   pip install -r requirements.txt
+   ```
+
+4. **Build and install the Rust extension**
+
+   ```bash
+   maturin develop --release
+   ```
+
+5. **Run the project**
+
+   ```bash
+   make
+   ```
+
+---
+
+## Docker Build (Alternative)
+
+If you don’t want to install Rust locally, build inside Docker:
+
+```bash
+docker build -t microscope .
 ```
-pip install -r requirements.txt
-```
 
-## Run 
+---
 
-To run the circuits configured in `config.yaml`, execute:
+## Notes
 
-```
-make
-```
+* Use `maturin develop` for **editable installs** while developing.
+* For a **production build**, create a wheel and install it:
+
+  ```bash
+  maturin build --release -o dist
+  pip install dist/*.whl
+  ```
+
+---
+
+## Contributing
+
+1. Fork the repo
+2. Create a new branch (`git checkout -b feature/my-feature`)
+3. Make changes
+4. Commit (`git commit -m "Add my feature"`)
+5. Push (`git push origin feature/my-feature`)
+6. Open a Pull Request
+
+---
+
+## License
+
+[Apache 2.0](./LICENSE) (or whatever license you use)
