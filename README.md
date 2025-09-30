@@ -112,4 +112,4 @@ docker build -t microscope .
 
 ## License
 
-[Apache 2.0](./LICENSE) (or whatever license you use)
+[Apache 2.0](./LICENSE)
